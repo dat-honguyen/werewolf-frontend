@@ -1,0 +1,11 @@
+<app-animated-card [flipped]="revealed()" [glowing]="revealed()" [glowColor]="glowColor()">
+    <div card-back class="role-card__back">
+        <span class="role-card__sigil">?</span>
+    </div>
+    <div card-front class="role-card__front">
+        <h3 class="card-title role-card__title">{{ role() }}</h3>
+        @if (description()) {
+        <p class="card-body role-card__description">{{ description() }}</p>
+        }
+    </div>
+</app-animated-card>

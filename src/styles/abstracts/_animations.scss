@@ -1,0 +1,53 @@
+@keyframes cardFlip {
+    from {
+        transform: rotateY(180deg);
+    }
+
+    to {
+        transform: rotateY(0deg);
+    }
+}
+
+@keyframes cardGlowPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 8px 2px var(--glow-color, var(--color-gold-glow));
+    }
+
+    50% {
+        box-shadow: 0 0 20px 6px var(--glow-color, var(--color-gold-glow));
+    }
+}
+
+@keyframes cardDeath {
+    from {
+        filter: grayscale(0%);
+        opacity: 1;
+        transform: rotate(0deg);
+    }
+
+    to {
+        filter: grayscale(100%);
+        opacity: 0.55;
+        transform: rotate(-8deg);
+    }
+}
+
+@keyframes phaseIris {
+    from {
+        clip-path: circle(0% at 50% 50%);
+    }
+
+    to {
+        clip-path: circle(150% at 50% 50%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animated-card,
+    .player-card,
+    .phase-transition {
+        animation: none !important;
+        transition: opacity 0.01ms !important;
+    }
+}

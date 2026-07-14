@@ -1,0 +1,30 @@
+:root {
+    // Moonlight — cool blue-silver darks for the void/table background
+    --color-bg-void: #0a0d16;
+    --color-bg-table: #131a2b;
+    --color-moonlight: #b8c6e8;
+
+    // Gold — primary accent for interactive elements, active-turn indicators, host controls
+    --color-gold: #d9a441;
+    --color-gold-glow: rgb(217 164 65 / 55%);
+
+    // Blood red — werewolf faction, danger, death, "you're being voted" states
+    --color-blood: #8f1c2e;
+    --color-blood-glow: rgb(143 28 46 / 55%);
+
+    // Parchment — warm off-white/cream for card faces and text-heavy panels
+    --color-parchment: #f1e4c8;
+    --color-parchment-ink: #2a2118;
+
+    // Per-faction glow accents
+    --color-faction-villager: #c7d3e6;
+    --color-faction-werewolf: var(--color-blood);
+    --color-faction-seer: #5aa9a3;
+    --color-faction-doctor: #6f9e5e;
+    --color-faction-witch: #7a5ea8;
+    --color-faction-cupid: #c2679a;
+    --color-faction-hunter: #b06a2e;
+    --color-faction-tanner: #9aa332;
+    --font-display: 'Cinzel', 'Georgia', serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+}

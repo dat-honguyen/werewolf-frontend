@@ -1,0 +1,13 @@
+<div class="role-reveal-screen">
+    @if (myRole(); as role) {
+    <h1 class="phase-title">You are: {{ role }}</h1>
+    <div class="role-reveal-screen__card">
+        <app-role-card
+            [role]="role"
+            [description]="description()"
+            [revealed]="revealed()"
+        ></app-role-card>
+    </div>
+    <button type="button" class="role-reveal-screen__button" (click)="continue()">Got it</button>
+    }
+</div>

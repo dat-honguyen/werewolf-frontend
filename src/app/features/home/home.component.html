@@ -1,0 +1,33 @@
+<div class="home">
+    <h1 class="phase-title home__title">Werewolf</h1>
+
+    <label class="home__field">
+        Display name
+        <input
+            type="text"
+            [ngModel]="displayName()"
+            (ngModelChange)="displayName.set($event)"
+            placeholder="Your name"
+        />
+    </label>
+
+    <div class="home__actions">
+        <button type="button" class="home__button home__button--primary" (click)="createRoom()">
+            Create Room
+        </button>
+
+        <div class="home__join">
+            <input
+                type="text"
+                [ngModel]="joinRoomCode()"
+                (ngModelChange)="joinRoomCode.set($event)"
+                placeholder="Room code"
+            />
+            <button type="button" class="home__button" (click)="joinRoom()">Join Room</button>
+        </div>
+    </div>
+
+    @if (errorMessage()) {
+        <p class="home__error">{{ errorMessage() }}</p>
+    }
+</div>

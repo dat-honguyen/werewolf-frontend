@@ -1,0 +1,22 @@
+@use '../../../../styles/abstracts/mixins';
+
+.game-table {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+
+    &__felt {
+        @include mixins.card-frame;
+
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        max-width: 60rem;
+        padding: 2rem;
+        border-radius: 1.5rem;
+        background: radial-gradient(ellipse at center, var(--color-bg-table), var(--color-bg-void));
+    }
+}

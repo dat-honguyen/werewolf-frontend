@@ -1,0 +1,159 @@
+@if (lobby(); as lobby) {
+<div class="lobby-screen">
+    <header class="lobby-screen__header">
+        <h1 class="phase-title">Room {{ roomCode }}</h1>
+        <button type="button" class="lobby-screen__button" (click)="copyInviteLink()">
+            Copy invite link
+        </button>
+    </header>
+
+    <app-game-table>
+        @for (player of lobby.players; track player.playerId) {
+        <div class="lobby-screen__player">
+            <app-player-card
+                [displayName]="player.displayName"
+                [isReady]="player.isReady"
+            ></app-player-card>
+            @if (isHost() && player.playerId !== myPlayerId()) {
+            <button type="button" class="lobby-screen__kick" (click)="kick(player.playerId)">
+                Kick
+            </button>
+            }
+        </div>
+        }
+    </app-game-table>
+
+    <p class="lobby-screen__note">
+        Other players' ready state may lag until they refresh — live lobby sync isn't available yet.
+    </p>
+
+    <button
+        type="button"
+        class="lobby-screen__button lobby-screen__button--primary"
+        (click)="toggleReady()"
+    >
+        {{ myPlayer()?.isReady ? 'Un-ready' : 'Ready Up' }}
+    </button>
+
+    @if (isHost()) {
+    <section class="lobby-screen__host-controls">
+        <button
+            type="button"
+            class="lobby-screen__button"
+            (click)="showRoleDistribution.set(!showRoleDistribution())"
+        >
+            Role distribution ▾
+        </button>
+        @if (showRoleDistribution()) {
+        <div class="lobby-screen__panel">
+            @for (role of allRoles; track role) {
+            <label class="lobby-screen__role-row">
+                {{ role }}
+                <input
+                    type="number"
+                    min="0"
+                    [ngModel]="roleCount(role)"
+                    (ngModelChange)="updateRoleCount(role, $event)"
+                />
+            </label>
+            }
+        </div>
+        }
+
+        <button
+            type="button"
+            class="lobby-screen__button"
+            (click)="showGameSettings.set(!showGameSettings())"
+        >
+            Game settings ▾
+        </button>
+        @if (showGameSettings()) {
+        <div class="lobby-screen__panel">
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="lobby.settings.revealRoleOnDeath"
+                    (ngModelChange)="updateSetting('revealRoleOnDeath', $event)"
+                />
+                Reveal role on death
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="lobby.settings.doctorCanSelfProtect"
+                    (ngModelChange)="updateSetting('doctorCanSelfProtect', $event)"
+                />
+                Doctor can self-protect
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="lobby.settings.werewolfRequiresConsensus"
+                    (ngModelChange)="updateSetting('werewolfRequiresConsensus', $event)"
+                />
+                Werewolves require consensus
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="lobby.settings.werewolfCanTargetWerewolf"
+                    (ngModelChange)="updateSetting('werewolfCanTargetWerewolf', $event)"
+                />
+                Werewolves can target werewolves
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="lobby.settings.werewolfCanVoteNoKill"
+                    (ngModelChange)="updateSetting('werewolfCanVoteNoKill', $event)"
+                />
+                Werewolves can vote no-kill
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="lobby.settings.witchSinglePotionPerNight"
+                    (ngModelChange)="updateSetting('witchSinglePotionPerNight', $event)"
+                />
+                Witch: single potion per night
+            </label>
+            <label>
+                Min players
+                <input
+                    type="number"
+                    min="1"
+                    [ngModel]="lobby.settings.minPlayers"
+                    (ngModelChange)="updateSetting('minPlayers', $event)"
+                />
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="lobby.settings.allowForceStart"
+                    (ngModelChange)="updateSetting('allowForceStart', $event)"
+                />
+                Allow force start
+            </label>
+        </div>
+        }
+
+        <button
+            type="button"
+            class="lobby-screen__button lobby-screen__button--primary"
+            [disabled]="!canStart()"
+            (click)="startGame()"
+        >
+            {{ needsForceStart() ? 'Force Start' : 'Start Game' }}
+        </button>
+
+        <button
+            type="button"
+            class="lobby-screen__button lobby-screen__button--danger"
+            (click)="cancelLobby()"
+        >
+            Cancel Lobby
+        </button>
+    </section>
+    }
+</div>
+}

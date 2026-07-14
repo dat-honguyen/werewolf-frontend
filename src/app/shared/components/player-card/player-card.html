@@ -1,0 +1,18 @@
+<button
+    type="button"
+    class="player-card"
+    [class.player-card--dead]="!isAlive()"
+    [class.player-card--dying]="isDying()"
+    [class.player-card--selectable]="isSelectable()"
+    [class.player-card--selected]="isSelected()"
+    [disabled]="!isSelectable()"
+    (click)="picked.emit()"
+>
+    <span class="player-card__avatar">{{ displayName().charAt(0).toUpperCase() }}</span>
+    <span class="player-card__name">{{ displayName() }}</span>
+    @if (isReady() !== null) {
+    <span class="player-card__ready">{{ isReady() ? '✓ ready' : '○ not ready' }}</span>
+    } @if (voteCount() > 0) {
+    <span class="player-card__votes">{{ voteCount() }}</span>
+    }
+</button>

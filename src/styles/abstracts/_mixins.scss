@@ -1,0 +1,20 @@
+@mixin card-frame {
+    border-radius: 0.75rem;
+    border: 2px solid var(--color-gold);
+    box-shadow:
+        0 0 0 1px rgb(0 0 0 / 40%),
+        0 8px 24px rgb(0 0 0 / 50%);
+}
+
+@mixin parchment-texture {
+    background-color: var(--color-parchment);
+    background-image: radial-gradient(rgb(0 0 0 / 4%) 1px, transparent 1px);
+    background-size: 3px 3px;
+    color: var(--color-parchment-ink);
+}
+
+@mixin glow($color: var(--color-gold-glow)) {
+    --glow-color: #{$color};
+
+    box-shadow: 0 0 12px 3px var(--glow-color);
+}

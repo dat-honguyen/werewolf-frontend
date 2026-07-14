@@ -1,0 +1,42 @@
+<div class="voting-screen">
+    <h1 class="phase-title">Day {{ state()?.dayNumber }} — Vote</h1>
+
+    <app-game-table>
+        @for (player of alivePlayers(); track player.playerId) {
+        <app-player-card
+            [displayName]="playerName(player.playerId)"
+            [isSelectable]="true"
+            [isSelected]="selectedTarget() === player.playerId"
+            [voteCount]="voteCountFor(player.playerId)"
+            (picked)="select(player.playerId)"
+        ></app-player-card>
+        }
+        <app-player-card
+            displayName="Abstain"
+            [isSelectable]="true"
+            [isSelected]="selectedTarget() === null"
+            [voteCount]="abstainCount()"
+            (picked)="select(null)"
+        ></app-player-card>
+    </app-game-table>
+
+    <button
+        type="button"
+        class="voting-screen__button voting-screen__button--primary"
+        (click)="submitVote()"
+    >
+        Submit Vote
+    </button>
+
+    <p class="voting-screen__tally">{{ votedCount() }} / {{ alivePlayers().length }} voted</p>
+
+    @if (isHost()) {
+    <button
+        type="button"
+        class="voting-screen__button voting-screen__button--danger"
+        (click)="closeVotingEarly()"
+    >
+        Close Voting Early
+    </button>
+    }
+</div>

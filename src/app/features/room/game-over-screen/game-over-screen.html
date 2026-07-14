@@ -1,0 +1,40 @@
+@if (showTransition()) {
+<app-phase-transition
+    [title]="result() ? result()!.winningFaction + ' win!' : 'Game Over'"
+    (dismissed)="dismissTransition()"
+></app-phase-transition>
+} @else if (result(); as result) {
+<div class="game-over-screen">
+    <h1 class="phase-title">Game Over — {{ result.winningFaction }} win!</h1>
+
+    <div class="game-over-screen__roles">
+        @for (entry of finalRoles(); track entry.playerId) {
+        <div class="game-over-screen__role">
+            <app-role-card [role]="entry.role" [revealed]="true"></app-role-card>
+            <span>{{ playerName(entry.playerId) }}</span>
+        </div>
+        }
+    </div>
+
+    <div class="game-over-screen__actions">
+        <button type="button" class="game-over-screen__button" (click)="viewLog()">
+            View full game log
+        </button>
+        <button
+            type="button"
+            class="game-over-screen__button game-over-screen__button--primary"
+            (click)="returnToLobby()"
+        >
+            Return to lobby / rematch
+        </button>
+    </div>
+
+    @if (logEntries(); as entries) {
+    <ul class="game-over-screen__log">
+        @for (entry of entries; track $index) {
+        <li>{{ entry }}</li>
+        }
+    </ul>
+    }
+</div>
+}

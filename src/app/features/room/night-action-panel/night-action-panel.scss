@@ -1,0 +1,51 @@
+.night-action-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    color: var(--color-moonlight);
+
+    &__block {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 32rem;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        background-color: var(--color-bg-table);
+    }
+
+    &__actions {
+        display: flex;
+        gap: 0.5rem;
+
+        button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--color-gold);
+            background: transparent;
+            color: var(--color-gold);
+            cursor: pointer;
+        }
+    }
+
+    &__tally {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.85rem;
+        opacity: 0.85;
+    }
+
+    &__result {
+        font-weight: 600;
+        color: var(--color-gold);
+    }
+
+    &__waiting {
+        opacity: 0.7;
+        font-style: italic;
+    }
+}

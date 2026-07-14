@@ -1,0 +1,8 @@
+@use 'styles/abstracts/design-tokens';
+@use 'styles/abstracts/animations';
+@use 'styles/base/reset';
+@use 'styles/base/typography';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

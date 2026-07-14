@@ -1,0 +1,22 @@
+<div class="day-discussion-screen">
+    <h1 class="phase-title">Day {{ state()?.dayNumber }} — Discuss</h1>
+
+    @if (lastDeath(); as death) {
+    <div class="day-discussion-screen__death">
+        <app-player-card
+            [displayName]="playerName(death.playerId)"
+            [isAlive]="false"
+            [isDying]="true"
+        ></app-player-card>
+        <p>{{ playerName(death.playerId) }} died last night ({{ death.cause }}).</p>
+    </div>
+    }
+
+    <p class="day-discussion-screen__hint">Free-form chat/voice — no protocol here.</p>
+
+    @if (isHost()) {
+    <button type="button" class="day-discussion-screen__button" (click)="advanceToVoting()">
+        Advance to Voting
+    </button>
+    }
+</div>

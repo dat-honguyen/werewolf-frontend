@@ -1,0 +1,14 @@
+<div
+    class="animated-card"
+    [class.animated-card--flipped]="flipped()"
+    [class.animated-card--glowing]="glowing()"
+    [class.animated-card--disabled]="disabled()"
+    [style.--glow-color]="glowColor()"
+>
+    <div class="animated-card__face animated-card__face--back">
+        <ng-content select="[card-back]"></ng-content>
+    </div>
+    <div class="animated-card__face animated-card__face--front">
+        <ng-content select="[card-front]"></ng-content>
+    </div>
+</div>

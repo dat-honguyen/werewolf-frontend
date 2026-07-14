@@ -1,0 +1,33 @@
+.voting-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 2rem;
+    color: var(--color-moonlight);
+    text-align: center;
+
+    &__button {
+        padding: 0.6rem 1.25rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--color-gold);
+        background: transparent;
+        color: var(--color-gold);
+        cursor: pointer;
+
+        &--primary {
+            background-color: var(--color-gold);
+            color: var(--color-parchment-ink);
+        }
+
+        &--danger {
+            border-color: var(--color-blood);
+            color: var(--color-blood);
+        }
+    }
+
+    &__tally {
+        opacity: 0.8;
+        font-size: 0.9rem;
+    }
+}

@@ -1,0 +1,71 @@
+@use '../../../../styles/abstracts/mixins';
+
+.player-card {
+    @include mixins.card-frame;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background-color: var(--color-bg-table);
+    color: var(--color-moonlight);
+    font-family: var(--font-body);
+    cursor: default;
+
+    &__avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-color: var(--color-gold);
+        color: var(--color-parchment-ink);
+        font-weight: 700;
+    }
+
+    &__name {
+        font-size: 0.9rem;
+    }
+
+    &__ready {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    &__votes {
+        position: absolute;
+        top: -0.5rem;
+        right: -0.5rem;
+        min-width: 1.5rem;
+        padding: 0.1rem 0.35rem;
+        border-radius: 999px;
+        background-color: var(--color-blood);
+        color: var(--color-parchment);
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    &--selectable {
+        cursor: pointer;
+    }
+
+    &--selectable:hover {
+        border-color: var(--color-moonlight);
+    }
+
+    &--selected {
+        animation: cardGlowPulse 1.8s ease-in-out infinite;
+    }
+
+    &--dying {
+        animation: cardDeath 0.9s ease-out forwards;
+    }
+
+    &--dead {
+        filter: grayscale(100%);
+        opacity: 0.55;
+    }
+}

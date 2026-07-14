@@ -1,0 +1,12 @@
+<div class="hunter-revenge-modal">
+    <div class="hunter-revenge-modal__card">
+        <h1 class="phase-title">Hunter's Revenge</h1>
+        @if (isMyTurn()) {
+        <p>You were killed. Take one down with you?</p>
+        <app-player-picker [candidates]="candidates()" (picked)="shoot($event)"></app-player-picker>
+        <button type="button" class="hunter-revenge-modal__button" (click)="pass()">Pass</button>
+        } @else {
+        <p class="hunter-revenge-modal__waiting">Waiting on the Hunter...</p>
+        }
+    </div>
+</div>

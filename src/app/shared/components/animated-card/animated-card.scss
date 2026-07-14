@@ -1,0 +1,49 @@
+@use '../../../../styles/abstracts/mixins';
+
+.animated-card {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    perspective: 1200px;
+
+    &__face {
+        @include mixins.card-frame;
+
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        transition: transform 0.6s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    &__face--back {
+        background-color: var(--color-bg-table);
+        transform: rotateY(0deg);
+    }
+
+    &__face--front {
+        @include mixins.parchment-texture;
+
+        transform: rotateY(-180deg);
+    }
+
+    &--flipped &__face--back {
+        transform: rotateY(180deg);
+    }
+
+    &--flipped &__face--front {
+        transform: rotateY(0deg);
+    }
+
+    &--glowing {
+        animation: cardGlowPulse 1.8s ease-in-out infinite;
+    }
+
+    &--disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+}

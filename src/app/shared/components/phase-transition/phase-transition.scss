@@ -1,0 +1,16 @@
+.phase-transition {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-bg-void);
+    animation: phaseIris 1.4s ease-in-out forwards;
+
+    &__title {
+        color: var(--color-gold);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+    }
+}
