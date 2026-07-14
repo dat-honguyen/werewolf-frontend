@@ -8,6 +8,7 @@ import {
     CloseVotingRequest,
     GameLogResponse,
     GameStateResponse,
+    LoversResponse,
     PassHunterRevengeRequest,
     PassWitchRequest,
     SubmitCupidPairingRequest,
@@ -16,7 +17,9 @@ import {
     SubmitSeerInspectionRequest,
     SubmitWerewolfVoteRequest,
     UseWitchHealPotionRequest,
-    UseWitchPoisonPotionRequest
+    UseWitchPoisonPotionRequest,
+    WerewolfVotesResponse,
+    WitchTargetResponse
 } from '../models/game.model';
 
 @Injectable({ providedIn: 'root' })
@@ -78,5 +81,28 @@ export class GameApiService {
 
     getLog(roomCode: string): Observable<GameLogResponse> {
         return this.http.get<GameLogResponse>(`${this.baseUrl}/${roomCode}/log`);
+    }
+
+    /** 404s unless `playerId` is themselves a living werewolf -- see GAME_FLOW.md §7 for why this
+     * is polled over HTTP instead of pushed via SignalR. */
+    getWerewolfVotes(roomCode: string, playerId: string): Observable<WerewolfVotesResponse> {
+        return this.http.get<WerewolfVotesResponse>(
+            `${this.baseUrl}/${roomCode}/werewolf/votes?playerId=${encodeURIComponent(playerId)}`
+        );
+    }
+
+    /** 404s unless `playerId` is one of the two players Cupid paired. */
+    getLovers(roomCode: string, playerId: string): Observable<LoversResponse> {
+        return this.http.get<LoversResponse>(
+            `${this.baseUrl}/${roomCode}/lovers?playerId=${encodeURIComponent(playerId)}`
+        );
+    }
+
+    /** 404s unless `playerId` is a living Witch. `targetPlayerId` is always null unless the game's
+     * WitchKnowsWerewolfTarget setting is on. */
+    getWitchTarget(roomCode: string, playerId: string): Observable<WitchTargetResponse> {
+        return this.http.get<WitchTargetResponse>(
+            `${this.baseUrl}/${roomCode}/witch/target?playerId=${encodeURIComponent(playerId)}`
+        );
     }
 }

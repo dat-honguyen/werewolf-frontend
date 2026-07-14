@@ -9,6 +9,7 @@ export interface GameSettings {
     witchSinglePotionPerNight: boolean;
     minPlayers: number;
     allowForceStart: boolean;
+    witchKnowsWerewolfTarget: boolean;
 }
 
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
@@ -19,7 +20,8 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
     werewolfCanVoteNoKill: false,
     witchSinglePotionPerNight: false,
     minPlayers: 5,
-    allowForceStart: false
+    allowForceStart: false,
+    witchKnowsWerewolfTarget: true
 };
 
 export interface CreateLobbyRequest {

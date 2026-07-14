@@ -80,3 +80,21 @@ export interface GameLogResponse {
     gameId: string;
     entries: string[];
 }
+
+// GET /api/v1/game/{roomCode}/werewolf/votes?playerId={id} -- 404 unless a living werewolf
+export interface WerewolfVotesResponse {
+    votes: Record<string, string | null>;
+    locked: boolean;
+    lockedTarget: string | null;
+}
+
+// GET /api/v1/game/{roomCode}/lovers?playerId={id} -- 404 unless one of the two lovers
+export interface LoversResponse {
+    firstPlayerId: string;
+    secondPlayerId: string;
+}
+
+// GET /api/v1/game/{roomCode}/witch/target?playerId={id} -- 404 unless a living Witch
+export interface WitchTargetResponse {
+    targetPlayerId: string | null;
+}

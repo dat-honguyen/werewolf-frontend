@@ -73,6 +73,15 @@
     } @if (showWitch()) {
     <section class="night-action-panel__block">
         <h2>Witch</h2>
+        @if (witchTarget(); as target) {
+        <p class="night-action-panel__result">
+            The werewolves are coming for {{ playerName(target) }} tonight.
+        </p>
+        } @else if (witchTarget() === null) {
+        <p class="night-action-panel__result">
+            You don't know who the werewolves targeted tonight.
+        </p>
+        }
         <div class="night-action-panel__actions">
             <button type="button" (click)="witchHeal()">Heal target</button>
             <button type="button" (click)="witchPass()">Pass</button>
@@ -84,6 +93,6 @@
         ></app-player-picker>
     </section>
     } @if (isWaiting()) {
-    <p class="night-action-panel__waiting">Everyone else is asleep — waiting on other roles...</p>
+    <p class="night-action-panel__waiting">{{ narrationText() }}</p>
     }
 </div>

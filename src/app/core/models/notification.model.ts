@@ -13,8 +13,14 @@ export type WerewolfNotification =
       }
     | { kind: 'player.lynched'; playerId: string; role?: Role }
     | { kind: 'seer.result'; targetPlayerId: string; isWerewolf: boolean }
-    | { kind: 'werewolf.vote'; wolfPlayerId: string; targetPlayerId: string | null }
-    | { kind: 'werewolf.locked'; targetPlayerId: string | null }
+    // Werewolf pack votes/lock and Cupid's lovers are deliberately NOT pushed over SignalR (see
+    // GAME_FLOW.md §7) -- poll GET .../werewolf/votes and GET .../lovers over HTTP instead.
+    | {
+          kind: 'night.narration';
+          step: 'Cupid' | 'Werewolves' | 'Doctor' | 'Seer' | 'Witch';
+          text: string;
+      }
+    | { kind: 'night.turn'; role: Role; prompt: string }
     | { kind: 'vote.cast'; voterPlayerId: string; targetPlayerId: string | null }
     | { kind: 'game.ended'; winningFaction: string; roles: Record<string, Role> }
     // Lobby kind/payload is unconfirmed against the real hub — server just needs to broadcast
