@@ -38,6 +38,7 @@ export class LobbyScreen {
     readonly allRoles = ALL_ROLES;
     readonly showRoleDistribution = signal(false);
     readonly showGameSettings = signal(false);
+    readonly roleDistributionDraft = signal<Partial<Record<Role, number>>>({});
 
     readonly lobby = this.gameState.lobby;
     readonly myPlayerId = this.playerIdentity.playerId;
@@ -143,12 +144,28 @@ export class LobbyScreen {
             });
     }
 
-    updateRoleCount(role: Role, count: number): void {
+    toggleRoleDistribution(): void {
+        const opening = !this.showRoleDistribution();
+        this.showRoleDistribution.set(opening);
+        if (opening) {
+            this.roleDistributionDraft.set({ ...(this.lobby()?.roleDistribution ?? {}) });
+        }
+    }
+
+    draftRoleCount(role: Role): number {
+        return this.roleDistributionDraft()[role] ?? 0;
+    }
+
+    setDraftRoleCount(role: Role, count: number): void {
+        this.roleDistributionDraft.update((draft) => ({ ...draft, [role]: count }));
+    }
+
+    applyRoleDistribution(): void {
         const lobby = this.lobby();
         if (!lobby) {
             return;
         }
-        const distribution = { ...lobby.roleDistribution, [role]: count };
+        const distribution = this.roleDistributionDraft();
         this.lobbyApi
             .updateRoleDistribution({
                 roomCode: lobby.roomCode,
@@ -156,17 +173,16 @@ export class LobbyScreen {
                 distribution
             })
             .subscribe({
-                next: () => this.gameState.lobby.set({ ...lobby, roleDistribution: distribution }),
+                next: () => {
+                    this.gameState.lobby.set({ ...lobby, roleDistribution: distribution });
+                    this.toast.show('Role distribution updated.', 'success');
+                },
                 error: (error: unknown) =>
                     this.toast.show(
                         extractErrorMessage(error, 'Could not update role distribution.'),
                         'error'
                     )
             });
-    }
-
-    roleCount(role: Role): number {
-        return this.lobby()?.roleDistribution[role] ?? 0;
     }
 
     updateSetting<K extends keyof GameSettings>(key: K, value: GameSettings[K]): void {
