@@ -13,11 +13,11 @@ export interface GameSettings {
 
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
     revealRoleOnDeath: true,
-    doctorCanSelfProtect: false,
+    doctorCanSelfProtect: true,
     werewolfRequiresConsensus: true,
     werewolfCanTargetWerewolf: false,
     werewolfCanVoteNoKill: false,
-    witchSinglePotionPerNight: true,
+    witchSinglePotionPerNight: false,
     minPlayers: 5,
     allowForceStart: false
 };
