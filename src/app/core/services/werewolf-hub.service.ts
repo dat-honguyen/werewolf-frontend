@@ -7,11 +7,15 @@ import { WerewolfNotification } from '../models/notification.model';
 /**
  * Wolverine.SignalR's WolverineHub exposes exactly one operation, "ReceiveMessage", in both
  * directions — there are no per-message hub methods like "JoinGameRoom". Every message is a
- * JSON string shaped like a CloudEvents envelope, with `type` naming the .NET message type
- * (its plain class name, e.g. "JoinGameRoom" or "PlayerNotification") and `data` holding the
- * camelCased payload. See Wolverine.SignalR's WolverineHub/SignalRTransport/CloudEventsMapper.
+ * JSON string shaped like a CloudEvents envelope, with `type` naming the .NET message type and
+ * `data` holding the camelCased payload. The backend message types implement Wolverine's
+ * `WebSocketMessage` marker interface, which gives them a snake_case wire alias derived from
+ * the plain class name (e.g. JoinGameRoom -> "join_game_room") instead of the fully-qualified
+ * .NET type name. See Wolverine.SignalR's WolverineHub/SignalRTransport/CloudEventsMapper and
+ * WolverineMessageNaming.WebSocketMessageNaming.
  */
 const RECEIVE_MESSAGE_OPERATION = 'ReceiveMessage';
+const PLAYER_NOTIFICATION_TYPE = 'player_notification';
 
 interface CloudEventsEnvelope {
     type: string;
@@ -49,7 +53,7 @@ export class WerewolfHubService {
 
         this.connection.on(RECEIVE_MESSAGE_OPERATION, (json: string) => {
             const envelope = JSON.parse(json) as CloudEventsEnvelope;
-            if (envelope.type !== 'PlayerNotification') {
+            if (envelope.type !== PLAYER_NOTIFICATION_TYPE) {
                 return;
             }
             const { kind, payload } = envelope.data as PlayerNotificationPayload;
@@ -61,11 +65,11 @@ export class WerewolfHubService {
     }
 
     async joinRoom(roomCode: string, playerId: string): Promise<void> {
-        await this.sendCommand('JoinGameRoom', { roomCode, playerId });
+        await this.sendCommand('join_game_room', { roomCode, playerId });
     }
 
     async leaveRoom(roomCode: string, playerId: string): Promise<void> {
-        await this.sendCommand('LeaveGameRoom', { roomCode, playerId });
+        await this.sendCommand('leave_game_room', { roomCode, playerId });
     }
 
     async disconnect(): Promise<void> {
