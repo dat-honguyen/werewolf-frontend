@@ -1,0 +1,19 @@
+<div class="join-name-prompt">
+    <div class="join-name-prompt__card">
+        <h1 class="phase-title">Join the Room</h1>
+        <p>Enter a display name to join this lobby.</p>
+        <input
+            type="text"
+            class="join-name-prompt__input"
+            [ngModel]="displayName()"
+            (ngModelChange)="displayName.set($event)"
+            (keyup.enter)="confirm()"
+            placeholder="Your name"
+        />
+        <button type="button" class="join-name-prompt__button" (click)="confirm()">Join</button>
+
+        @if (errorMessage()) {
+        <p class="join-name-prompt__error">{{ errorMessage() }}</p>
+        }
+    </div>
+</div>

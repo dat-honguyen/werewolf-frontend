@@ -1,23 +1,27 @@
-@switch (gameStateService.currentView()) {
-    @case ('lobby') {
-        <app-lobby-screen></app-lobby-screen>
-    }
-    @case ('role-reveal') {
-        <app-role-reveal-screen></app-role-reveal-screen>
-    }
-    @case ('night') {
-        <app-night-action-panel></app-night-action-panel>
-    }
-    @case ('day-discussion') {
-        <app-day-discussion-screen></app-day-discussion-screen>
-    }
-    @case ('voting') {
-        <app-voting-screen></app-voting-screen>
-    }
-    @case ('hunter-revenge') {
-        <app-hunter-revenge-modal></app-hunter-revenge-modal>
-    }
-    @case ('game-over') {
-        <app-game-over-screen></app-game-over-screen>
+@if (needsDisplayName()) {
+    <app-join-name-prompt (confirmed)="onDisplayNameConfirmed($event)"></app-join-name-prompt>
+} @else {
+    @switch (gameStateService.currentView()) {
+        @case ('lobby') {
+            <app-lobby-screen></app-lobby-screen>
+        }
+        @case ('role-reveal') {
+            <app-role-reveal-screen></app-role-reveal-screen>
+        }
+        @case ('night') {
+            <app-night-action-panel></app-night-action-panel>
+        }
+        @case ('day-discussion') {
+            <app-day-discussion-screen></app-day-discussion-screen>
+        }
+        @case ('voting') {
+            <app-voting-screen></app-voting-screen>
+        }
+        @case ('hunter-revenge') {
+            <app-hunter-revenge-modal></app-hunter-revenge-modal>
+        }
+        @case ('game-over') {
+            <app-game-over-screen></app-game-over-screen>
+        }
     }
 }
