@@ -8,7 +8,11 @@ import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { PlayerCard } from '../../../shared/components/player-card/player-card';
 import { GameTable } from '../../../shared/components/game-table/game-table';
-import { GameSettings, LocalLobbyPlayer } from '../../../core/models/lobby.model';
+import {
+    DEFAULT_GAME_SETTINGS,
+    GameSettings,
+    LocalLobbyPlayer
+} from '../../../core/models/lobby.model';
 import { Role } from '../../../core/models/role.model';
 
 const ALL_ROLES: Role[] = [
@@ -39,6 +43,7 @@ export class LobbyScreen {
     readonly showRoleDistribution = signal(false);
     readonly showGameSettings = signal(false);
     readonly roleDistributionDraft = signal<Partial<Record<Role, number>>>({});
+    readonly gameSettingsDraft = signal<GameSettings>(DEFAULT_GAME_SETTINGS);
 
     readonly lobby = this.gameState.lobby;
     readonly myPlayerId = this.playerIdentity.playerId;
@@ -185,12 +190,27 @@ export class LobbyScreen {
             });
     }
 
-    updateSetting<K extends keyof GameSettings>(key: K, value: GameSettings[K]): void {
+    toggleGameSettings(): void {
+        const opening = !this.showGameSettings();
+        this.showGameSettings.set(opening);
+        if (opening) {
+            const settings = this.lobby()?.settings;
+            if (settings) {
+                this.gameSettingsDraft.set({ ...settings });
+            }
+        }
+    }
+
+    setDraftSetting<K extends keyof GameSettings>(key: K, value: GameSettings[K]): void {
+        this.gameSettingsDraft.update((draft) => ({ ...draft, [key]: value }));
+    }
+
+    applyGameSettings(): void {
         const lobby = this.lobby();
         if (!lobby) {
             return;
         }
-        const settings = { ...lobby.settings, [key]: value };
+        const settings = this.gameSettingsDraft();
         this.lobbyApi
             .updateGameSettings({
                 roomCode: lobby.roomCode,
@@ -198,7 +218,10 @@ export class LobbyScreen {
                 settings
             })
             .subscribe({
-                next: () => this.gameState.lobby.set({ ...lobby, settings }),
+                next: () => {
+                    this.gameState.lobby.set({ ...lobby, settings });
+                    this.toast.show('Game settings updated.', 'success');
+                },
                 error: (error: unknown) =>
                     this.toast.show(
                         extractErrorMessage(error, 'Could not update game settings.'),

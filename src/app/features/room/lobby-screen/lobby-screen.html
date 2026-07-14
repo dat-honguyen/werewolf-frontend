@@ -67,11 +67,7 @@
         </div>
         }
 
-        <button
-            type="button"
-            class="lobby-screen__button"
-            (click)="showGameSettings.set(!showGameSettings())"
-        >
+        <button type="button" class="lobby-screen__button" (click)="toggleGameSettings()">
             Game settings ▾
         </button>
         @if (showGameSettings()) {
@@ -79,48 +75,48 @@
             <label>
                 <input
                     type="checkbox"
-                    [ngModel]="lobby.settings.revealRoleOnDeath"
-                    (ngModelChange)="updateSetting('revealRoleOnDeath', $event)"
+                    [ngModel]="gameSettingsDraft().revealRoleOnDeath"
+                    (ngModelChange)="setDraftSetting('revealRoleOnDeath', $event)"
                 />
                 Reveal role on death
             </label>
             <label>
                 <input
                     type="checkbox"
-                    [ngModel]="lobby.settings.doctorCanSelfProtect"
-                    (ngModelChange)="updateSetting('doctorCanSelfProtect', $event)"
+                    [ngModel]="gameSettingsDraft().doctorCanSelfProtect"
+                    (ngModelChange)="setDraftSetting('doctorCanSelfProtect', $event)"
                 />
                 Doctor can self-protect
             </label>
             <label>
                 <input
                     type="checkbox"
-                    [ngModel]="lobby.settings.werewolfRequiresConsensus"
-                    (ngModelChange)="updateSetting('werewolfRequiresConsensus', $event)"
+                    [ngModel]="gameSettingsDraft().werewolfRequiresConsensus"
+                    (ngModelChange)="setDraftSetting('werewolfRequiresConsensus', $event)"
                 />
                 Werewolves require consensus
             </label>
             <label>
                 <input
                     type="checkbox"
-                    [ngModel]="lobby.settings.werewolfCanTargetWerewolf"
-                    (ngModelChange)="updateSetting('werewolfCanTargetWerewolf', $event)"
+                    [ngModel]="gameSettingsDraft().werewolfCanTargetWerewolf"
+                    (ngModelChange)="setDraftSetting('werewolfCanTargetWerewolf', $event)"
                 />
                 Werewolves can target werewolves
             </label>
             <label>
                 <input
                     type="checkbox"
-                    [ngModel]="lobby.settings.werewolfCanVoteNoKill"
-                    (ngModelChange)="updateSetting('werewolfCanVoteNoKill', $event)"
+                    [ngModel]="gameSettingsDraft().werewolfCanVoteNoKill"
+                    (ngModelChange)="setDraftSetting('werewolfCanVoteNoKill', $event)"
                 />
                 Werewolves can vote no-kill
             </label>
             <label>
                 <input
                     type="checkbox"
-                    [ngModel]="lobby.settings.witchSinglePotionPerNight"
-                    (ngModelChange)="updateSetting('witchSinglePotionPerNight', $event)"
+                    [ngModel]="gameSettingsDraft().witchSinglePotionPerNight"
+                    (ngModelChange)="setDraftSetting('witchSinglePotionPerNight', $event)"
                 />
                 Witch: single potion per night
             </label>
@@ -129,18 +125,25 @@
                 <input
                     type="number"
                     min="1"
-                    [ngModel]="lobby.settings.minPlayers"
-                    (ngModelChange)="updateSetting('minPlayers', $event)"
+                    [ngModel]="gameSettingsDraft().minPlayers"
+                    (ngModelChange)="setDraftSetting('minPlayers', $event)"
                 />
             </label>
             <label>
                 <input
                     type="checkbox"
-                    [ngModel]="lobby.settings.allowForceStart"
-                    (ngModelChange)="updateSetting('allowForceStart', $event)"
+                    [ngModel]="gameSettingsDraft().allowForceStart"
+                    (ngModelChange)="setDraftSetting('allowForceStart', $event)"
                 />
                 Allow force start
             </label>
+            <button
+                type="button"
+                class="lobby-screen__button lobby-screen__button--primary"
+                (click)="applyGameSettings()"
+            >
+                Apply
+            </button>
         </div>
         }
 
