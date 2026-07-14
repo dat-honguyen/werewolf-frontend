@@ -1,9 +1,14 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { GameStateService } from '../../core/services/game-state.service';
 import { LobbyApiService } from '../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../core/services/player-identity.service';
+import { ToastService } from '../../core/services/toast.service';
 import { WerewolfHubService } from '../../core/services/werewolf-hub.service';
+import { resolveUniqueDisplayName } from '../../core/utils/display-name.util';
+import { extractErrorMessage } from '../../core/utils/http-error.util';
+import { ToastList } from '../../shared/components/toast-list/toast-list';
 import { JoinNamePrompt } from './join-name-prompt/join-name-prompt';
 import { LobbyScreen } from './lobby-screen/lobby-screen';
 import { RoleRevealScreen } from './role-reveal-screen/role-reveal-screen';
@@ -16,6 +21,7 @@ import { GameOverScreen } from './game-over-screen/game-over-screen';
 @Component({
     selector: 'app-room',
     imports: [
+        ToastList,
         JoinNamePrompt,
         LobbyScreen,
         RoleRevealScreen,
@@ -30,9 +36,11 @@ import { GameOverScreen } from './game-over-screen/game-over-screen';
 })
 export class RoomComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
     private readonly hub = inject(WerewolfHubService);
     private readonly lobbyApi = inject(LobbyApiService);
     private readonly playerIdentity = inject(PlayerIdentityService);
+    private readonly toast = inject(ToastService);
     readonly gameStateService = inject(GameStateService);
 
     private roomCode = '';
@@ -43,7 +51,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.gameStateService.roomCode.set(this.roomCode);
 
         if (this.playerIdentity.displayName().trim()) {
-            this.joinAndEnter();
+            void this.joinAndEnter();
         } else {
             this.needsDisplayName.set(true);
         }
@@ -52,19 +60,33 @@ export class RoomComponent implements OnInit, OnDestroy {
     onDisplayNameConfirmed(displayName: string): void {
         this.playerIdentity.setDisplayName(displayName);
         this.needsDisplayName.set(false);
-        this.joinAndEnter();
+        void this.joinAndEnter();
     }
 
-    private joinAndEnter(): void {
+    private async joinAndEnter(): Promise<void> {
+        const myPlayerId = this.playerIdentity.playerId();
+        const existingLobby = await firstValueFrom(this.lobbyApi.getLobby(this.roomCode)).catch(
+            () => null
+        );
+        const takenNames = (existingLobby?.players ?? [])
+            .filter((player) => player.playerId !== myPlayerId)
+            .map((player) => player.displayName);
+        const displayName = resolveUniqueDisplayName(this.playerIdentity.displayName(), takenNames);
+
         this.lobbyApi
-            .joinLobby({
-                roomCode: this.roomCode,
-                playerId: this.playerIdentity.playerId(),
-                displayName: this.playerIdentity.displayName()
-            })
+            .joinLobby({ roomCode: this.roomCode, playerId: myPlayerId, displayName })
             .subscribe({
                 next: () => this.enterRoom(),
-                error: () => this.enterRoom()
+                error: (error: unknown) => {
+                    this.toast.show(
+                        extractErrorMessage(
+                            error,
+                            'Could not join that room. Check the code and try again.'
+                        ),
+                        'error'
+                    );
+                    void this.router.navigate(['/']);
+                }
             });
     }
 
@@ -74,11 +96,11 @@ export class RoomComponent implements OnInit, OnDestroy {
             .then(() => this.hub.joinRoom(this.roomCode, this.playerIdentity.playerId()));
         void this.gameStateService.refreshLobby(this.roomCode);
         void this.gameStateService.refreshGameState(this.roomCode);
-        this.gameStateService.startPolling();
+        this.gameStateService.startSync();
     }
 
     ngOnDestroy(): void {
-        this.gameStateService.stopPolling();
+        this.gameStateService.stopSync();
         void this.hub.leaveRoom(this.roomCode, this.playerIdentity.playerId());
         void this.hub.disconnect();
     }

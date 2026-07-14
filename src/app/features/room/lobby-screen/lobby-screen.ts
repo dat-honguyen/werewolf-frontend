@@ -1,8 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { GameStateService } from '../../../core/services/game-state.service';
 import { LobbyApiService } from '../../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../../core/services/player-identity.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { PlayerCard } from '../../../shared/components/player-card/player-card';
 import { GameTable } from '../../../shared/components/game-table/game-table';
 import { GameSettings, LocalLobbyPlayer } from '../../../core/models/lobby.model';
@@ -29,6 +32,8 @@ export class LobbyScreen {
     private readonly gameState = inject(GameStateService);
     private readonly lobbyApi = inject(LobbyApiService);
     private readonly playerIdentity = inject(PlayerIdentityService);
+    private readonly toast = inject(ToastService);
+    private readonly router = inject(Router);
 
     readonly allRoles = ALL_ROLES;
     readonly showRoleDistribution = signal(false);
@@ -76,13 +81,22 @@ export class LobbyScreen {
         const nextReady = !me.isReady;
         this.lobbyApi
             .setReady({ roomCode: lobby.roomCode, playerId: this.myPlayerId(), isReady: nextReady })
-            .subscribe(() => {
-                this.gameState.lobby.set({
-                    ...lobby,
-                    players: lobby.players.map((player) =>
-                        player.playerId === me.playerId ? { ...player, isReady: nextReady } : player
+            .subscribe({
+                next: () => {
+                    this.gameState.lobby.set({
+                        ...lobby,
+                        players: lobby.players.map((player) =>
+                            player.playerId === me.playerId
+                                ? { ...player, isReady: nextReady }
+                                : player
+                        )
+                    });
+                },
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not update ready state.'),
+                        'error'
                     )
-                });
             });
     }
 
@@ -91,13 +105,41 @@ export class LobbyScreen {
         if (!lobby) {
             return;
         }
+        const kicked = lobby.players.find((player) => player.playerId === playerId);
         this.lobbyApi
             .kickPlayer({ roomCode: lobby.roomCode, requestedBy: this.myPlayerId(), playerId })
-            .subscribe(() => {
-                this.gameState.lobby.set({
-                    ...lobby,
-                    players: lobby.players.filter((player) => player.playerId !== playerId)
-                });
+            .subscribe({
+                next: () => {
+                    this.gameState.lobby.set({
+                        ...lobby,
+                        players: lobby.players.filter((player) => player.playerId !== playerId)
+                    });
+                    if (kicked) {
+                        this.toast.show(`${kicked.displayName} was kicked from the lobby.`, 'info');
+                    }
+                },
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not kick that player.'),
+                        'error'
+                    )
+            });
+    }
+
+    leaveLobby(): void {
+        const lobby = this.lobby();
+        if (!lobby) {
+            return;
+        }
+        this.lobbyApi
+            .leaveLobby({ roomCode: lobby.roomCode, playerId: this.myPlayerId() })
+            .subscribe({
+                next: () => void this.router.navigate(['/']),
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not leave the lobby.'),
+                        'error'
+                    )
             });
     }
 
@@ -113,8 +155,13 @@ export class LobbyScreen {
                 requestedBy: this.myPlayerId(),
                 distribution
             })
-            .subscribe(() => {
-                this.gameState.lobby.set({ ...lobby, roleDistribution: distribution });
+            .subscribe({
+                next: () => this.gameState.lobby.set({ ...lobby, roleDistribution: distribution }),
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not update role distribution.'),
+                        'error'
+                    )
             });
     }
 
@@ -134,8 +181,13 @@ export class LobbyScreen {
                 requestedBy: this.myPlayerId(),
                 settings
             })
-            .subscribe(() => {
-                this.gameState.lobby.set({ ...lobby, settings });
+            .subscribe({
+                next: () => this.gameState.lobby.set({ ...lobby, settings }),
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not update game settings.'),
+                        'error'
+                    )
             });
     }
 
@@ -146,8 +198,13 @@ export class LobbyScreen {
         }
         this.lobbyApi
             .cancelLobby({ roomCode: lobby.roomCode, requestedBy: this.myPlayerId() })
-            .subscribe(() => {
-                this.gameState.lobby.set({ ...lobby, status: 'Cancelled' });
+            .subscribe({
+                next: () => void this.router.navigate(['/']),
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not cancel the lobby.'),
+                        'error'
+                    )
             });
     }
 
@@ -162,8 +219,13 @@ export class LobbyScreen {
                 requestedBy: this.myPlayerId(),
                 forceStart: this.needsForceStart()
             })
-            .subscribe(() => {
-                void this.gameState.refreshGameState(lobby.roomCode);
+            .subscribe({
+                next: () => void this.gameState.refreshGameState(lobby.roomCode),
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not start the game.'),
+                        'error'
+                    )
             });
     }
 }

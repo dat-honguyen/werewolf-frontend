@@ -16,4 +16,9 @@ export type WerewolfNotification =
     | { kind: 'werewolf.vote'; wolfPlayerId: string; targetPlayerId: string | null }
     | { kind: 'werewolf.locked'; targetPlayerId: string | null }
     | { kind: 'vote.cast'; voterPlayerId: string; targetPlayerId: string | null }
-    | { kind: 'game.ended'; winningFaction: string; roles: Record<string, Role> };
+    | { kind: 'game.ended'; winningFaction: string; roles: Record<string, Role> }
+    // Lobby kind/payload is unconfirmed against the real hub — server just needs to broadcast
+    // this to the room group whenever the lobby aggregate changes (join/leave/kick/ready/
+    // settings/roles/cancel); the client always re-fetches full state via GET, so no extra
+    // payload fields are required.
+    | { kind: 'lobby.updated' };

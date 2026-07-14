@@ -1,0 +1,7 @@
+<div class="toast-list">
+    @for (toast of toasts(); track toast.id) {
+    <div class="toast-list__toast toast-list__toast--{{ toast.kind }}" (click)="dismiss(toast.id)">
+        {{ toast.message }}
+    </div>
+    }
+</div>

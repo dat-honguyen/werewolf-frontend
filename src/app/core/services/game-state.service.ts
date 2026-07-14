@@ -1,10 +1,12 @@
 import { Injectable, Signal, WritableSignal, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { GameStateResponse } from '../models/game.model';
 import { LocalLobbyState } from '../models/lobby.model';
 import { GameApiService } from './game-api.service';
 import { LobbyApiService } from './lobby-api.service';
 import { PlayerIdentityService } from './player-identity.service';
+import { ToastService } from './toast.service';
 import { WerewolfHubService } from './werewolf-hub.service';
 
 export type GameView =
@@ -17,6 +19,7 @@ export type GameView =
     | 'game-over';
 
 const PHASE_RELEVANT_NOTIFICATION_KINDS = new Set([
+    'game.started',
     'night.started',
     'day.started',
     'voting.started',
@@ -25,7 +28,7 @@ const PHASE_RELEVANT_NOTIFICATION_KINDS = new Set([
     'game.ended'
 ]);
 
-const POLL_INTERVAL_MS = 3000;
+const LOBBY_RELEVANT_NOTIFICATION_KINDS = new Set(['lobby.updated']);
 
 @Injectable({ providedIn: 'root' })
 export class GameStateService {
@@ -33,14 +36,16 @@ export class GameStateService {
     private readonly lobbyApi = inject(LobbyApiService);
     private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly hub = inject(WerewolfHubService);
+    private readonly toast = inject(ToastService);
+    private readonly router = inject(Router);
 
     readonly roomCode: WritableSignal<string | null> = signal(null);
     readonly lobby: WritableSignal<LocalLobbyState | null> = signal(null);
     readonly gameState: WritableSignal<GameStateResponse | null> = signal(null);
     readonly hasSeenRoleReveal = signal(false);
 
-    private pollHandle: ReturnType<typeof setInterval> | null = null;
     private notificationsSubscription: Subscription | null = null;
+    private reconnectedSubscription: Subscription | null = null;
 
     get myPlayerId(): Signal<string> {
         return this.playerIdentity.playerId;
@@ -81,41 +86,94 @@ export class GameStateService {
 
     async refreshLobby(roomCode: string): Promise<void> {
         try {
-            const lobby = await firstValueFrom(this.lobbyApi.getLobby(roomCode));
-            this.lobby.set(lobby);
+            const next = await firstValueFrom(this.lobbyApi.getLobby(roomCode));
+            this.announceLobbyChanges(this.lobby(), next);
+            this.lobby.set(next);
         } catch {
             // Lobby not found (bad room code) — safe no-op.
         }
     }
 
-    startPolling(): void {
-        if (this.pollHandle) {
+    /** Connects lobby/game state to SignalR notifications. No polling loop — updates are
+     * driven entirely by the hub, with a one-time resync on reconnect as a safety net. */
+    startSync(): void {
+        if (this.notificationsSubscription) {
             return;
         }
         const roomCode = this.roomCode();
         if (!roomCode) {
             return;
         }
-        this.pollHandle = setInterval(() => {
-            void this.refreshGameState(roomCode);
-            if (this.currentView() === 'lobby') {
-                void this.refreshLobby(roomCode);
-            }
-        }, POLL_INTERVAL_MS);
 
         this.notificationsSubscription = this.hub.notifications$.subscribe((notification) => {
             if (PHASE_RELEVANT_NOTIFICATION_KINDS.has(notification.kind)) {
                 void this.refreshGameState(roomCode);
             }
+            if (LOBBY_RELEVANT_NOTIFICATION_KINDS.has(notification.kind)) {
+                void this.refreshLobby(roomCode);
+            }
+        });
+
+        this.reconnectedSubscription = this.hub.reconnected$.subscribe(() => {
+            void this.refreshGameState(roomCode);
+            void this.refreshLobby(roomCode);
         });
     }
 
-    stopPolling(): void {
-        if (this.pollHandle) {
-            clearInterval(this.pollHandle);
-            this.pollHandle = null;
-        }
+    stopSync(): void {
         this.notificationsSubscription?.unsubscribe();
         this.notificationsSubscription = null;
+        this.reconnectedSubscription?.unsubscribe();
+        this.reconnectedSubscription = null;
+    }
+
+    private announceLobbyChanges(prev: LocalLobbyState | null, next: LocalLobbyState): void {
+        if (!prev || prev.roomCode !== next.roomCode) {
+            return;
+        }
+        const myPlayerId = this.playerIdentity.playerId();
+        const prevIds = new Set(prev.players.map((player) => player.playerId));
+        const nextIds = new Set(next.players.map((player) => player.playerId));
+
+        if (prevIds.has(myPlayerId) && !nextIds.has(myPlayerId)) {
+            this.toast.show('You were removed from the lobby.', 'error');
+            this.leaveToHome();
+            return;
+        }
+
+        for (const player of next.players) {
+            if (!prevIds.has(player.playerId)) {
+                this.toast.show(`${player.displayName} joined the lobby.`, 'info');
+            }
+        }
+        for (const player of prev.players) {
+            if (!nextIds.has(player.playerId) && player.playerId !== myPlayerId) {
+                this.toast.show(`${player.displayName} left the lobby.`, 'info');
+            }
+        }
+        for (const player of next.players) {
+            if (player.playerId === myPlayerId) {
+                continue;
+            }
+            const before = prev.players.find((p) => p.playerId === player.playerId);
+            if (before && before.isReady !== player.isReady) {
+                this.toast.show(
+                    `${player.displayName} is ${player.isReady ? 'ready' : 'not ready'}.`,
+                    'info'
+                );
+            }
+        }
+        if (prev.status !== 'Cancelled' && next.status === 'Cancelled') {
+            this.toast.show('The host cancelled the lobby.', 'error');
+            this.leaveToHome();
+        }
+    }
+
+    private leaveToHome(): void {
+        this.stopSync();
+        this.lobby.set(null);
+        this.gameState.set(null);
+        this.roomCode.set(null);
+        void this.router.navigate(['/']);
     }
 }

@@ -1,9 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { LobbyApiService } from '../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../core/services/player-identity.service';
 import { GameStateService } from '../../core/services/game-state.service';
+import { resolveUniqueDisplayName } from '../../core/utils/display-name.util';
 
 @Component({
     selector: 'app-home',
@@ -41,7 +43,7 @@ export class HomeComponent {
         });
     }
 
-    joinRoom(): void {
+    async joinRoom(): Promise<void> {
         const displayName = this.displayName().trim();
         const roomCode = this.joinRoomCode().trim().toUpperCase();
         if (!displayName || !roomCode) {
@@ -51,7 +53,15 @@ export class HomeComponent {
         this.playerIdentity.setDisplayName(displayName);
         const playerId = this.playerIdentity.playerId();
 
-        this.lobbyApi.joinLobby({ roomCode, playerId, displayName }).subscribe({
+        const existingLobby = await firstValueFrom(this.lobbyApi.getLobby(roomCode)).catch(
+            () => null
+        );
+        const takenNames = (existingLobby?.players ?? [])
+            .filter((player) => player.playerId !== playerId)
+            .map((player) => player.displayName);
+        const uniqueDisplayName = resolveUniqueDisplayName(displayName, takenNames);
+
+        this.lobbyApi.joinLobby({ roomCode, playerId, displayName: uniqueDisplayName }).subscribe({
             next: () => {
                 this.gameState.roomCode.set(roomCode);
                 void this.router.navigate(['/room', roomCode]);

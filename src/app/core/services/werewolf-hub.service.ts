@@ -11,9 +11,14 @@ export class WerewolfHubService {
 
     private connection: signalR.HubConnection | null = null;
     private readonly notificationsSubject = new Subject<WerewolfNotification>();
+    private readonly reconnectedSubject = new Subject<void>();
 
     readonly notifications$: Observable<WerewolfNotification> =
         this.notificationsSubject.asObservable();
+
+    /** Fires when the connection recovers after a drop, so callers can resync state
+     * without needing a polling loop — this is the only non-notification-driven refresh. */
+    readonly reconnected$: Observable<void> = this.reconnectedSubject.asObservable();
 
     async connect(): Promise<void> {
         if (this.connection) {
@@ -27,6 +32,7 @@ export class WerewolfHubService {
         this.connection.on(this.notificationEventName, (payload: WerewolfNotification) => {
             this.notificationsSubject.next(payload);
         });
+        this.connection.onreconnected(() => this.reconnectedSubject.next());
 
         await this.connection.start();
     }

@@ -23,10 +23,6 @@
         }
     </app-game-table>
 
-    <p class="lobby-screen__note">
-        Other players' ready state may lag until they refresh — live lobby sync isn't available yet.
-    </p>
-
     <button
         type="button"
         class="lobby-screen__button lobby-screen__button--primary"
@@ -35,7 +31,15 @@
         {{ myPlayer()?.isReady ? 'Un-ready' : 'Ready Up' }}
     </button>
 
-    @if (isHost()) {
+    @if (!isHost()) {
+    <button
+        type="button"
+        class="lobby-screen__button lobby-screen__button--danger"
+        (click)="leaveLobby()"
+    >
+        Leave Lobby
+    </button>
+    } @if (isHost()) {
     <section class="lobby-screen__host-controls">
         <button
             type="button"
