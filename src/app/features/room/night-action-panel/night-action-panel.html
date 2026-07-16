@@ -81,16 +81,27 @@
         <p class="night-action-panel__result">
             You don't know who the werewolves targeted tonight.
         </p>
-        }
+        } @if (!witchHealUsed()) {
         <div class="night-action-panel__actions">
             <button type="button" (click)="witchHeal()">Heal target</button>
-            <button type="button" (click)="witchPass()">Pass</button>
         </div>
+        } @else {
+        <p class="night-action-panel__result">Heal potion used.</p>
+        } @if (!witchPoisonUsed()) {
         <p>Poison:</p>
         <app-player-picker
             [candidates]="witchPoisonCandidates()"
             (picked)="witchPoison($event)"
         ></app-player-picker>
+        } @else {
+        <p class="night-action-panel__result">Poison potion used.</p>
+        }
+        <div class="night-action-panel__actions">
+            <button type="button" (click)="witchPass()">
+                {{ witchHealUsed() || witchPoisonUsed() ? 'End turn' : 'Pass (use neither potion)'
+                }}
+            </button>
+        </div>
     </section>
     } @if (isWaiting()) {
     <p class="night-action-panel__waiting">{{ narrationText() }}</p>

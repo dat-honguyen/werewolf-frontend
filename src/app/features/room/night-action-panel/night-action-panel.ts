@@ -18,6 +18,7 @@ import { PlayerCard } from '../../../shared/components/player-card/player-card';
 type NightAction = 'cupid' | 'seer' | 'werewolf' | 'doctor' | 'witch';
 
 const WOLF_VOTE_POLL_MS = 2000;
+const NIGHT_STATE_POLL_MS = 5000;
 
 @Component({
     selector: 'app-night-action-panel',
@@ -38,6 +39,10 @@ export class NightActionPanel {
     readonly wolfLockedTarget = signal<string | null | undefined>(undefined);
     readonly seerResult = signal<{ targetPlayerId: string; isWerewolf: boolean } | null>(null);
     readonly witchTarget = signal<string | null | undefined>(undefined);
+    /** Tracked separately from `actionsTaken` -- unless witchSinglePotionPerNight is on, using one
+     * potion doesn't end the Witch's turn, she can still use (or explicitly pass on) the other. */
+    readonly witchHealUsed = signal(false);
+    readonly witchPoisonUsed = signal(false);
 
     readonly myPlayerId = this.playerIdentity.playerId;
     readonly state = this.gameState.gameState;
@@ -159,6 +164,8 @@ export class NightActionPanel {
             this.wolfLockedTarget.set(undefined);
             this.seerResult.set(null);
             this.witchTarget.set(undefined);
+            this.witchHealUsed.set(false);
+            this.witchPoisonUsed.set(false);
         });
 
         this.hub.notifications$.pipe(takeUntilDestroyed()).subscribe((notification) => {
@@ -169,6 +176,20 @@ export class NightActionPanel {
                 });
             }
         });
+
+        // Safety net: `currentNightRole` is normally kept fresh by GameStateService's own
+        // notification-triggered refreshes (see PHASE_RELEVANT_NOTIFICATION_KINDS), but a dropped
+        // SignalR message, a reconnect that missed its resync, or a group-join race could otherwise
+        // leave a player stuck not knowing whose turn it is with no further event to prompt a
+        // refresh. A slow background poll while actually in Night guarantees it self-heals.
+        interval(NIGHT_STATE_POLL_MS)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => {
+                const roomCode = this.gameState.roomCode();
+                if (roomCode && this.state()?.phase === 'Night') {
+                    void this.gameState.refreshGameState(roomCode);
+                }
+            });
 
         // Werewolf pack coordination is deliberately pulled over HTTP rather than pushed via
         // SignalR (see GAME_FLOW.md §7) -- poll the tally while it's actually the pack's turn.
@@ -270,9 +291,10 @@ export class NightActionPanel {
         if (!roomCode) {
             return;
         }
-        this.gameApi
-            .useWitchHealPotion({ roomCode, playerId: this.myPlayerId() })
-            .subscribe(() => this.markDone('witch'));
+        this.gameApi.useWitchHealPotion({ roomCode, playerId: this.myPlayerId() }).subscribe(() => {
+            this.witchHealUsed.set(true);
+            this.finalizeWitchIfBothPotionsResolved();
+        });
     }
 
     witchPoison(targetPlayerId: string | null): void {
@@ -282,9 +304,14 @@ export class NightActionPanel {
         }
         this.gameApi
             .useWitchPoisonPotion({ roomCode, playerId: this.myPlayerId(), targetPlayerId })
-            .subscribe(() => this.markDone('witch'));
+            .subscribe(() => {
+                this.witchPoisonUsed.set(true);
+                this.finalizeWitchIfBothPotionsResolved();
+            });
     }
 
+    /** Ends the Witch's turn outright -- the only way to decline whichever potion(s) she hasn't
+     * used yet, since backend `WitchPassed` always finalizes regardless of what's already happened. */
     witchPass(): void {
         const roomCode = this.gameState.roomCode();
         if (!roomCode) {
@@ -293,6 +320,15 @@ export class NightActionPanel {
         this.gameApi
             .passWitch({ roomCode, playerId: this.myPlayerId() })
             .subscribe(() => this.markDone('witch'));
+    }
+
+    private finalizeWitchIfBothPotionsResolved(): void {
+        if (
+            this.settings().witchSinglePotionPerNight ||
+            (this.witchHealUsed() && this.witchPoisonUsed())
+        ) {
+            this.markDone('witch');
+        }
     }
 
     private markDone(action: NightAction): void {

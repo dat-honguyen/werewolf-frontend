@@ -85,6 +85,14 @@ export class RoomComponent implements OnInit, OnDestroy {
             (existingLobby?.players.some((player) => player.playerId === myPlayerId) ?? false);
 
         if (alreadyJoined) {
+            if (existingGame) {
+                // The game was already running before this mount, so this player must have seen
+                // their role reveal in an earlier session -- without this, `hasSeenRoleReveal`
+                // resets to false on every fresh page load (it's in-memory only), stranding a
+                // reconnecting player on the role-reveal screen instead of the live night/day view,
+                // with no indication of whose turn it currently is.
+                this.gameStateService.hasSeenRoleReveal.set(true);
+            }
             this.enterRoom();
             return;
         }
