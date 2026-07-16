@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameApiService } from '../../../core/services/game-api.service';
 import { GameStateService } from '../../../core/services/game-state.service';
@@ -64,12 +64,7 @@ export class DayDiscussionScreen {
         });
 
         const intervalId = setInterval(() => this.nowMs.set(Date.now()), 1000);
-        // No explicit teardown needed beyond this: DestroyRef isn't injected because the interval
-        // just stops mattering once the component's gone (nothing it touches outlives the component,
-        // unlike a subscription that could otherwise leak a callback into a shared service).
-        // If a leak concern comes up in review, wrap in `inject(DestroyRef).onDestroy(() =>
-        // clearInterval(intervalId))` instead of leaving this comment.
-        void intervalId;
+        inject(DestroyRef).onDestroy(() => clearInterval(intervalId));
     }
 
     playerName(playerId: string): string {
