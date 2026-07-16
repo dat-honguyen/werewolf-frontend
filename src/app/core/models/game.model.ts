@@ -80,6 +80,9 @@ export interface GameStateResponse {
     } | null;
     currentNightRole: Role | null;
     nightPrompt: string | null;
+    /** ISO timestamp the Day Discussion countdown runs out at. Null outside DayDiscussion. Purely a
+     * shared clock for display -- the host still advances to Voting manually. */
+    discussionDeadlineUtc: string | null;
     /** Monotonically increasing per-change sequence number -- see GameStateService's version-gap
      * resync: a SignalR notification is a "there's something newer" signal, not authoritative data,
      * so the client always re-fetches this endpoint and adopts whatever version it returns. */
@@ -89,6 +92,21 @@ export interface GameLogResponse {
     roomCode: string;
     gameId: string;
     entries: string[];
+}
+
+export interface SendRoomChatMessageRequest {
+    roomCode: string;
+    playerId: string;
+    text: string;
+}
+export interface ChatMessageResponse {
+    senderId: string;
+    senderDisplayName: string;
+    text: string;
+    sentAtUtc: string;
+}
+export interface ChatMessagesResponse {
+    messages: ChatMessageResponse[];
 }
 
 // GET /api/v1/game/{roomCode}/werewolf/votes?playerId={id} -- 404 unless a living werewolf

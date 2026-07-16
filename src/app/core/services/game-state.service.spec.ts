@@ -16,6 +16,10 @@ function makeState(overrides: Partial<GameStateResponse>): GameStateResponse {
         werewolfLockedTarget: null,
         pendingHunterRevenge: [],
         result: null,
+        currentNightRole: null,
+        nightPrompt: null,
+        discussionDeadlineUtc: null,
+        version: 0,
         ...overrides
     };
 }

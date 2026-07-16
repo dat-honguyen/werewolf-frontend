@@ -10,6 +10,7 @@ export interface GameSettings {
     minPlayers: number;
     allowForceStart: boolean;
     witchKnowsWerewolfTarget: boolean;
+    discussionDurationSeconds: number;
 }
 
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
@@ -21,7 +22,8 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
     witchSinglePotionPerNight: false,
     minPlayers: 5,
     allowForceStart: false,
-    witchKnowsWerewolfTarget: true
+    witchKnowsWerewolfTarget: true,
+    discussionDurationSeconds: 120
 };
 
 export interface CreateLobbyRequest {
@@ -61,6 +63,10 @@ export interface UpdateGameSettingsRequest {
     settings: GameSettings;
 }
 export interface CancelLobbyRequest {
+    roomCode: string;
+    requestedBy: string;
+}
+export interface RematchLobbyRequest {
     roomCode: string;
     requestedBy: string;
 }
