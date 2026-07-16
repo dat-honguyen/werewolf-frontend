@@ -18,9 +18,15 @@ export type GameView =
     | 'hunter-revenge'
     | 'game-over';
 
+// Refreshing on night.turn/night.narration (not just night.started) keeps `gameState.currentNightRole`
+// in sync as the fixed role order advances within a night -- this runs continuously from
+// `startSync()` regardless of which screen is mounted, so it also backfills the turn for a player
+// who was still on the role-reveal screen when the original push fired (see night-action-panel.ts).
 const PHASE_RELEVANT_NOTIFICATION_KINDS = new Set([
     'game.started',
     'night.started',
+    'night.turn',
+    'night.narration',
     'day.started',
     'voting.started',
     'player.died',
@@ -197,6 +203,7 @@ export class GameStateService {
 
     private leaveToHome(): void {
         this.stopSync();
+        this.playerIdentity.clearActiveRoom();
         this.lobby.set(null);
         this.gameState.set(null);
         this.roomCode.set(null);

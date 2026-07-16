@@ -140,7 +140,10 @@ export class LobbyScreen {
         this.lobbyApi
             .leaveLobby({ roomCode: lobby.roomCode, playerId: this.myPlayerId() })
             .subscribe({
-                next: () => void this.router.navigate(['/']),
+                next: () => {
+                    this.playerIdentity.clearActiveRoom();
+                    void this.router.navigate(['/']);
+                },
                 error: (error: unknown) =>
                     this.toast.show(
                         extractErrorMessage(error, 'Could not leave the lobby.'),
@@ -238,7 +241,10 @@ export class LobbyScreen {
         this.lobbyApi
             .cancelLobby({ roomCode: lobby.roomCode, requestedBy: this.myPlayerId() })
             .subscribe({
-                next: () => void this.router.navigate(['/']),
+                next: () => {
+                    this.playerIdentity.clearActiveRoom();
+                    void this.router.navigate(['/']);
+                },
                 error: (error: unknown) =>
                     this.toast.show(
                         extractErrorMessage(error, 'Could not cancel the lobby.'),

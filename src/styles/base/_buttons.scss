@@ -13,6 +13,23 @@
         border-color 0.15s ease;
 }
 
+// Bump every screen's button up to a comfortably clickable size -- most were sized like inline
+// text links (0.5rem padding, default font-size) which reads too small once the rest of the HUD
+// (cards, avatars, titles) got a scale pass. `!important` is deliberate: each screen's own
+// component-scoped `__button` rule already sets padding/font-size, and Angular's emulated
+// encapsulation attribute bumps its specificity above this plain global sweep otherwise.
+[class*='__button'] {
+    padding: 0.75rem 1.5rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.6rem !important;
+    min-height: 2.75rem;
+}
+
+[class*='__kick'] {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.85rem !important;
+}
+
 [class*='__button']:hover:not(:disabled) {
     transform: translateY(-1px);
 }

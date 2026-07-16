@@ -1,6 +1,27 @@
 <div class="home">
     <h1 class="phase-title home__title">Werewolf</h1>
 
+    @if (activeRoomCode(); as roomCode) {
+        <div class="home__rejoin">
+            <p>
+                You were still in room <strong>{{ roomCode }}</strong
+                >.
+            </p>
+            <div class="home__rejoin-actions">
+                <button
+                    type="button"
+                    class="home__button home__button--primary"
+                    (click)="rejoinRoom()"
+                >
+                    Rejoin
+                </button>
+                <button type="button" class="home__button" (click)="dismissRejoin()">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    }
+
     <label class="home__field">
         Display name
         <input

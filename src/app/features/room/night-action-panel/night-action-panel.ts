@@ -34,16 +34,6 @@ export class NightActionPanel {
     private readonly actionsTaken = signal<Set<NightAction>>(new Set());
     private readonly lastDoctorTarget = signal<string | null>(null);
 
-    /** Whose turn the backend says it currently is (from the private `night.turn` push) -- every
-     * role's action panel is gated on this in addition to the viewer's own role, since roles now
-     * act in a fixed server-enforced order (Cupid -> Werewolves -> Doctor -> Seer -> Witch) rather
-     * than all at once. Reset to null on `night.started` and once this player's own action lands. */
-    readonly myTurnRole = signal<Role | null>(null);
-    /** Room-wide flavor text from `night.narration`, shown while waiting for another role's turn. */
-    readonly narrationText = signal<string>(
-        'Everyone else is asleep — waiting on the werewolves...'
-    );
-
     readonly wolfVotes = signal<Map<string, string | null>>(new Map());
     readonly wolfLockedTarget = signal<string | null | undefined>(undefined);
     readonly seerResult = signal<{ targetPlayerId: string; isWerewolf: boolean } | null>(null);
@@ -57,6 +47,19 @@ export class NightActionPanel {
         const state = this.state();
         return state?.players.find((p) => p.playerId === this.myPlayerId())?.role ?? null;
     });
+
+    /** Whose turn it is, straight from the last-refreshed GameState -- server-authoritative rather
+     * than relying solely on the transient `night.turn` push, so a player who was still on the
+     * role-reveal screen (or otherwise missed the push) still sees their turn once GameStateService
+     * catches up (see PHASE_RELEVANT_NOTIFICATION_KINDS in game-state.service.ts). */
+    readonly myTurnRole = computed(() => {
+        const role = this.state()?.currentNightRole ?? null;
+        return role !== null && role === this.myRole() ? role : null;
+    });
+    /** Room-wide flavor text, likewise sourced from GameState rather than only the `night.narration` push. */
+    readonly narrationText = computed(
+        () => this.state()?.nightPrompt ?? 'Everyone else is asleep — waiting on the werewolves...'
+    );
 
     readonly alivePlayers = computed(() => (this.state()?.players ?? []).filter((p) => p.isAlive));
 
@@ -152,7 +155,6 @@ export class NightActionPanel {
             const nightNumber = this.state()?.nightNumber;
             void nightNumber;
             this.actionsTaken.set(new Set());
-            this.myTurnRole.set(null);
             this.wolfVotes.set(new Map());
             this.wolfLockedTarget.set(undefined);
             this.seerResult.set(null);
@@ -160,21 +162,11 @@ export class NightActionPanel {
         });
 
         this.hub.notifications$.pipe(takeUntilDestroyed()).subscribe((notification) => {
-            switch (notification.kind) {
-                case 'night.narration':
-                    this.narrationText.set(notification.text);
-                    break;
-                case 'night.turn':
-                    if (notification.role === this.myRole()) {
-                        this.myTurnRole.set(notification.role);
-                    }
-                    break;
-                case 'seer.result':
-                    this.seerResult.set({
-                        targetPlayerId: notification.targetPlayerId,
-                        isWerewolf: notification.isWerewolf
-                    });
-                    break;
+            if (notification.kind === 'seer.result') {
+                this.seerResult.set({
+                    targetPlayerId: notification.targetPlayerId,
+                    isWerewolf: notification.isWerewolf
+                });
             }
         });
 

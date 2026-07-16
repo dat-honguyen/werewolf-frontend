@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { GameApiService } from '../../core/services/game-api.service';
 import { GameStateService } from '../../core/services/game-state.service';
 import { LobbyApiService } from '../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../core/services/player-identity.service';
@@ -39,6 +40,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly hub = inject(WerewolfHubService);
     private readonly lobbyApi = inject(LobbyApiService);
+    private readonly gameApi = inject(GameApiService);
     private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly toast = inject(ToastService);
     readonly gameStateService = inject(GameStateService);
@@ -69,12 +71,31 @@ export class RoomComponent implements OnInit, OnDestroy {
 
     private async joinAndEnter(): Promise<void> {
         const myPlayerId = this.playerIdentity.playerId();
-        const existingLobby = await firstValueFrom(this.lobbyApi.getLobby(this.roomCode)).catch(
-            () => null
-        );
-        const takenNames = (existingLobby?.players ?? [])
-            .filter((player) => player.playerId !== myPlayerId)
-            .map((player) => player.displayName);
+
+        const [existingLobby, existingGame] = await Promise.all([
+            firstValueFrom(this.lobbyApi.getLobby(this.roomCode)).catch(() => null),
+            firstValueFrom(this.gameApi.getState(this.roomCode)).catch(() => null)
+        ]);
+
+        // Reconnecting to a room we're already part of (closed tab, lost connection, browser
+        // crash, ...) -- re-POSTing join would 400 once the lobby is closed (game in progress), so
+        // skip straight to entering instead of joining again.
+        const alreadyJoined =
+            (existingGame?.players.some((player) => player.playerId === myPlayerId) ?? false) ||
+            (existingLobby?.players.some((player) => player.playerId === myPlayerId) ?? false);
+
+        if (alreadyJoined) {
+            this.enterRoom();
+            return;
+        }
+
+        if (!existingLobby) {
+            this.toast.show('Could not join that room. Check the code and try again.', 'error');
+            void this.router.navigate(['/']);
+            return;
+        }
+
+        const takenNames = existingLobby.players.map((player) => player.displayName);
         const displayName = resolveUniqueDisplayName(this.playerIdentity.displayName(), takenNames);
 
         this.lobbyApi
@@ -95,6 +116,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     }
 
     private enterRoom(): void {
+        this.playerIdentity.setActiveRoom(this.roomCode);
         void this.hub
             .connect()
             .then(() => this.hub.joinRoom(this.roomCode, this.playerIdentity.playerId()));
@@ -107,6 +129,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         if (!confirm('Quit this game? You will be marked dead and cannot rejoin.')) {
             return;
         }
+        this.playerIdentity.clearActiveRoom();
         void this.gameStateService.quitGame(this.roomCode);
     }
 

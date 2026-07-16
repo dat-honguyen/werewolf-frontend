@@ -9,12 +9,22 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        gap: 0.6rem;
+        gap: 0.5rem;
         width: 100%;
         height: 100%;
         padding: 1rem;
         text-align: center;
+    }
+
+    &__back {
+        justify-content: center;
+    }
+
+    &__front {
+        // Medallion + title stay put; only the description scrolls within the remaining space, so
+        // a long role description never pushes the artwork off-card or grows the card itself.
+        justify-content: flex-start;
+        padding-bottom: 0.75rem;
     }
 
     &__back::before {
@@ -33,6 +43,8 @@
     }
 
     &__medallion {
+        position: relative;
+        flex: 0 0 auto;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -58,18 +70,23 @@
 
     &__moon {
         position: absolute;
+        top: 50%;
+        left: 42%;
         width: 2.4rem;
         height: 2.4rem;
         color: var(--color-gold);
         filter: drop-shadow(0 0 4px rgb(217 164 65 / 60%));
+        transform: translate(-50%, -50%);
     }
 
     &__hexagram {
         position: absolute;
-        width: 1.6rem;
-        height: 1.6rem;
+        top: 30%;
+        left: 62%;
+        width: 1.5rem;
+        height: 1.5rem;
         color: var(--color-gold);
-        transform: translate(0.6rem, -0.7rem);
+        transform: translate(-50%, -50%);
     }
 
     &__icon {
@@ -80,6 +97,7 @@
     }
 
     &__title {
+        flex: 0 0 auto;
         margin: 0;
         color: var(--color-gold);
         text-transform: uppercase;
@@ -87,9 +105,25 @@
     }
 
     &__description {
+        flex: 0 1 auto;
+        max-height: 6rem;
+        width: 100%;
         margin: 0;
+        padding: 0 0.35rem;
+        overflow-y: auto;
+        overscroll-behavior: contain;
         font-size: 0.8rem;
-        line-height: 1.35;
+        line-height: 1.4;
         opacity: 0.85;
+        mask-image: linear-gradient(to bottom, black calc(100% - 1rem), transparent 100%);
+
+        &::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgb(217 164 65 / 45%);
+            border-radius: 999px;
+        }
     }
 }

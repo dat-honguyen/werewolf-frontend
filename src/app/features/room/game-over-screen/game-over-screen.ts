@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { GameApiService } from '../../../core/services/game-api.service';
 import { GameStateService } from '../../../core/services/game-state.service';
+import { PlayerIdentityService } from '../../../core/services/player-identity.service';
 import { RoleCard } from '../../../shared/components/role-card/role-card';
 import { PhaseTransition } from '../../../shared/components/phase-transition/phase-transition';
 import { Role } from '../../../core/models/role.model';
@@ -15,6 +16,7 @@ import { Role } from '../../../core/models/role.model';
 export class GameOverScreen {
     private readonly gameApi = inject(GameApiService);
     private readonly gameState = inject(GameStateService);
+    private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly router = inject(Router);
 
     readonly result = computed(() => this.gameState.gameState()?.result ?? null);
@@ -46,6 +48,7 @@ export class GameOverScreen {
     }
 
     returnToLobby(): void {
+        this.playerIdentity.clearActiveRoom();
         void this.router.navigate(['/']);
     }
 }

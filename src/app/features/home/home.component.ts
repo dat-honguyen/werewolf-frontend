@@ -22,6 +22,18 @@ export class HomeComponent {
     readonly displayName = signal(this.playerIdentity.displayName());
     readonly joinRoomCode = signal('');
     readonly errorMessage = signal<string | null>(null);
+    readonly activeRoomCode = this.playerIdentity.activeRoomCode;
+
+    rejoinRoom(): void {
+        const roomCode = this.activeRoomCode();
+        if (roomCode) {
+            void this.router.navigate(['/room', roomCode]);
+        }
+    }
+
+    dismissRejoin(): void {
+        this.playerIdentity.clearActiveRoom();
+    }
 
     createRoom(): void {
         const displayName = this.displayName().trim();

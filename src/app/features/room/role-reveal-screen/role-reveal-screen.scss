@@ -9,7 +9,8 @@
     text-align: center;
 
     &__card {
-        width: 14rem;
+        width: 19rem;
+        max-width: 90vw;
         animation: cardEnter 0.5s ease-out;
     }
 

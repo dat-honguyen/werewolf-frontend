@@ -78,6 +78,8 @@ export interface GameStateResponse {
         endedAtUtc: string;
         finalRoles: Record<string, Role>;
     } | null;
+    currentNightRole: Role | null;
+    nightPrompt: string | null;
 }
 export interface GameLogResponse {
     roomCode: string;

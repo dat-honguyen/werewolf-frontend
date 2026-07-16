@@ -3,7 +3,7 @@ import { Role } from '../models/role.model';
 /** Inline SVG inner-markup (viewBox 0 0 24 24) for each role's card medallion glyph. */
 export const ROLE_ICON: Record<Role, string> = {
     Villager: `<path d="M12 2 9 9h6L12 2Z" fill="currentColor"/><rect x="10.5" y="9" width="3" height="10" rx="1" fill="currentColor"/><path d="M8 21c0-2 2-3 4-3s4 1 4 3" fill="none" stroke="currentColor" stroke-width="1.3"/>`,
-    Werewolf: `<path d="M15.8 3A9 9 0 1 0 15.8 21 7.2 7.2 0 0 1 15.8 3Z" fill="currentColor" fill-opacity=".55"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="5" y1="4" x2="9" y2="20"/><line x1="8" y1="3" x2="12" y2="19"/><line x1="11" y1="2" x2="15" y2="18"/></g>`,
+    Werewolf: `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="currentColor" fill-opacity=".55"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="5" y1="4" x2="9" y2="20"/><line x1="8" y1="3" x2="12" y2="19"/><line x1="11" y1="2" x2="15" y2="18"/></g>`,
     Seer: `<path d="M2 12S6 5.5 12 5.5 22 12 22 12 18 18.5 12 18.5 2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="3" fill="currentColor"/><g stroke="currentColor" stroke-width="1" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="3.5"/><line x1="12" y1="20.5" x2="12" y2="23"/></g>`,
     Doctor: `<rect x="10" y="3" width="4" height="14" rx="1" fill="currentColor"/><rect x="5" y="8" width="14" height="4" rx="1" fill="currentColor"/>`,
     Hunter: `<path d="M3 12h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17 12l-4-3M17 12l-4 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 6c2 2 2 4 0 6M6 18c2-2 2-4 0-6" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>`,
@@ -16,7 +16,7 @@ export const ROLE_ICON: Record<Role, string> = {
  * creatures) so they read as "occult symbol" rather than implying a role before reveal. */
 export const AVATAR_SIGILS: readonly string[] = [
     // crescent moon + spark
-    `<path d="M15.8 2.5A9.5 9.5 0 1 0 15.8 21.5 7.6 7.6 0 0 1 15.8 2.5Z" fill="currentColor"/><path d="M19.5 4l.7 1.8L22 6.5l-1.8.7L19.5 9l-.7-1.8L17 6.5l1.8-.7Z" fill="currentColor"/>`,
+    `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="currentColor"/><path d="M6.5 5l.7 1.8L9 7.5l-1.8.7L6.5 10l-.7-1.8L4 7.5l1.8-.7Z" fill="currentColor"/>`,
     // hexagram
     `<path d="M12 2.5 20 17H4Z" fill="currentColor" fill-opacity=".9"/><path d="M12 21.5 4 7h16Z" fill="currentColor" fill-opacity=".9"/>`,
     // all-seeing eye
