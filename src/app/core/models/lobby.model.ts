@@ -86,4 +86,6 @@ export interface LocalLobbyState {
     roleDistribution: Partial<Record<Role, number>>;
     settings: GameSettings;
     status: 'Open' | 'Starting' | 'Closed' | 'Cancelled';
+    /** See GameStateService's version-gap resync -- same pattern as GameStateResponse.version. */
+    version: number;
 }

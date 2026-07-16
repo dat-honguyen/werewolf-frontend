@@ -34,10 +34,13 @@ export class GameStateService {
     readonly gameState: WritableSignal<GameStateResponse | null> = signal(null);
     readonly hasSeenRoleReveal = signal(false);
 
-    /** The last GameState.Version this client knows about -- see the version-gap resync in
-     * startSync() below. Starts at 0 (lower than any real version) so the first notification for a
-     * freshly-mounted room always triggers a fetch. */
+    /** The last GameState.Version / LobbyState.Version this client knows about -- see the
+     * version-gap resync in startSync() below. These are two unrelated counters (different
+     * aggregates), tracked separately so a lobby.updated notification's version is never compared
+     * against the game's, or vice versa. Both start at 0 (lower than any real version) so the first
+     * relevant notification for a freshly-mounted room always triggers a fetch. */
     private lastKnownVersion = 0;
+    private lastKnownLobbyVersion = 0;
 
     private notificationsSubscription: Subscription | null = null;
     private reconnectedSubscription: Subscription | null = null;
@@ -105,6 +108,7 @@ export class GameStateService {
             const next = await firstValueFrom(this.lobbyApi.getLobby(roomCode));
             this.announceLobbyChanges(this.lobby(), next);
             this.lobby.set(next);
+            this.lastKnownLobbyVersion = Math.max(this.lastKnownLobbyVersion, next.version);
         } catch {
             // Lobby not found (bad room code) — safe no-op.
         }
@@ -117,13 +121,16 @@ export class GameStateService {
      * apply the notification's payload as authoritative. This removes the need for any polling
      * timer -- a dropped message, a reconnect, or a page refresh are all just "my version is behind
      * (or unknown), go fetch" cases handled by the same code path:
-     *   - Behind (stateVersion > lastKnownVersion): fetch. Works identically whether the gap is one
-     *     event or ten -- there's no attempt to replay/interpolate the missed events client-side.
-     *   - Not behind (stateVersion <= lastKnownVersion): ignore -- a stale/duplicate/out-of-order
+     *   - Behind (stateVersion > last known): fetch. Works identically whether the gap is one event
+     *     or ten -- there's no attempt to replay/interpolate the missed events client-side.
+     *   - Not behind (stateVersion <= last known): ignore -- a stale/duplicate/out-of-order
      *     notification that doesn't need another round-trip.
      *   - Reconnect or initial mount: always fetch unconditionally (see reconnected$ below and
      *     RoomComponent.enterRoom's initial refreshGameState call) since messages could have been
      *     missed silently while disconnected, with no notification at all to compare a version against.
+     * lobby.updated and every other kind are versioned against two separate counters (LobbyState.Version
+     * vs GameState.Version are unrelated aggregates/sequences), so they're handled as two branches
+     * rather than one shared comparison.
      */
     startSync(): void {
         if (this.notificationsSubscription) {
@@ -136,25 +143,21 @@ export class GameStateService {
 
         this.notificationsSubscription = this.hub.notifications$.subscribe((notification) => {
             if (LOBBY_RELEVANT_NOTIFICATION_KINDS.has(notification.kind)) {
-                void this.refreshLobby(roomCode);
-            }
-
-            if (
-                notification.stateVersion !== undefined &&
-                notification.stateVersion > this.lastKnownVersion
-            ) {
-                if (
-                    this.lastKnownVersion > 0 &&
-                    notification.stateVersion > this.lastKnownVersion + 1
-                ) {
-                    console.debug(
-                        `[GameState] version gap: had ${this.lastKnownVersion}, notification is ${notification.stateVersion} -- resyncing`
-                    );
-                }
-                // Adopt optimistically before the round-trip completes so a burst of notifications
-                // arriving while the fetch is in flight doesn't each trigger their own redundant GET.
-                this.lastKnownVersion = notification.stateVersion;
-                void this.refreshGameState(roomCode);
+                this.resyncIfNewer(
+                    notification.stateVersion,
+                    () => this.lastKnownLobbyVersion,
+                    (v) => (this.lastKnownLobbyVersion = v),
+                    () => void this.refreshLobby(roomCode),
+                    '[Lobby]'
+                );
+            } else if (notification.stateVersion !== undefined) {
+                this.resyncIfNewer(
+                    notification.stateVersion,
+                    () => this.lastKnownVersion,
+                    (v) => (this.lastKnownVersion = v),
+                    () => void this.refreshGameState(roomCode),
+                    '[GameState]'
+                );
             }
 
             if (notification.kind === 'player.died' && notification.cause === 'quit') {
@@ -174,6 +177,28 @@ export class GameStateService {
         });
     }
 
+    private resyncIfNewer(
+        notifiedVersion: number | undefined,
+        getLastKnown: () => number,
+        setLastKnown: (version: number) => void,
+        refresh: () => void,
+        logTag: string
+    ): void {
+        if (notifiedVersion === undefined || notifiedVersion <= getLastKnown()) {
+            return;
+        }
+        const lastKnown = getLastKnown();
+        if (lastKnown > 0 && notifiedVersion > lastKnown + 1) {
+            console.warn(
+                `${logTag} version gap: had ${lastKnown}, notification is ${notifiedVersion} -- resyncing`
+            );
+        }
+        // Adopt optimistically before the round-trip completes so a burst of notifications arriving
+        // while the fetch is in flight doesn't each trigger their own redundant GET.
+        setLastKnown(notifiedVersion);
+        refresh();
+    }
+
     stopSync(): void {
         this.notificationsSubscription?.unsubscribe();
         this.notificationsSubscription = null;
@@ -182,6 +207,7 @@ export class GameStateService {
         // Reset so a later room (rejoin, or a different room entirely) can't have its first
         // notification silently ignored against a stale version left over from this one.
         this.lastKnownVersion = 0;
+        this.lastKnownLobbyVersion = 0;
     }
 
     private announceLobbyChanges(prev: LocalLobbyState | null, next: LocalLobbyState): void {
@@ -233,6 +259,7 @@ export class GameStateService {
         this.gameState.set(null);
         this.roomCode.set(null);
         this.lastKnownVersion = 0;
+        this.lastKnownLobbyVersion = 0;
         void this.router.navigate(['/']);
     }
 }
