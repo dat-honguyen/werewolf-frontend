@@ -1,0 +1,24 @@
+<div class="confirm-dialog">
+    <div class="confirm-dialog__card">
+        <h2 class="confirm-dialog__title">{{ title() }}</h2>
+        @if (message()) {
+        <p class="confirm-dialog__message">{{ message() }}</p>
+        }
+        <div class="confirm-dialog__actions">
+            <button
+                type="button"
+                class="confirm-dialog__button confirm-dialog__button--cancel"
+                (click)="cancelled.emit()"
+            >
+                {{ cancelLabel() }}
+            </button>
+            <button
+                type="button"
+                class="confirm-dialog__button confirm-dialog__button--confirm"
+                (click)="confirmed.emit()"
+            >
+                {{ confirmLabel() }}
+            </button>
+        </div>
+    </div>
+</div>

@@ -8,27 +8,12 @@ import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { PlayerCard } from '../../../shared/components/player-card/player-card';
 import { GameTable } from '../../../shared/components/game-table/game-table';
-import {
-    DEFAULT_GAME_SETTINGS,
-    GameSettings,
-    LocalLobbyPlayer
-} from '../../../core/models/lobby.model';
-import { Role } from '../../../core/models/role.model';
-
-const ALL_ROLES: Role[] = [
-    'Villager',
-    'Werewolf',
-    'Seer',
-    'Doctor',
-    'Hunter',
-    'Witch',
-    'Cupid',
-    'Tanner'
-];
+import { LocalLobbyPlayer } from '../../../core/models/lobby.model';
+import { SettingsModal } from './settings-modal/settings-modal';
 
 @Component({
     selector: 'app-lobby-screen',
-    imports: [FormsModule, PlayerCard, GameTable],
+    imports: [FormsModule, PlayerCard, GameTable, SettingsModal],
     templateUrl: './lobby-screen.html',
     styleUrl: './lobby-screen.scss'
 })
@@ -39,11 +24,7 @@ export class LobbyScreen {
     private readonly toast = inject(ToastService);
     private readonly router = inject(Router);
 
-    readonly allRoles = ALL_ROLES;
-    readonly showRoleDistribution = signal(false);
-    readonly showGameSettings = signal(false);
-    readonly roleDistributionDraft = signal<Partial<Record<Role, number>>>({});
-    readonly gameSettingsDraft = signal<GameSettings>(DEFAULT_GAME_SETTINGS);
+    readonly showSettings = signal(false);
 
     readonly lobby = this.gameState.lobby;
     readonly myPlayerId = this.playerIdentity.playerId;
@@ -147,87 +128,6 @@ export class LobbyScreen {
                 error: (error: unknown) =>
                     this.toast.show(
                         extractErrorMessage(error, 'Could not leave the lobby.'),
-                        'error'
-                    )
-            });
-    }
-
-    toggleRoleDistribution(): void {
-        const opening = !this.showRoleDistribution();
-        this.showRoleDistribution.set(opening);
-        if (opening) {
-            this.roleDistributionDraft.set({ ...(this.lobby()?.roleDistribution ?? {}) });
-        }
-    }
-
-    draftRoleCount(role: Role): number {
-        return this.roleDistributionDraft()[role] ?? 0;
-    }
-
-    setDraftRoleCount(role: Role, count: number): void {
-        this.roleDistributionDraft.update((draft) => ({ ...draft, [role]: count }));
-    }
-
-    applyRoleDistribution(): void {
-        const lobby = this.lobby();
-        if (!lobby) {
-            return;
-        }
-        const distribution = this.roleDistributionDraft();
-        this.lobbyApi
-            .updateRoleDistribution({
-                roomCode: lobby.roomCode,
-                requestedBy: this.myPlayerId(),
-                distribution
-            })
-            .subscribe({
-                next: () => {
-                    this.gameState.lobby.set({ ...lobby, roleDistribution: distribution });
-                    this.toast.show('Role distribution updated.', 'success');
-                },
-                error: (error: unknown) =>
-                    this.toast.show(
-                        extractErrorMessage(error, 'Could not update role distribution.'),
-                        'error'
-                    )
-            });
-    }
-
-    toggleGameSettings(): void {
-        const opening = !this.showGameSettings();
-        this.showGameSettings.set(opening);
-        if (opening) {
-            const settings = this.lobby()?.settings;
-            if (settings) {
-                this.gameSettingsDraft.set({ ...settings });
-            }
-        }
-    }
-
-    setDraftSetting<K extends keyof GameSettings>(key: K, value: GameSettings[K]): void {
-        this.gameSettingsDraft.update((draft) => ({ ...draft, [key]: value }));
-    }
-
-    applyGameSettings(): void {
-        const lobby = this.lobby();
-        if (!lobby) {
-            return;
-        }
-        const settings = this.gameSettingsDraft();
-        this.lobbyApi
-            .updateGameSettings({
-                roomCode: lobby.roomCode,
-                requestedBy: this.myPlayerId(),
-                settings
-            })
-            .subscribe({
-                next: () => {
-                    this.gameState.lobby.set({ ...lobby, settings });
-                    this.toast.show('Game settings updated.', 'success');
-                },
-                error: (error: unknown) =>
-                    this.toast.show(
-                        extractErrorMessage(error, 'Could not update game settings.'),
                         'error'
                     )
             });

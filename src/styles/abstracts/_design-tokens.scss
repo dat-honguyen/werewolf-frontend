@@ -28,3 +28,26 @@
     --font-display: 'Cinzel', 'Georgia', serif;
     --font-body: 'Inter', system-ui, sans-serif;
 }
+
+// "Bloody" theme — a gorier alternate palette, toggled via ThemeService
+// ([data-theme='bloody'] on <html>). Same custom-property names as :root above so every
+// component that already consumes var(--color-*) repaints with zero changes.
+:root[data-theme='bloody'] {
+    --color-bg-void: #10040a;
+    --color-bg-table: #2a0a12;
+    --color-moonlight: #e8b8b0;
+    --color-gold: #c2451f;
+    --color-gold-glow: rgb(194 69 31 / 60%);
+    --color-blood: #e01b3a;
+    --color-blood-glow: rgb(224 27 58 / 70%);
+    --color-parchment: #e8d0c0;
+    --color-parchment-ink: #1c0505;
+    --color-faction-villager: #d6b9b3;
+    --color-faction-werewolf: var(--color-blood);
+    --color-faction-seer: #4f9a8f;
+    --color-faction-doctor: #5f8a4e;
+    --color-faction-witch: #8a4f9e;
+    --color-faction-cupid: #d94f7e;
+    --color-faction-hunter: #b0501f;
+    --color-faction-tanner: #a3941f;
+}

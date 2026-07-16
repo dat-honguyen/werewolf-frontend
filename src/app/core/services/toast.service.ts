@@ -1,6 +1,6 @@
 import { Injectable, WritableSignal, signal } from '@angular/core';
 
-export type ToastKind = 'info' | 'success' | 'error';
+export type ToastKind = 'info' | 'success' | 'error' | 'quit';
 
 export interface Toast {
     id: number;

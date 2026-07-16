@@ -28,5 +28,18 @@
             border-color: var(--color-gold);
             box-shadow: 0 2px 12px rgb(217 164 65 / 35%);
         }
+
+        &--quit {
+            border: 1px solid var(--color-blood);
+            background-color: color-mix(in srgb, var(--color-blood) 20%, var(--color-bg-table));
+            color: var(--color-parchment);
+            font-weight: 600;
+
+            --glow-color: var(--color-blood-glow);
+
+            animation:
+                toastSlideIn 0.25s ease-out,
+                cardGlowPulse 1.8s ease-in-out infinite;
+        }
     }
 }

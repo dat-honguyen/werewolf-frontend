@@ -162,8 +162,8 @@ export class GameStateService {
 
             if (notification.kind === 'player.died' && notification.cause === 'quit') {
                 this.toast.show(
-                    `${this.playerDisplayName(notification.playerId)} quit the game.`,
-                    'error'
+                    `${this.playerDisplayName(notification.playerId)} abandoned the pack and bled out.`,
+                    'quit'
                 );
             }
             if (notification.kind === 'game.ended') {

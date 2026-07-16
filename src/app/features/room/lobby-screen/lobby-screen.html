@@ -41,110 +41,11 @@
     </button>
     } @if (isHost()) {
     <section class="lobby-screen__host-controls">
-        <button type="button" class="lobby-screen__button" (click)="toggleRoleDistribution()">
-            Role distribution ▾
+        <button type="button" class="lobby-screen__button" (click)="showSettings.set(true)">
+            ⚙ Settings
         </button>
-        @if (showRoleDistribution()) {
-        <div class="lobby-screen__panel">
-            @for (role of allRoles; track role) {
-            <label class="lobby-screen__role-row">
-                {{ role }}
-                <input
-                    type="number"
-                    min="0"
-                    [ngModel]="draftRoleCount(role)"
-                    (ngModelChange)="setDraftRoleCount(role, $event)"
-                />
-            </label>
-            }
-            <button
-                type="button"
-                class="lobby-screen__button lobby-screen__button--primary"
-                (click)="applyRoleDistribution()"
-            >
-                Apply
-            </button>
-        </div>
-        }
-
-        <button type="button" class="lobby-screen__button" (click)="toggleGameSettings()">
-            Game settings ▾
-        </button>
-        @if (showGameSettings()) {
-        <div class="lobby-screen__panel">
-            <label>
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().revealRoleOnDeath"
-                    (ngModelChange)="setDraftSetting('revealRoleOnDeath', $event)"
-                />
-                Reveal role on death
-            </label>
-            <label>
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().doctorCanSelfProtect"
-                    (ngModelChange)="setDraftSetting('doctorCanSelfProtect', $event)"
-                />
-                Doctor can self-protect
-            </label>
-            <label>
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().werewolfRequiresConsensus"
-                    (ngModelChange)="setDraftSetting('werewolfRequiresConsensus', $event)"
-                />
-                Werewolves require consensus
-            </label>
-            <label>
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().werewolfCanTargetWerewolf"
-                    (ngModelChange)="setDraftSetting('werewolfCanTargetWerewolf', $event)"
-                />
-                Werewolves can target werewolves
-            </label>
-            <label>
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().werewolfCanVoteNoKill"
-                    (ngModelChange)="setDraftSetting('werewolfCanVoteNoKill', $event)"
-                />
-                Werewolves can vote no-kill
-            </label>
-            <label>
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().witchSinglePotionPerNight"
-                    (ngModelChange)="setDraftSetting('witchSinglePotionPerNight', $event)"
-                />
-                Witch: single potion per night
-            </label>
-            <label>
-                Min players
-                <input
-                    type="number"
-                    min="1"
-                    [ngModel]="gameSettingsDraft().minPlayers"
-                    (ngModelChange)="setDraftSetting('minPlayers', $event)"
-                />
-            </label>
-            <label>
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().allowForceStart"
-                    (ngModelChange)="setDraftSetting('allowForceStart', $event)"
-                />
-                Allow force start
-            </label>
-            <button
-                type="button"
-                class="lobby-screen__button lobby-screen__button--primary"
-                (click)="applyGameSettings()"
-            >
-                Apply
-            </button>
-        </div>
+        @if (showSettings()) {
+        <app-settings-modal (closed)="showSettings.set(false)"></app-settings-modal>
         }
 
         <button

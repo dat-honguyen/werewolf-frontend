@@ -45,7 +45,7 @@
         <app-player-picker
             [candidates]="werewolfCandidates()"
             [allowNoTarget]="settings().werewolfCanVoteNoKill"
-            noTargetLabel="Vote No Kill"
+            noTargetLabel="Pass"
             (picked)="submitWerewolfVote($event)"
         ></app-player-picker>
         <div class="night-action-panel__tally">

@@ -1,0 +1,108 @@
+<div class="settings-modal">
+    <div class="settings-modal__card">
+        <header class="settings-modal__header">
+            <h2 class="phase-title">Game Settings</h2>
+            <button type="button" class="settings-modal__close" (click)="closed.emit()">✕</button>
+        </header>
+
+        <section class="settings-modal__section">
+            <h3>Role distribution</h3>
+            @for (role of allRoles; track role) {
+            <label class="settings-modal__role-row">
+                {{ role }}
+                <input
+                    type="number"
+                    min="0"
+                    [ngModel]="draftRoleCount(role)"
+                    (ngModelChange)="setDraftRoleCount(role, $event)"
+                />
+            </label>
+            }
+            <button
+                type="button"
+                class="settings-modal__button settings-modal__button--primary"
+                (click)="applyRoleDistribution()"
+            >
+                Apply role distribution
+            </button>
+        </section>
+
+        <section class="settings-modal__section">
+            <h3>Game rules</h3>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="gameSettingsDraft().revealRoleOnDeath"
+                    (ngModelChange)="setDraftSetting('revealRoleOnDeath', $event)"
+                />
+                Reveal role on death
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="gameSettingsDraft().doctorCanSelfProtect"
+                    (ngModelChange)="setDraftSetting('doctorCanSelfProtect', $event)"
+                />
+                Doctor can self-protect
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="gameSettingsDraft().werewolfRequiresConsensus"
+                    (ngModelChange)="setDraftSetting('werewolfRequiresConsensus', $event)"
+                />
+                Werewolves require consensus
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="gameSettingsDraft().werewolfCanTargetWerewolf"
+                    (ngModelChange)="setDraftSetting('werewolfCanTargetWerewolf', $event)"
+                />
+                Werewolves can target werewolves
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="gameSettingsDraft().werewolfCanVoteNoKill"
+                    (ngModelChange)="setDraftSetting('werewolfCanVoteNoKill', $event)"
+                />
+                Werewolves can vote no-kill (pass)
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="gameSettingsDraft().witchSinglePotionPerNight"
+                    (ngModelChange)="setDraftSetting('witchSinglePotionPerNight', $event)"
+                />
+                Witch: single potion per night
+            </label>
+            <label>
+                Min players
+                <input
+                    type="number"
+                    min="1"
+                    [ngModel]="gameSettingsDraft().minPlayers"
+                    (ngModelChange)="setDraftSetting('minPlayers', $event)"
+                />
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    [ngModel]="gameSettingsDraft().allowForceStart"
+                    (ngModelChange)="setDraftSetting('allowForceStart', $event)"
+                />
+                Allow force start
+            </label>
+            <button
+                type="button"
+                class="settings-modal__button settings-modal__button--primary"
+                (click)="applyGameSettings()"
+            >
+                Apply game settings
+            </button>
+        </section>
+
+        <button type="button" class="settings-modal__button" (click)="closed.emit()">Done</button>
+    </div>
+</div>

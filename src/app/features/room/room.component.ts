@@ -10,6 +10,7 @@ import { WerewolfHubService } from '../../core/services/werewolf-hub.service';
 import { resolveUniqueDisplayName } from '../../core/utils/display-name.util';
 import { extractErrorMessage } from '../../core/utils/http-error.util';
 import { ToastList } from '../../shared/components/toast-list/toast-list';
+import { ConfirmDialog } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { JoinNamePrompt } from './join-name-prompt/join-name-prompt';
 import { LobbyScreen } from './lobby-screen/lobby-screen';
 import { RoleRevealScreen } from './role-reveal-screen/role-reveal-screen';
@@ -23,6 +24,7 @@ import { GameOverScreen } from './game-over-screen/game-over-screen';
     selector: 'app-room',
     imports: [
         ToastList,
+        ConfirmDialog,
         JoinNamePrompt,
         LobbyScreen,
         RoleRevealScreen,
@@ -47,6 +49,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
     private roomCode = '';
     readonly needsDisplayName = signal(false);
+    readonly showQuitConfirm = signal(false);
 
     readonly canQuit = computed(
         () => !['lobby', 'game-over'].includes(this.gameStateService.currentView())
@@ -134,11 +137,17 @@ export class RoomComponent implements OnInit, OnDestroy {
     }
 
     quitGame(): void {
-        if (!confirm('Quit this game? You will be marked dead and cannot rejoin.')) {
-            return;
-        }
+        this.showQuitConfirm.set(true);
+    }
+
+    confirmQuit(): void {
+        this.showQuitConfirm.set(false);
         this.playerIdentity.clearActiveRoom();
         void this.gameStateService.quitGame(this.roomCode);
+    }
+
+    cancelQuit(): void {
+        this.showQuitConfirm.set(false);
     }
 
     ngOnDestroy(): void {

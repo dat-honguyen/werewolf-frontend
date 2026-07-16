@@ -4,6 +4,17 @@
     <button type="button" class="room__quit-button" (click)="quitGame()">Quit game</button>
 }
 
+@if (showQuitConfirm()) {
+    <app-confirm-dialog
+        title="Quit this game?"
+        message="You will be marked dead and cannot rejoin."
+        confirmLabel="Quit"
+        cancelLabel="Stay"
+        (confirmed)="confirmQuit()"
+        (cancelled)="cancelQuit()"
+    ></app-confirm-dialog>
+}
+
 @if (needsDisplayName()) {
     <app-join-name-prompt (confirmed)="onDisplayNameConfirmed($event)"></app-join-name-prompt>
 } @else {

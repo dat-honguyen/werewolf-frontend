@@ -1,0 +1,72 @@
+.settings-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(0 0 0 / 70%);
+
+    &__card {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        padding: 2rem;
+        border-radius: 1rem;
+        background-color: var(--color-bg-table);
+        border: 2px solid var(--color-gold);
+        color: var(--color-moonlight);
+        max-width: 28rem;
+        width: 90vw;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    &__close {
+        background: none;
+        border: none;
+        color: var(--color-moonlight);
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: var(--color-bg-void);
+
+        h3 {
+            margin: 0 0 0.25rem;
+            color: var(--color-gold);
+        }
+    }
+
+    &__role-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    &__button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--color-gold);
+        background: transparent;
+        color: var(--color-gold);
+        cursor: pointer;
+
+        &--primary {
+            background-color: var(--color-gold);
+            color: var(--color-parchment-ink);
+        }
+    }
+}
