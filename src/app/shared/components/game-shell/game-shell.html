@@ -1,0 +1,117 @@
+<div class="game-shell">
+    <header class="game-shell__header">
+        <div class="game-shell__phase">
+            <span
+                class="game-shell__phase-badge"
+                [class.game-shell__phase-badge--night]="isNight()"
+            >
+                {{ phaseLabel() }}
+            </span>
+        </div>
+        <div class="game-shell__stats">
+            <span class="game-shell__stat"
+                >Alive: <strong class="game-shell__stat--alive">{{ aliveCount() }}</strong></span
+            >
+            <span class="game-shell__stat"
+                >Dead: <strong class="game-shell__stat--dead">{{ deadCount() }}</strong></span
+            >
+            <span class="game-shell__stat">Room: <strong>#{{ roomCode() }}</strong></span>
+        </div>
+    </header>
+
+    <div class="game-shell__viewport">
+        <aside class="game-shell__roster">
+            <div class="game-shell__roster-title">Villagers summary</div>
+            @for (player of roster(); track player.playerId) {
+            <div class="game-shell__player" [class.game-shell__player--dead]="!player.isAlive">
+                <div class="game-shell__player-info">
+                    <app-avatar [seed]="player.displayName" [size]="32"></app-avatar>
+                    <span class="game-shell__player-name">
+                        {{ player.displayName }}{{ player.isHost ? ' (Host)' : '' }}{{ player.isMe ?
+                        ' (You)' : '' }}
+                    </span>
+                </div>
+                @if (!player.isAlive) {
+                <span class="game-shell__player-tag game-shell__player-tag--dead">Dead</span>
+                }
+            </div>
+            }
+        </aside>
+
+        <div class="game-shell__stage">
+            <div class="game-shell__stage-content">
+                <ng-content></ng-content>
+            </div>
+
+            @if (ownRole(); as role) {
+            <div class="game-shell__identity">
+                <div class="game-shell__identity-profile">
+                    <div class="game-shell__identity-badge">{{ role.charAt(0) }}</div>
+                    <div>
+                        <h4>Your hidden persona</h4>
+                        <p>{{ role }}</p>
+                    </div>
+                </div>
+                <div class="game-shell__identity-objective">
+                    Objective<br /><span>{{ ownObjective() }}</span>
+                </div>
+            </div>
+            }
+        </div>
+
+        <aside class="game-shell__chat">
+            <div class="game-shell__chat-tabs">
+                <button
+                    type="button"
+                    class="game-shell__chat-tab"
+                    [class.game-shell__chat-tab--active]="chatTab() === 'town'"
+                    (click)="selectChatTab('town')"
+                >
+                    Town Square
+                </button>
+                @if (canSeePackChat()) {
+                <button
+                    type="button"
+                    class="game-shell__chat-tab game-shell__chat-tab--danger"
+                    [class.game-shell__chat-tab--active]="chatTab() === 'pack'"
+                    (click)="selectChatTab('pack')"
+                >
+                    Pack Chat
+                </button>
+                }
+            </div>
+
+            @if (chatTab() === 'town') {
+            <div class="game-shell__chat-history">
+                @for (message of townMessages(); track message.sentAtUtc + message.senderId) {
+                <p class="game-shell__chat-message">
+                    <span class="game-shell__chat-sender">{{ message.senderName }}:</span>
+                    {{ message.text }}
+                </p>
+                }
+            </div>
+
+            <form class="game-shell__chat-input-area" (ngSubmit)="sendTownMessage()">
+                <input
+                    type="text"
+                    placeholder="Speak to the town..."
+                    [ngModel]="draftMessage()"
+                    (ngModelChange)="draftMessage.set($event)"
+                    name="townMessage"
+                />
+            </form>
+            } @else {
+            <div class="game-shell__chat-history">
+                <p class="game-shell__chat-disabled">
+                    Pack Chat isn't wired up yet. Coordinate over voice or a group chat outside the
+                    app.
+                </p>
+            </div>
+
+            <div class="game-shell__chat-input-area">
+                <input type="text" placeholder="Pack Chat is disabled for now" disabled />
+            </div>
+            }
+        </aside>
+    </div>
+</div>

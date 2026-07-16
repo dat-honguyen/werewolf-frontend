@@ -1,0 +1,301 @@
+// Palette taken verbatim from the provided mockup (gemini-code-1784214100397.html), scoped
+// locally like the Create/Join Room page -- doesn't touch the shared Moonlight/Bloody tokens
+// that the lobby/role-reveal/game-over screens still use.
+.game-shell {
+    --bg-main: #0a0b10;
+    --bg-surface: #121420;
+    --bg-nested: #1a1d30;
+    --primary: #8a2be2;
+    --accent-day: #f5a623;
+    --accent-night: #2e5bff;
+    --danger: #ff3b30;
+    --success: #4cd964;
+    --text-main: #e4e7eb;
+    --text-muted: #727c94;
+    --border: #23273a;
+
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+
+    &__header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background-color: var(--bg-surface);
+    }
+
+    &__phase-badge {
+        background: rgb(245 166 35 / 15%);
+        border: 1px solid var(--accent-day);
+        color: var(--accent-day);
+        padding: 0.35rem 0.9rem;
+        border-radius: 999px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+
+        &--night {
+            background: rgb(46 91 255 / 15%);
+            border-color: var(--accent-night);
+            color: var(--accent-night);
+        }
+    }
+
+    &__stats {
+        display: flex;
+        gap: 1.25rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    &__stat--alive {
+        color: var(--success);
+    }
+
+    &__stat--dead {
+        color: var(--danger);
+    }
+
+    &__viewport {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 260px 1fr 300px;
+
+        @media (max-width: 900px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &__roster {
+        background-color: var(--bg-surface);
+        border-right: 1px solid var(--border);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        overflow-y: auto;
+    }
+
+    &__roster-title {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+    }
+
+    &__player {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        background: var(--bg-nested);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+
+        &--dead {
+            opacity: 0.45;
+
+            .game-shell__player-name {
+                text-decoration: line-through;
+            }
+        }
+    }
+
+    &__player-info {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-width: 0;
+    }
+
+    &__player-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__player-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.1rem 0.4rem;
+        border-radius: 0.25rem;
+        white-space: nowrap;
+
+        &--dead {
+            background: rgb(255 59 48 / 20%);
+            color: var(--danger);
+        }
+    }
+
+    &__stage {
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        background: radial-gradient(circle at center, #161827 0%, #0a0b10 100%);
+        overflow-y: auto;
+    }
+
+    &__stage-content {
+        flex: 1;
+    }
+
+    &__identity {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    &__identity-profile {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        h4 {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        p {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--danger);
+        }
+    }
+
+    &__identity-badge {
+        width: 42px;
+        height: 56px;
+        border-radius: 0.375rem;
+        border: 1px solid rgb(255 255 255 / 20%);
+        background: linear-gradient(135deg, #4b134f 0%, #c94b4b 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.2rem;
+        color: var(--text-main);
+    }
+
+    &__identity-objective {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-align: right;
+
+        span {
+            color: var(--danger);
+            font-weight: 600;
+        }
+    }
+
+    &__chat {
+        background-color: var(--bg-surface);
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__chat-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-main);
+    }
+
+    &__chat-tab {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        padding: 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+
+        &--active {
+            color: var(--text-main);
+            border-bottom: 2px solid var(--primary);
+            background: var(--bg-surface);
+        }
+
+        &--danger {
+            color: var(--danger);
+        }
+    }
+
+    &__chat-history {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    &__chat-disabled {
+        color: var(--text-muted);
+        font-style: italic;
+        font-size: 0.85rem;
+        background: rgb(255 255 255 / 2%);
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        border-left: 2px solid var(--text-muted);
+    }
+
+    &__chat-message {
+        margin: 0 0 0.6rem;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        color: var(--text-main);
+    }
+
+    &__chat-sender {
+        font-weight: 700;
+        color: var(--primary);
+        margin-right: 0.3rem;
+    }
+
+    &__chat-input-area {
+        padding: 0.85rem;
+        border-top: 1px solid var(--border);
+        background: var(--bg-nested);
+        display: flex;
+
+        input {
+            width: 100%;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            padding: 0.6rem 0.75rem;
+            color: var(--text-main);
+            outline: none;
+
+            &:disabled {
+                color: var(--text-muted);
+                cursor: not-allowed;
+            }
+
+            &:focus {
+                border-color: var(--primary);
+            }
+        }
+    }
+}
