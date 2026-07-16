@@ -84,6 +84,23 @@ export class GameStateService {
         }
     }
 
+    playerDisplayName(playerId: string): string {
+        return (
+            this.lobby()?.players.find((player) => player.playerId === playerId)?.displayName ??
+            'A player'
+        );
+    }
+
+    async quitGame(roomCode: string): Promise<void> {
+        try {
+            await firstValueFrom(
+                this.gameApi.quitGame({ roomCode, playerId: this.playerIdentity.playerId() })
+            );
+        } catch {
+            this.toast.show('Could not quit the game. Try again.', 'error');
+        }
+    }
+
     async refreshLobby(roomCode: string): Promise<void> {
         try {
             const next = await firstValueFrom(this.lobbyApi.getLobby(roomCode));
@@ -111,6 +128,15 @@ export class GameStateService {
             }
             if (LOBBY_RELEVANT_NOTIFICATION_KINDS.has(notification.kind)) {
                 void this.refreshLobby(roomCode);
+            }
+            if (notification.kind === 'player.died' && notification.cause === 'quit') {
+                this.toast.show(
+                    `${this.playerDisplayName(notification.playerId)} quit the game.`,
+                    'error'
+                );
+            }
+            if (notification.kind === 'game.ended') {
+                this.toast.show('The game has ended.', 'info');
             }
         });
 

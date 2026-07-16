@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { GameStateService } from '../../core/services/game-state.service';
@@ -45,6 +45,10 @@ export class RoomComponent implements OnInit, OnDestroy {
 
     private roomCode = '';
     readonly needsDisplayName = signal(false);
+
+    readonly canQuit = computed(
+        () => !['lobby', 'game-over'].includes(this.gameStateService.currentView())
+    );
 
     ngOnInit(): void {
         this.roomCode = this.route.snapshot.paramMap.get('roomCode') ?? '';
@@ -97,6 +101,13 @@ export class RoomComponent implements OnInit, OnDestroy {
         void this.gameStateService.refreshLobby(this.roomCode);
         void this.gameStateService.refreshGameState(this.roomCode);
         this.gameStateService.startSync();
+    }
+
+    quitGame(): void {
+        if (!confirm('Quit this game? You will be marked dead and cannot rejoin.')) {
+            return;
+        }
+        void this.gameStateService.quitGame(this.roomCode);
     }
 
     ngOnDestroy(): void {

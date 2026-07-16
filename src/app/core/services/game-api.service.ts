@@ -11,6 +11,7 @@ import {
     LoversResponse,
     PassHunterRevengeRequest,
     PassWitchRequest,
+    QuitGameRequest,
     SubmitCupidPairingRequest,
     SubmitDoctorProtectionRequest,
     SubmitHunterRevengeShotRequest,
@@ -73,6 +74,10 @@ export class GameApiService {
 
     closeVoting(request: CloseVotingRequest): Observable<void> {
         return this.http.post<void>(`${this.baseUrl}/voting/close`, request);
+    }
+
+    quitGame(request: QuitGameRequest): Observable<void> {
+        return this.http.post<void>(`${this.baseUrl}/quit`, request);
     }
 
     getState(roomCode: string): Observable<GameStateResponse> {

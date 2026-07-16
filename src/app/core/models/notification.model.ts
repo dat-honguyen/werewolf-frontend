@@ -8,7 +8,7 @@ export type WerewolfNotification =
     | {
           kind: 'player.died';
           playerId: string;
-          cause: 'night' | 'lynch' | 'lover-link' | 'hunter-revenge';
+          cause: 'night' | 'lynch' | 'lover-link' | 'hunter-revenge' | 'quit';
           role?: Role;
       }
     | { kind: 'player.lynched'; playerId: string; role?: Role }

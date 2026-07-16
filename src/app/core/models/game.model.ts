@@ -59,6 +59,10 @@ export interface CloseVotingRequest {
     roomCode: string;
     requestedBy: string;
 }
+export interface QuitGameRequest {
+    roomCode: string;
+    playerId: string;
+}
 
 export interface GameStateResponse {
     roomCode: string;
