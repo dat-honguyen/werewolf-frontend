@@ -33,6 +33,10 @@ export type WerewolfNotification = { stateVersion?: number } & (
     | { kind: 'hunter.pending' }
     | { kind: 'hunter.turn' }
     | { kind: 'game.ended'; winningFaction: string; roles: Record<string, Role> }
+    // Room chat is pushed with its full payload inline (unlike every other kind above, which treats
+    // its payload as UI-only supplementary data) since GetRoomChatEndpoint's history fetch is only
+    // called once on mount -- this is the sole source of live appends after that.
+    | { kind: 'chat.room'; senderId: string; text: string; sentAtUtc: string }
     // Lobby kind/payload is unconfirmed against the real hub — server just needs to broadcast
     // this to the room group whenever the lobby aggregate changes (join/leave/kick/ready/
     // settings/roles/cancel); the client always re-fetches full state via GET, so no extra
