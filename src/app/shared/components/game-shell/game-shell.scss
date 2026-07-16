@@ -56,6 +56,24 @@
         color: var(--text-muted);
     }
 
+    &__settings-button {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--bg-nested);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 0.45rem 0.9rem;
+        color: var(--text-main);
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+            border-color: var(--primary);
+        }
+    }
+
     &__stat--alive {
         color: var(--success);
     }

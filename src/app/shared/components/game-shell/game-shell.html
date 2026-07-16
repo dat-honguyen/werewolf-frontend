@@ -8,6 +8,9 @@
                 {{ phaseLabel() }}
             </span>
         </div>
+        <button type="button" class="game-shell__settings-button" (click)="showSettings.set(true)">
+            ⚙️ Rules & Setup
+        </button>
         <div class="game-shell__stats">
             <span class="game-shell__stat"
                 >Alive: <strong class="game-shell__stat--alive">{{ aliveCount() }}</strong></span
@@ -114,4 +117,8 @@
             }
         </aside>
     </div>
+
+    @if (showSettings()) {
+    <app-settings-modal [readOnly]="true" (closed)="showSettings.set(false)"></app-settings-modal>
+    }
 </div>

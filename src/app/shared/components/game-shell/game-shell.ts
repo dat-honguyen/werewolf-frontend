@@ -7,6 +7,7 @@ import { PlayerIdentityService } from '../../../core/services/player-identity.se
 import { WerewolfHubService } from '../../../core/services/werewolf-hub.service';
 import { Avatar } from '../avatar/avatar';
 import { Role } from '../../../core/models/role.model';
+import { SettingsModal } from '../../../features/room/lobby-screen/settings-modal/settings-modal';
 
 interface ChatMessage {
     senderId: string;
@@ -49,7 +50,7 @@ const ROLE_OBJECTIVE: Record<Role, string> = {
  */
 @Component({
     selector: 'app-game-shell',
-    imports: [Avatar, FormsModule],
+    imports: [Avatar, FormsModule, SettingsModal],
     templateUrl: './game-shell.html',
     styleUrl: './game-shell.scss'
 })
@@ -63,6 +64,7 @@ export class GameShell {
     readonly chatTab = signal<ChatTab>('town');
     readonly townMessages = signal<ChatMessage[]>([]);
     readonly draftMessage = signal('');
+    readonly showSettings = signal(false);
 
     readonly isNight = computed(() => this.gameState.gameState()?.phase === 'Night');
 

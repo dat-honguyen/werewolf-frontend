@@ -1,4 +1,4 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GameStateService } from '../../../../core/services/game-state.service';
 import { LobbyApiService } from '../../../../core/services/lobby-api.service';
@@ -32,6 +32,9 @@ export class SettingsModal {
     private readonly toast = inject(ToastService);
 
     readonly closed = output<void>();
+    /** True while a game is in progress -- rules are locked in once assigned, so this shows
+     * everyone the configured settings without letting anyone edit them. */
+    readonly readOnly = input(false);
 
     readonly allRoles = ALL_ROLES;
     readonly roleDistributionDraft = signal<Partial<Record<Role, number>>>({
