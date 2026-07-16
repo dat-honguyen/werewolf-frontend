@@ -1,4 +1,4 @@
-<div class="game-shell">
+<div class="game-shell" [attr.data-phase]="isNight() ? 'night' : 'day'">
     <header class="game-shell__header">
         <div class="game-shell__phase">
             <span

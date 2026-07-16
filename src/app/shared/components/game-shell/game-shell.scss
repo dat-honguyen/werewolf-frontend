@@ -1,18 +1,22 @@
-// Palette taken verbatim from the provided mockup (gemini-code-1784214100397.html), scoped
-// locally like the Create/Join Room page -- doesn't touch the shared Moonlight/Bloody tokens
-// that the lobby/role-reveal/game-over screens still use.
+// LUNARIS palette (werewolf_game_interface (2).html): warm amber by day, twilight purple by
+// night. --primary tracks whichever is active so existing rules referencing --primary (the
+// settings-button hover, chat tab underline, etc.) don't need per-phase overrides of their own.
 .game-shell {
-    --bg-main: #0a0b10;
-    --bg-surface: #121420;
-    --bg-nested: #1a1d30;
-    --primary: #8a2be2;
-    --accent-day: #f5a623;
-    --accent-night: #2e5bff;
+    --bg-main: #0f1115;
+    --bg-surface: #1a1d24;
+    --bg-nested: #242932;
+    --accent-day: #f59e0b;
+    --accent-night: #c084fc;
+    --primary: var(--accent-day);
     --danger: #ff3b30;
     --success: #4cd964;
-    --text-main: #e4e7eb;
-    --text-muted: #727c94;
-    --border: #23273a;
+    --text-main: #f1f3f4;
+    --text-muted: #9aa0a6;
+    --border: #2d323f;
+
+    &[data-phase='night'] {
+        --primary: var(--accent-night);
+    }
 
     display: flex;
     flex-direction: column;
@@ -32,7 +36,7 @@
     }
 
     &__phase-badge {
-        background: rgb(245 166 35 / 15%);
+        background: color-mix(in srgb, var(--accent-day) 15%, transparent);
         border: 1px solid var(--accent-day);
         color: var(--accent-day);
         padding: 0.35rem 0.9rem;
@@ -43,7 +47,7 @@
         letter-spacing: 0.05em;
 
         &--night {
-            background: rgb(46 91 255 / 15%);
+            background: color-mix(in srgb, var(--accent-night) 15%, transparent);
             border-color: var(--accent-night);
             color: var(--accent-night);
         }
