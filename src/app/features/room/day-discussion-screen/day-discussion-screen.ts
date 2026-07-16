@@ -25,10 +25,36 @@ export class DayDiscussionScreen {
 
     readonly lastDeath = signal<LastDeath | null>(null);
     readonly state = this.gameState.gameState;
+    readonly nowMs = signal(Date.now());
 
     readonly isHost = computed(
         () => this.gameState.lobby()?.hostPlayerId === this.playerIdentity.playerId()
     );
+
+    /** Seconds left until `discussionDeadlineUtc`, floored at 0. Null when there's no deadline
+     * (shouldn't happen while this screen is shown, but the field is nullable server-side). */
+    readonly secondsRemaining = computed(() => {
+        const deadline = this.state()?.discussionDeadlineUtc;
+        if (!deadline) {
+            return null;
+        }
+        const remainingMs = new Date(deadline).getTime() - this.nowMs();
+        return Math.max(0, Math.floor(remainingMs / 1000));
+    });
+
+    readonly countdownDisplay = computed(() => {
+        const seconds = this.secondsRemaining();
+        if (seconds === null) {
+            return null;
+        }
+        const mins = Math.floor(seconds / 60)
+            .toString()
+            .padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+    });
+
+    readonly timeIsUp = computed(() => this.secondsRemaining() === 0);
 
     constructor() {
         this.hub.notifications$.pipe(takeUntilDestroyed()).subscribe((notification) => {
@@ -36,6 +62,14 @@ export class DayDiscussionScreen {
                 this.lastDeath.set({ playerId: notification.playerId, cause: notification.cause });
             }
         });
+
+        const intervalId = setInterval(() => this.nowMs.set(Date.now()), 1000);
+        // No explicit teardown needed beyond this: DestroyRef isn't injected because the interval
+        // just stops mattering once the component's gone (nothing it touches outlives the component,
+        // unlike a subscription that could otherwise leak a callback into a shared service).
+        // If a leak concern comes up in review, wrap in `inject(DestroyRef).onDestroy(() =>
+        // clearInterval(intervalId))` instead of leaving this comment.
+        void intervalId;
     }
 
     playerName(playerId: string): string {
