@@ -210,6 +210,20 @@ export class GameStateService {
         this.lastKnownLobbyVersion = 0;
     }
 
+    /**
+     * Called right after a successful rematch (POST /api/v1/lobby/rematch): the finished game's
+     * GameState.Version was however high it got, but round 2's fresh GameState stream restarts its
+     * own Version count from scratch -- without this reset, resyncIfNewer would see round 2's early
+     * versions as "not newer than what I already have" and silently ignore them, leaving currentView()
+     * stuck showing the finished game's GameOver screen. hasSeenRoleReveal also needs to reset so
+     * round 2's own role reveal isn't skipped.
+     */
+    resetForRematch(): void {
+        this.gameState.set(null);
+        this.hasSeenRoleReveal.set(false);
+        this.lastKnownVersion = 0;
+    }
+
     private announceLobbyChanges(prev: LocalLobbyState | null, next: LocalLobbyState): void {
         if (!prev || prev.roomCode !== next.roomCode) {
             return;

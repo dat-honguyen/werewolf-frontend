@@ -69,4 +69,17 @@ describe('GameStateService', () => {
 
         expect(service.currentView()).toBe('hunter-revenge');
     });
+
+    it('resetForRematch clears game state and role-reveal so the next round starts fresh', () => {
+        const service = TestBed.inject(GameStateService);
+        service.hasSeenRoleReveal.set(true);
+        service.gameState.set(makeState({ phase: 'GameOver' }));
+        expect(service.currentView()).toBe('game-over');
+
+        service.resetForRematch();
+
+        expect(service.gameState()).toBeNull();
+        expect(service.hasSeenRoleReveal()).toBe(false);
+        expect(service.currentView()).toBe('lobby');
+    });
 });

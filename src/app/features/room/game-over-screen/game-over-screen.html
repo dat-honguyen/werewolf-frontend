@@ -20,12 +20,17 @@
         <button type="button" class="game-over-screen__button" (click)="viewLog()">
             View full game log
         </button>
+        @if (isHost()) {
         <button
             type="button"
             class="game-over-screen__button game-over-screen__button--primary"
-            (click)="returnToLobby()"
+            (click)="startRematch()"
         >
-            Return to lobby / rematch
+            Rematch in this room
+        </button>
+        }
+        <button type="button" class="game-over-screen__button" (click)="leaveRoom()">
+            Leave room
         </button>
     </div>
 
