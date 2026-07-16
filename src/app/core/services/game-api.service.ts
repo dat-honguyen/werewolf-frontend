@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import {
     AdvanceToVotingRequest,
     CastVoteRequest,
+    ChatMessagesResponse,
     CloseVotingRequest,
     GameLogResponse,
     GameStateResponse,
@@ -12,6 +13,7 @@ import {
     PassHunterRevengeRequest,
     PassWitchRequest,
     QuitGameRequest,
+    SendRoomChatMessageRequest,
     SubmitCupidPairingRequest,
     SubmitDoctorProtectionRequest,
     SubmitHunterRevengeShotRequest,
@@ -109,5 +111,13 @@ export class GameApiService {
         return this.http.get<WitchTargetResponse>(
             `${this.baseUrl}/${roomCode}/witch/target?playerId=${encodeURIComponent(playerId)}`
         );
+    }
+
+    getRoomChat(roomCode: string): Observable<ChatMessagesResponse> {
+        return this.http.get<ChatMessagesResponse>(`${this.baseUrl}/${roomCode}/chat/room`);
+    }
+
+    sendRoomChatMessage(request: SendRoomChatMessageRequest): Observable<void> {
+        return this.http.post<void>(`${this.baseUrl}/chat/room`, request);
     }
 }

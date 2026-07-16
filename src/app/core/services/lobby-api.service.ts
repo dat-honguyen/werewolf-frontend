@@ -11,6 +11,7 @@ import {
     LeaveLobbyRequest,
     LocalLobbyState,
     OpenLobbySummary,
+    RematchLobbyRequest,
     SetReadyRequest,
     StartGameRequest,
     StartGameResponse,
@@ -65,5 +66,9 @@ export class LobbyApiService {
 
     startGame(request: StartGameRequest): Observable<StartGameResponse> {
         return this.http.post<StartGameResponse>(`${this.baseUrl}/start`, request);
+    }
+
+    rematch(request: RematchLobbyRequest): Observable<void> {
+        return this.http.post<void>(`${this.baseUrl}/rematch`, request);
     }
 }
