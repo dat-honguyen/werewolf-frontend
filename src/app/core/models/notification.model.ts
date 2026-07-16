@@ -26,6 +26,12 @@ export type WerewolfNotification = { stateVersion?: number } & (
       }
     | { kind: 'night.turn'; role: Role; prompt: string }
     | { kind: 'vote.cast'; voterPlayerId: string; targetPlayerId: string | null }
+    // Broadcast/private pair mirroring night.narration/night.turn for whoever's at the head of the
+    // Hunter-revenge queue. No payload needed on either -- GameStateService's version-gap resync
+    // re-fetches GameStateResponse.pendingHunterRevenge on any versioned notification, so these
+    // exist purely to trigger that re-fetch promptly rather than carrying data themselves.
+    | { kind: 'hunter.pending' }
+    | { kind: 'hunter.turn' }
     | { kind: 'game.ended'; winningFaction: string; roles: Record<string, Role> }
     // Lobby kind/payload is unconfirmed against the real hub — server just needs to broadcast
     // this to the room group whenever the lobby aggregate changes (join/leave/kick/ready/
