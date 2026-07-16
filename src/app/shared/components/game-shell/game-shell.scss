@@ -20,9 +20,10 @@
 
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
     background-color: var(--bg-main);
     color: var(--text-main);
+    overflow: hidden;
 
     &__header {
         display: flex;
@@ -90,9 +91,13 @@
         flex: 1;
         display: grid;
         grid-template-columns: 260px 1fr 300px;
+        min-height: 0; // without this, a flex/grid item won't shrink below its content's height,
+        // which would defeat the point of `height: 100vh` on the shell above.
 
         @media (max-width: 900px) {
             grid-template-columns: 1fr;
+            min-height: auto;
+            overflow-y: auto;
         }
     }
 
@@ -235,6 +240,12 @@
         border-left: 1px solid var(--border);
         display: flex;
         flex-direction: column;
+        min-height: 0;
+        overflow: hidden; // the history pane inside scrolls; the sidebar itself shouldn't
+
+        @media (max-width: 900px) {
+            overflow: visible;
+        }
     }
 
     &__chat-tabs {
