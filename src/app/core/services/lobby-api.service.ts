@@ -10,6 +10,7 @@ import {
     KickPlayerRequest,
     LeaveLobbyRequest,
     LocalLobbyState,
+    OpenLobbySummary,
     SetReadyRequest,
     StartGameRequest,
     StartGameResponse,
@@ -28,6 +29,10 @@ export class LobbyApiService {
 
     getLobby(roomCode: string): Observable<LocalLobbyState> {
         return this.http.get<LocalLobbyState>(`${this.baseUrl}/${roomCode}`);
+    }
+
+    browseOpenLobbies(): Observable<OpenLobbySummary[]> {
+        return this.http.get<OpenLobbySummary[]>(`${this.baseUrl}/open`);
     }
 
     joinLobby(request: JoinLobbyRequest): Observable<void> {

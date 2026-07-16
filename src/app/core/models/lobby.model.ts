@@ -79,6 +79,14 @@ export interface LocalLobbyPlayer {
     displayName: string;
     isReady: boolean;
 }
+export interface OpenLobbySummary {
+    roomCode: string;
+    hostDisplayName: string;
+    playerCount: number;
+    minPlayers: number;
+    specialRoles: Role[];
+}
+
 export interface LocalLobbyState {
     roomCode: string;
     hostPlayerId: string;
