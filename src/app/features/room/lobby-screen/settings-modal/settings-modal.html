@@ -87,6 +87,16 @@
                 />
             </label>
             <label>
+                Discussion duration (seconds)
+                <input
+                    type="number"
+                    min="30"
+                    step="30"
+                    [ngModel]="gameSettingsDraft().discussionDurationSeconds"
+                    (ngModelChange)="setDraftSetting('discussionDurationSeconds', $event)"
+                />
+            </label>
+            <label>
                 <input
                     type="checkbox"
                     [ngModel]="gameSettingsDraft().allowForceStart"
