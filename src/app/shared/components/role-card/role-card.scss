@@ -1,35 +1,95 @@
+@use '../../../../styles/abstracts/mixins';
+
 .role-card {
-    &__back {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-    }
+    display: block;
 
-    &__sigil {
-        font-family: var(--font-display);
-        font-size: 2.5rem;
-        color: var(--color-gold);
-    }
-
+    &__back,
     &__front {
+        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
+        width: 100%;
+        height: 100%;
         padding: 1rem;
         text-align: center;
     }
 
+    &__back::before {
+        content: '';
+        position: absolute;
+        inset: 0.5rem;
+        border: 1px solid rgb(217 164 65 / 55%);
+        border-radius: 0.5rem;
+        pointer-events: none;
+    }
+
+    &__corner {
+        @include mixins.corner-flourish(0.55rem, 0.36rem);
+
+        z-index: 1;
+    }
+
+    &__medallion {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 4.5rem;
+        height: 4.5rem;
+        border-radius: 50%;
+        border: 1.5px solid var(--color-gold);
+        background: radial-gradient(
+            circle,
+            color-mix(in srgb, var(--faction-glow, var(--color-gold)) 30%, var(--color-bg-void)),
+            var(--color-bg-void) 75%
+        );
+        box-shadow:
+            0 0 0 3px rgb(0 0 0 / 40%),
+            0 0 16px rgb(217 164 65 / 35%);
+    }
+
+    &__medallion--back {
+        width: 5.5rem;
+        height: 5.5rem;
+        background: radial-gradient(circle, rgb(217 164 65 / 8%), var(--color-bg-void) 75%);
+    }
+
+    &__moon {
+        position: absolute;
+        width: 2.4rem;
+        height: 2.4rem;
+        color: var(--color-gold);
+        filter: drop-shadow(0 0 4px rgb(217 164 65 / 60%));
+    }
+
+    &__hexagram {
+        position: absolute;
+        width: 1.6rem;
+        height: 1.6rem;
+        color: var(--color-gold);
+        transform: translate(0.6rem, -0.7rem);
+    }
+
+    &__icon {
+        width: 2.4rem;
+        height: 2.4rem;
+        color: var(--color-gold);
+        filter: drop-shadow(0 0 4px rgb(217 164 65 / 50%));
+    }
+
     &__title {
         margin: 0;
+        color: var(--color-gold);
         text-transform: uppercase;
+        font-size: 1.05rem;
     }
 
     &__description {
         margin: 0;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        line-height: 1.35;
+        opacity: 0.85;
     }
 }

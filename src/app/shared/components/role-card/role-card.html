@@ -1,8 +1,36 @@
-<app-animated-card [flipped]="revealed()" [glowing]="revealed()" [glowColor]="glowColor()">
+<app-animated-card
+    class="role-card"
+    [style.--faction-glow]="glowColor()"
+    [flipped]="revealed()"
+    [glowing]="revealed()"
+    [glowColor]="glowColor()"
+>
     <div card-back class="role-card__back">
-        <span class="role-card__sigil">?</span>
+        <span class="role-card__corner role-card__corner--tl"></span>
+        <span class="role-card__corner role-card__corner--tr"></span>
+        <span class="role-card__corner role-card__corner--bl"></span>
+        <span class="role-card__corner role-card__corner--br"></span>
+        <div class="role-card__medallion role-card__medallion--back">
+            <svg class="role-card__moon" viewBox="0 0 24 24">
+                <path
+                    d="M15.8 2.5A9.5 9.5 0 1 0 15.8 21.5 7.6 7.6 0 0 1 15.8 2.5Z"
+                    fill="currentColor"
+                />
+            </svg>
+            <svg class="role-card__hexagram" viewBox="0 0 24 24">
+                <path d="M12 2.5 20 17H4Z" fill="none" stroke="currentColor" stroke-width="0.9" />
+                <path d="M12 21.5 4 7h16Z" fill="none" stroke="currentColor" stroke-width="0.9" />
+            </svg>
+        </div>
     </div>
     <div card-front class="role-card__front">
+        <span class="role-card__corner role-card__corner--tl"></span>
+        <span class="role-card__corner role-card__corner--tr"></span>
+        <span class="role-card__corner role-card__corner--bl"></span>
+        <span class="role-card__corner role-card__corner--br"></span>
+        <div class="role-card__medallion">
+            <svg class="role-card__icon" viewBox="0 0 24 24" [innerHTML]="icon()"></svg>
+        </div>
         <h3 class="card-title role-card__title">{{ role() }}</h3>
         @if (description()) {
         <p class="card-body role-card__description">{{ description() }}</p>

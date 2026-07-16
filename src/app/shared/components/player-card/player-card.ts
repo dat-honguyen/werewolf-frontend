@@ -1,8 +1,9 @@
 import { Component, input, output } from '@angular/core';
+import { Avatar } from '../avatar/avatar';
 
 @Component({
     selector: 'app-player-card',
-    imports: [],
+    imports: [Avatar],
     templateUrl: './player-card.html',
     styleUrl: './player-card.scss'
 })

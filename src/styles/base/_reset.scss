@@ -13,4 +13,19 @@ body {
 
 body {
     font-family: var(--font-body);
+    background-attachment: fixed;
+    background-image:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgb(217 164 65 / 8%), transparent 60%),
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgb(143 28 46 / 10%), transparent 60%),
+        radial-gradient(1px 1px at 12% 18%, rgb(255 255 255 / 70%), transparent 60%),
+        radial-gradient(1px 1px at 78% 12%, rgb(255 255 255 / 55%), transparent 60%),
+        radial-gradient(1.5px 1.5px at 32% 62%, rgb(255 255 255 / 60%), transparent 60%),
+        radial-gradient(1px 1px at 60% 78%, rgb(255 255 255 / 45%), transparent 60%),
+        radial-gradient(1px 1px at 88% 55%, rgb(255 255 255 / 55%), transparent 60%),
+        radial-gradient(1.5px 1.5px at 22% 88%, rgb(255 255 255 / 45%), transparent 60%),
+        radial-gradient(1px 1px at 48% 30%, rgb(255 255 255 / 40%), transparent 60%),
+        radial-gradient(1px 1px at 8% 70%, rgb(255 255 255 / 35%), transparent 60%),
+        radial-gradient(1px 1px at 40% 8%, rgb(255 255 255 / 35%), transparent 60%),
+        radial-gradient(1px 1px at 68% 92%, rgb(255 255 255 / 35%), transparent 60%);
+    min-height: 100%;
 }

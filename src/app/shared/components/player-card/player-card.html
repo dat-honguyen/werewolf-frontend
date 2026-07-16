@@ -8,10 +8,17 @@
     [disabled]="!isSelectable()"
     (click)="picked.emit()"
 >
-    <span class="player-card__avatar">{{ displayName().charAt(0).toUpperCase() }}</span>
+    <span class="player-card__corner player-card__corner--tl"></span>
+    <span class="player-card__corner player-card__corner--tr"></span>
+    <span class="player-card__corner player-card__corner--bl"></span>
+    <span class="player-card__corner player-card__corner--br"></span>
+
+    <app-avatar class="player-card__avatar" [seed]="displayName()" [size]="44"></app-avatar>
     <span class="player-card__name">{{ displayName() }}</span>
     @if (isReady() !== null) {
-    <span class="player-card__ready">{{ isReady() ? '✓ ready' : '○ not ready' }}</span>
+    <span class="player-card__ready" [class.player-card__ready--on]="isReady()">
+        {{ isReady() ? '✓ ready' : '○ waiting' }}
+    </span>
     } @if (voteCount() > 0) {
     <span class="player-card__votes">{{ voteCount() }}</span>
     }

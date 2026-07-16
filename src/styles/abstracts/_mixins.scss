@@ -6,6 +6,20 @@
         0 8px 24px rgb(0 0 0 / 50%);
 }
 
+// Cheap CSS-only starfield: layered radial-gradient dots at fixed offsets, no image asset.
+@mixin starfield($base: var(--color-bg-void)) {
+    background-color: $base;
+    background-image:
+        radial-gradient(1px 1px at 12% 18%, rgb(255 255 255 / 80%), transparent 60%),
+        radial-gradient(1px 1px at 78% 12%, rgb(255 255 255 / 60%), transparent 60%),
+        radial-gradient(1.5px 1.5px at 32% 62%, rgb(255 255 255 / 70%), transparent 60%),
+        radial-gradient(1px 1px at 60% 78%, rgb(255 255 255 / 50%), transparent 60%),
+        radial-gradient(1px 1px at 88% 55%, rgb(255 255 255 / 65%), transparent 60%),
+        radial-gradient(1.5px 1.5px at 22% 88%, rgb(255 255 255 / 55%), transparent 60%),
+        radial-gradient(1px 1px at 48% 30%, rgb(255 255 255 / 45%), transparent 60%),
+        radial-gradient(1px 1px at 8% 70%, rgb(255 255 255 / 40%), transparent 60%);
+}
+
 @mixin parchment-texture {
     background-color: var(--color-parchment);
     background-image: radial-gradient(rgb(0 0 0 / 4%) 1px, transparent 1px);
@@ -17,4 +31,36 @@
     --glow-color: #{$color};
 
     box-shadow: 0 0 12px 3px var(--glow-color);
+}
+
+// Small gold diamond markers at each corner of a card, echoing the ornate corner flourishes on
+// the tarot card-back reference art. Expects four `.<block>__corner--{tl,tr,bl,br}` elements.
+@mixin corner-flourish($inset: 0.4rem, $size: 0.3rem) {
+    position: absolute;
+    width: $size;
+    height: $size;
+    background: var(--color-gold);
+    opacity: 0.85;
+    transform: rotate(45deg);
+    pointer-events: none;
+
+    &--tl {
+        top: $inset;
+        left: $inset;
+    }
+
+    &--tr {
+        top: $inset;
+        right: $inset;
+    }
+
+    &--bl {
+        bottom: $inset;
+        left: $inset;
+    }
+
+    &--br {
+        bottom: $inset;
+        right: $inset;
+    }
 }

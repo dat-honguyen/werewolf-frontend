@@ -1,0 +1,36 @@
+// Attribute-selector sweep: every screen names its buttons `<block>__button` /
+// `<block>__button--primary|danger` (BEM), so this reaches all of them without touching each
+// component's template — a shared "crafted gold button" feel with no per-file duplication.
+[class*='__button'],
+[class*='__kick'],
+[class*='__quit-button'] {
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background-color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+[class*='__button']:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+[class*='__button']:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+[class*='__button--primary'] {
+    box-shadow: 0 2px 10px rgb(217 164 65 / 35%);
+}
+
+[class*='__button--primary']:hover:not(:disabled) {
+    box-shadow: 0 4px 18px rgb(217 164 65 / 55%);
+}
+
+[class*='__button--danger']:hover:not(:disabled) {
+    background-color: var(--color-blood);
+    color: var(--color-parchment);
+    box-shadow: 0 2px 10px rgb(143 28 46 / 45%);
+}

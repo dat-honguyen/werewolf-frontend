@@ -1,5 +1,7 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { Role } from '../../../core/models/role.model';
+import { ROLE_ICON } from '../../../core/utils/role-icon.util';
 import { AnimatedCard } from '../animated-card/animated-card';
 
 const FACTION_GLOW: Record<Role, string> = {
@@ -20,9 +22,12 @@ const FACTION_GLOW: Record<Role, string> = {
     styleUrl: './role-card.scss'
 })
 export class RoleCard {
+    private readonly sanitizer = inject(DomSanitizer);
+
     readonly role = input.required<Role>();
     readonly description = input<string>('');
     readonly revealed = input(false);
 
     readonly glowColor = computed(() => FACTION_GLOW[this.role()]);
+    readonly icon = computed(() => this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[this.role()]));
 }

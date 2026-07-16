@@ -20,13 +20,18 @@
     }
 
     &__face--back {
-        background-color: var(--color-bg-table);
+        @include mixins.starfield;
+
         transform: rotateY(0deg);
     }
 
     &__face--front {
-        @include mixins.parchment-texture;
-
+        background: radial-gradient(
+            ellipse at 50% 0%,
+            color-mix(in srgb, var(--faction-glow, var(--color-gold)) 22%, var(--color-bg-table)),
+            var(--color-bg-table) 65%
+        );
+        color: var(--color-moonlight);
         transform: rotateY(-180deg);
     }
 

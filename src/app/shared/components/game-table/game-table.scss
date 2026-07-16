@@ -8,6 +8,7 @@
     &__felt {
         @include mixins.card-frame;
 
+        position: relative;
         display: flex;
         flex-wrap: wrap;
         gap: 1.25rem;
@@ -18,5 +19,23 @@
         padding: 2rem;
         border-radius: 1.5rem;
         background: radial-gradient(ellipse at center, var(--color-bg-table), var(--color-bg-void));
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0.6rem;
+            border: 1px solid rgb(217 164 65 / 25%);
+            border-radius: 1.1rem;
+            pointer-events: none;
+        }
+
+        // Stagger each projected player-card's entrance animation so the table fills in like
+        // cards being dealt, rather than every card popping in at once.
+        @for $i from 1 through 16 {
+            > :nth-child(#{$i}) {
+                animation-delay: #{$i * 0.05}s;
+            }
+        }
     }
 }

@@ -10,6 +10,7 @@
 
     &__card {
         width: 14rem;
+        animation: cardEnter 0.5s ease-out;
     }
 
     &__button {

@@ -7,57 +7,77 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.75rem;
-    background-color: var(--color-bg-table);
+    gap: 0.35rem;
+    width: 6.5rem;
+    padding: 0.85rem 0.5rem 0.65rem;
+    background:
+        radial-gradient(ellipse at 50% -10%, rgb(217 164 65 / 12%), transparent 60%),
+        var(--color-bg-table);
     color: var(--color-moonlight);
     font-family: var(--font-body);
     cursor: default;
+    animation: cardEnter 0.35s ease-out backwards;
+
+    &__corner {
+        @include mixins.corner-flourish(0.35rem, 0.28rem);
+    }
 
     &__avatar {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 50%;
-        background-color: var(--color-gold);
-        color: var(--color-parchment-ink);
-        font-weight: 700;
+        margin-bottom: 0.15rem;
     }
 
     &__name {
-        font-size: 0.9rem;
+        font-size: 0.82rem;
+        text-align: center;
+        line-height: 1.15;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
     }
 
     &__ready {
-        font-size: 0.75rem;
-        opacity: 0.8;
+        font-size: 0.7rem;
+        opacity: 0.65;
+        letter-spacing: 0.02em;
+
+        &--on {
+            opacity: 1;
+            color: var(--color-faction-doctor);
+            animation: readyPop 0.3s ease-out;
+        }
     }
 
     &__votes {
         position: absolute;
-        top: -0.5rem;
-        right: -0.5rem;
+        top: -0.55rem;
+        right: -0.55rem;
         min-width: 1.5rem;
         padding: 0.1rem 0.35rem;
+        border: 1px solid rgb(0 0 0 / 40%);
         border-radius: 999px;
         background-color: var(--color-blood);
         color: var(--color-parchment);
         font-size: 0.75rem;
         text-align: center;
+        box-shadow: 0 2px 6px rgb(0 0 0 / 45%);
     }
 
     &--selectable {
         cursor: pointer;
+        transition:
+            transform 0.15s ease,
+            border-color 0.15s ease;
     }
 
-    &--selectable:hover {
+    &--selectable:hover:not(:disabled) {
         border-color: var(--color-moonlight);
+        transform: translateY(-3px);
     }
 
     &--selected {
         animation: cardGlowPulse 1.8s ease-in-out infinite;
+        border-color: var(--color-gold);
     }
 
     &--dying {
@@ -67,5 +87,13 @@
     &--dead {
         filter: grayscale(100%);
         opacity: 0.55;
+
+        .player-card__corner {
+            background: var(--color-moonlight);
+        }
+    }
+
+    &:disabled {
+        cursor: default;
     }
 }

@@ -43,6 +43,55 @@
     }
 }
 
+@keyframes cardEnter {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.94);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes readyPop {
+    0% {
+        transform: scale(0.85);
+    }
+
+    60% {
+        transform: scale(1.08);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(1.5rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes borderShimmer {
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .animated-card,
     .player-card,
