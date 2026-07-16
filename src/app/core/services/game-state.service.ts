@@ -18,22 +18,6 @@ export type GameView =
     | 'hunter-revenge'
     | 'game-over';
 
-// Refreshing on night.turn/night.narration (not just night.started) keeps `gameState.currentNightRole`
-// in sync as the fixed role order advances within a night -- this runs continuously from
-// `startSync()` regardless of which screen is mounted, so it also backfills the turn for a player
-// who was still on the role-reveal screen when the original push fired (see night-action-panel.ts).
-const PHASE_RELEVANT_NOTIFICATION_KINDS = new Set([
-    'game.started',
-    'night.started',
-    'night.turn',
-    'night.narration',
-    'day.started',
-    'voting.started',
-    'player.died',
-    'player.lynched',
-    'game.ended'
-]);
-
 const LOBBY_RELEVANT_NOTIFICATION_KINDS = new Set(['lobby.updated']);
 
 @Injectable({ providedIn: 'root' })
@@ -49,6 +33,11 @@ export class GameStateService {
     readonly lobby: WritableSignal<LocalLobbyState | null> = signal(null);
     readonly gameState: WritableSignal<GameStateResponse | null> = signal(null);
     readonly hasSeenRoleReveal = signal(false);
+
+    /** The last GameState.Version this client knows about -- see the version-gap resync in
+     * startSync() below. Starts at 0 (lower than any real version) so the first notification for a
+     * freshly-mounted room always triggers a fetch. */
+    private lastKnownVersion = 0;
 
     private notificationsSubscription: Subscription | null = null;
     private reconnectedSubscription: Subscription | null = null;
@@ -81,10 +70,14 @@ export class GameStateService {
         }
     });
 
+    /** The single "GetCurrentState()" call in the version-gap resync pattern -- always fetches the
+     * server's authoritative state and adopts whatever version it reports. `Math.max` guards
+     * against a slow response from an older request resolving after a newer one already landed. */
     async refreshGameState(roomCode: string): Promise<void> {
         try {
             const state = await firstValueFrom(this.gameApi.getState(roomCode));
             this.gameState.set(state);
+            this.lastKnownVersion = Math.max(this.lastKnownVersion, state.version);
         } catch {
             // No game yet (still in lobby) — safe no-op.
         }
@@ -117,8 +110,21 @@ export class GameStateService {
         }
     }
 
-    /** Connects lobby/game state to SignalR notifications. No polling loop — updates are
-     * driven entirely by the hub, with a one-time resync on reconnect as a safety net. */
+    /**
+     * Connects lobby/game state to SignalR notifications using a version-gap resync pattern: the
+     * server is the single source of truth, SignalR only tells us *that* something changed (via a
+     * `stateVersion` on the notification), and we always re-fetch full state rather than trying to
+     * apply the notification's payload as authoritative. This removes the need for any polling
+     * timer -- a dropped message, a reconnect, or a page refresh are all just "my version is behind
+     * (or unknown), go fetch" cases handled by the same code path:
+     *   - Behind (stateVersion > lastKnownVersion): fetch. Works identically whether the gap is one
+     *     event or ten -- there's no attempt to replay/interpolate the missed events client-side.
+     *   - Not behind (stateVersion <= lastKnownVersion): ignore -- a stale/duplicate/out-of-order
+     *     notification that doesn't need another round-trip.
+     *   - Reconnect or initial mount: always fetch unconditionally (see reconnected$ below and
+     *     RoomComponent.enterRoom's initial refreshGameState call) since messages could have been
+     *     missed silently while disconnected, with no notification at all to compare a version against.
+     */
     startSync(): void {
         if (this.notificationsSubscription) {
             return;
@@ -129,12 +135,28 @@ export class GameStateService {
         }
 
         this.notificationsSubscription = this.hub.notifications$.subscribe((notification) => {
-            if (PHASE_RELEVANT_NOTIFICATION_KINDS.has(notification.kind)) {
-                void this.refreshGameState(roomCode);
-            }
             if (LOBBY_RELEVANT_NOTIFICATION_KINDS.has(notification.kind)) {
                 void this.refreshLobby(roomCode);
             }
+
+            if (
+                notification.stateVersion !== undefined &&
+                notification.stateVersion > this.lastKnownVersion
+            ) {
+                if (
+                    this.lastKnownVersion > 0 &&
+                    notification.stateVersion > this.lastKnownVersion + 1
+                ) {
+                    console.debug(
+                        `[GameState] version gap: had ${this.lastKnownVersion}, notification is ${notification.stateVersion} -- resyncing`
+                    );
+                }
+                // Adopt optimistically before the round-trip completes so a burst of notifications
+                // arriving while the fetch is in flight doesn't each trigger their own redundant GET.
+                this.lastKnownVersion = notification.stateVersion;
+                void this.refreshGameState(roomCode);
+            }
+
             if (notification.kind === 'player.died' && notification.cause === 'quit') {
                 this.toast.show(
                     `${this.playerDisplayName(notification.playerId)} quit the game.`,
@@ -157,6 +179,9 @@ export class GameStateService {
         this.notificationsSubscription = null;
         this.reconnectedSubscription?.unsubscribe();
         this.reconnectedSubscription = null;
+        // Reset so a later room (rejoin, or a different room entirely) can't have its first
+        // notification silently ignored against a stale version left over from this one.
+        this.lastKnownVersion = 0;
     }
 
     private announceLobbyChanges(prev: LocalLobbyState | null, next: LocalLobbyState): void {
@@ -207,6 +232,7 @@ export class GameStateService {
         this.lobby.set(null);
         this.gameState.set(null);
         this.roomCode.set(null);
+        this.lastKnownVersion = 0;
         void this.router.navigate(['/']);
     }
 }

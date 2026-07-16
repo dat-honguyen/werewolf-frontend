@@ -80,6 +80,10 @@ export interface GameStateResponse {
     } | null;
     currentNightRole: Role | null;
     nightPrompt: string | null;
+    /** Monotonically increasing per-change sequence number -- see GameStateService's version-gap
+     * resync: a SignalR notification is a "there's something newer" signal, not authoritative data,
+     * so the client always re-fetches this endpoint and adopts whatever version it returns. */
+    version: number;
 }
 export interface GameLogResponse {
     roomCode: string;

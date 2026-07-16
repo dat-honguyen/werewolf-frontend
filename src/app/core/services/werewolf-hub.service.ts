@@ -27,6 +27,7 @@ interface CloudEventsEnvelope {
 interface PlayerNotificationPayload {
     kind: string;
     payload?: Record<string, unknown> | null;
+    stateVersion?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -56,8 +57,12 @@ export class WerewolfHubService {
             if (envelope.type !== PLAYER_NOTIFICATION_TYPE) {
                 return;
             }
-            const { kind, payload } = envelope.data as PlayerNotificationPayload;
-            this.notificationsSubject.next({ kind, ...(payload ?? {}) } as WerewolfNotification);
+            const { kind, payload, stateVersion } = envelope.data as PlayerNotificationPayload;
+            this.notificationsSubject.next({
+                kind,
+                stateVersion: stateVersion ?? undefined,
+                ...(payload ?? {})
+            } as WerewolfNotification);
         });
         this.connection.onreconnected(() => this.reconnectedSubject.next());
 

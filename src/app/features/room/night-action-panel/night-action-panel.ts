@@ -18,7 +18,6 @@ import { PlayerCard } from '../../../shared/components/player-card/player-card';
 type NightAction = 'cupid' | 'seer' | 'werewolf' | 'doctor' | 'witch';
 
 const WOLF_VOTE_POLL_MS = 2000;
-const NIGHT_STATE_POLL_MS = 5000;
 
 @Component({
     selector: 'app-night-action-panel',
@@ -177,19 +176,11 @@ export class NightActionPanel {
             }
         });
 
-        // Safety net: `currentNightRole` is normally kept fresh by GameStateService's own
-        // notification-triggered refreshes (see PHASE_RELEVANT_NOTIFICATION_KINDS), but a dropped
-        // SignalR message, a reconnect that missed its resync, or a group-join race could otherwise
-        // leave a player stuck not knowing whose turn it is with no further event to prompt a
-        // refresh. A slow background poll while actually in Night guarantees it self-heals.
-        interval(NIGHT_STATE_POLL_MS)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => {
-                const roomCode = this.gameState.roomCode();
-                if (roomCode && this.state()?.phase === 'Night') {
-                    void this.gameState.refreshGameState(roomCode);
-                }
-            });
+        // No polling safety-net needed here: `currentNightRole` is kept fresh by
+        // GameStateService's version-gap resync (every GameState-changing SignalR notification
+        // carries a stateVersion; a dropped message just means the *next* one arrives with a bigger
+        // gap, which triggers the same GetCurrentState() re-fetch either way -- see startSync() in
+        // game-state.service.ts for the full mechanism, including reconnect/initial-mount handling).
 
         // Werewolf pack coordination is deliberately pulled over HTTP rather than pushed via
         // SignalR (see GAME_FLOW.md §7) -- poll the tally while it's actually the pack's turn.
