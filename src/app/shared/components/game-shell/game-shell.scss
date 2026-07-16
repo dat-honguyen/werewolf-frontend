@@ -109,6 +109,12 @@
         flex-direction: column;
         gap: 0.6rem;
         overflow-y: auto;
+
+        @media (max-width: 900px) {
+            border-right: none;
+            border-bottom: 1px solid var(--border);
+            max-height: 40vh;
+        }
     }
 
     &__roster-title {
@@ -245,6 +251,9 @@
 
         @media (max-width: 900px) {
             overflow: visible;
+            border-left: none;
+            border-top: 1px solid var(--border);
+            min-height: 50vh;
         }
     }
 
