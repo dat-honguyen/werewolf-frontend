@@ -12,30 +12,11 @@ import { extractErrorMessage } from '../../core/utils/http-error.util';
 import { ToastList } from '../../shared/components/toast-list/toast-list';
 import { ConfirmDialog } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { JoinNamePrompt } from './join-name-prompt/join-name-prompt';
-import { LobbyScreen } from './lobby-screen/lobby-screen';
-import { RoleRevealScreen } from './role-reveal-screen/role-reveal-screen';
-import { NightActionPanel } from './night-action-panel/night-action-panel';
-import { DayDiscussionScreen } from './day-discussion-screen/day-discussion-screen';
-import { VotingScreen } from './voting-screen/voting-screen';
-import { HunterRevengeModal } from './hunter-revenge-modal/hunter-revenge-modal';
-import { GameOverScreen } from './game-over-screen/game-over-screen';
-import { GameShell } from '../../shared/components/game-shell/game-shell';
+import { RoomShell } from '../../shared/components/room-shell/room-shell';
 
 @Component({
     selector: 'app-room',
-    imports: [
-        ToastList,
-        ConfirmDialog,
-        JoinNamePrompt,
-        LobbyScreen,
-        RoleRevealScreen,
-        NightActionPanel,
-        DayDiscussionScreen,
-        VotingScreen,
-        HunterRevengeModal,
-        GameOverScreen,
-        GameShell
-    ],
+    imports: [ToastList, ConfirmDialog, JoinNamePrompt, RoomShell],
     templateUrl: './room.component.html',
     styleUrl: './room.component.scss'
 })

@@ -18,7 +18,7 @@ import { IdentityGrimoireCard } from '../identity-grimoire-card/identity-grimoir
 import { PhaseBanner } from '../phase-banner/phase-banner';
 import { PlayerGrid, PlayerGridEntry } from '../player-grid/player-grid';
 import { RoomActionPanel } from '../room-action-panel/room-action-panel';
-import { SettingsModal } from '../../../features/room/lobby-screen/settings-modal/settings-modal';
+import { SettingsModal } from '../settings-modal/settings-modal';
 
 interface ChatMessage {
     senderId: string;

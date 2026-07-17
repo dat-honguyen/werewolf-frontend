@@ -18,35 +18,5 @@
 @if (needsDisplayName()) {
     <app-join-name-prompt (confirmed)="onDisplayNameConfirmed($event)"></app-join-name-prompt>
 } @else {
-    @switch (gameStateService.currentView()) {
-        @case ('lobby') {
-            <app-lobby-screen></app-lobby-screen>
-        }
-        @case ('role-reveal') {
-            <app-role-reveal-screen></app-role-reveal-screen>
-        }
-        @case ('night') {
-            <app-game-shell>
-                <app-night-action-panel></app-night-action-panel>
-            </app-game-shell>
-        }
-        @case ('day-discussion') {
-            <app-game-shell>
-                <app-day-discussion-screen></app-day-discussion-screen>
-            </app-game-shell>
-        }
-        @case ('voting') {
-            <app-game-shell>
-                <app-voting-screen></app-voting-screen>
-            </app-game-shell>
-        }
-        @case ('hunter-revenge') {
-            <app-game-shell>
-                <app-hunter-revenge-modal></app-hunter-revenge-modal>
-            </app-game-shell>
-        }
-        @case ('game-over') {
-            <app-game-over-screen></app-game-over-screen>
-        }
-    }
+    <app-room-shell></app-room-shell>
 }

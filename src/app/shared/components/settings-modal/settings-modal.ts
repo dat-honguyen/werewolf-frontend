@@ -1,12 +1,12 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { GameStateService } from '../../../../core/services/game-state.service';
-import { LobbyApiService } from '../../../../core/services/lobby-api.service';
-import { PlayerIdentityService } from '../../../../core/services/player-identity.service';
-import { ToastService } from '../../../../core/services/toast.service';
-import { extractErrorMessage } from '../../../../core/utils/http-error.util';
-import { DEFAULT_GAME_SETTINGS, GameSettings } from '../../../../core/models/lobby.model';
-import { Role } from '../../../../core/models/role.model';
+import { GameStateService } from '../../../core/services/game-state.service';
+import { LobbyApiService } from '../../../core/services/lobby-api.service';
+import { PlayerIdentityService } from '../../../core/services/player-identity.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.util';
+import { DEFAULT_GAME_SETTINGS, GameSettings } from '../../../core/models/lobby.model';
+import { Role } from '../../../core/models/role.model';
 
 const ALL_ROLES: Role[] = [
     'Villager',
