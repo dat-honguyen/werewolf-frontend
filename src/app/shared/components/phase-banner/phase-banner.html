@@ -1,0 +1,19 @@
+<div class="phase-banner">
+    <div class="phase-banner__main">
+        <div class="phase-banner__icon">{{ icon() }}</div>
+        <div>
+            <div class="phase-banner__status">{{ status() }}</div>
+            <h2 class="phase-banner__instruction">{{ instruction() }}</h2>
+        </div>
+    </div>
+
+    @if (countdown(); as countdown) {
+    <div
+        class="phase-banner__countdown"
+        [class.phase-banner__countdown--expired]="countdownExpired()"
+    >
+        <span class="phase-banner__countdown-label">{{ countdownLabel() }}</span>
+        <span class="phase-banner__countdown-clock">{{ countdown }}</span>
+    </div>
+    }
+</div>
