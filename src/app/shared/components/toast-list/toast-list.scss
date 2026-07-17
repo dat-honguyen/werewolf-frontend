@@ -8,6 +8,14 @@
     gap: 0.5rem;
     max-width: 22rem;
 
+    // At narrow widths, 22rem is nearly the full viewport, so a stack of these sits directly on
+    // top of the room-shell header (and everything else, being position: fixed + z-index: 100).
+    // Anchoring to the bottom instead keeps them clear of the header and any fixed header content.
+    @media (max-width: 900px) {
+        inset: auto 0.75rem 1rem;
+        max-width: none;
+    }
+
     &__toast {
         padding: 0.75rem 1rem;
         border-radius: 0.5rem;

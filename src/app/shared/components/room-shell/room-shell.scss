@@ -136,11 +136,17 @@
         gap: 1rem;
         overflow-y: auto;
 
+        // A 5-8 player game's identity/stats cards are much shorter than the full-height column
+        // next to &__chat -- centering keeps them from reading as "stuck at the top of an empty
+        // box" while degrading to normal top-anchored scrolling once content overflows.
+        justify-content: center;
+
         @media (max-width: 900px) {
             // The whole viewport scrolls as one page on mobile (see &__viewport's media query) --
             // giving this its own scroll container too would nest scrollbars inside a scrolling
             // page, which is confusing to use. Only &__chat keeps its own internal scroll below.
             overflow-y: visible;
+            justify-content: flex-start;
         }
     }
 
@@ -211,8 +217,15 @@
         overflow-y: auto;
         min-height: 0;
 
+        // Same reasoning as &__left: the banner + player grid + action panel are typically far
+        // shorter than the full-height column, so center them instead of leaving a wall of empty
+        // background beneath them. Once content is tall enough to fill/overflow the column (a big
+        // table, a long game log), this has no visible effect and it scrolls normally.
+        justify-content: center;
+
         @media (max-width: 900px) {
             overflow-y: visible;
+            justify-content: flex-start;
         }
     }
 
