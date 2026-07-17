@@ -1,0 +1,87 @@
+<div class="room-action-panel">
+    @if (showReadyToggle()) {
+    <button
+        type="button"
+        class="room-action-panel__button room-action-panel__button--primary"
+        (click)="readyToggle.emit()"
+    >
+        {{ isReady() ? 'Un-ready' : 'Ready Up' }}
+    </button>
+    } @if (showCancelLobby()) {
+    <button
+        type="button"
+        class="room-action-panel__button room-action-panel__button--danger"
+        (click)="cancelLobby.emit()"
+    >
+        Cancel Lobby
+    </button>
+    } @if (showLeaveLobby()) {
+    <button
+        type="button"
+        class="room-action-panel__button room-action-panel__button--danger"
+        (click)="leaveLobby.emit()"
+    >
+        Leave Lobby
+    </button>
+    } @if (werewolfTally(); as tally) {
+    <div class="room-action-panel__info">
+        @for (entry of tally; track entry.voterName) {
+        <span>{{ entry.voterName }} → {{ entry.targetName }}</span>
+        } @if (werewolfLockedLabel(); as locked) {
+        <strong>Locked: {{ locked }}</strong>
+        }
+    </div>
+    } @if (showWerewolfPass()) {
+    <button type="button" class="room-action-panel__button" (click)="werewolfPass.emit()">
+        Pass (no kill)
+    </button>
+    } @if (seerResult(); as result) {
+    <p class="room-action-panel__result">{{ result }}</p>
+    } @if (witchTargetInfo(); as info) {
+    <p class="room-action-panel__result">{{ info }}</p>
+    } @if (showWitchHeal()) {
+    <button
+        type="button"
+        class="room-action-panel__button room-action-panel__button--accent"
+        (click)="witchHeal.emit()"
+    >
+        Heal target
+    </button>
+    } @if (showWitchPass()) {
+    <button type="button" class="room-action-panel__button" (click)="witchPass.emit()">
+        {{ witchPassLabel() }}
+    </button>
+    } @if (cupidHint(); as hint) {
+    <p class="room-action-panel__result">{{ hint }}</p>
+    } @if (waitingText(); as waiting) {
+    <p class="room-action-panel__waiting">{{ waiting }}</p>
+    } @if (showSubmitVote()) {
+    <button
+        type="button"
+        class="room-action-panel__button room-action-panel__button--primary"
+        (click)="submitVote.emit()"
+    >
+        Submit Vote
+    </button>
+    } @if (voteTally(); as tally) {
+    <p class="room-action-panel__result">{{ tally }}</p>
+    } @if (showHunterPass()) {
+    <button type="button" class="room-action-panel__button" (click)="hunterPass.emit()">
+        Pass
+    </button>
+    } @if (showViewLog()) {
+    <button type="button" class="room-action-panel__button" (click)="viewLog.emit()">
+        View full game log
+    </button>
+    } @if (logEntries(); as entries) {
+    <ul class="room-action-panel__log">
+        @for (entry of entries; track $index) {
+        <li>{{ entry }}</li>
+        }
+    </ul>
+    } @if (showLeaveRoom()) {
+    <button type="button" class="room-action-panel__button" (click)="leaveRoom.emit()">
+        Leave room
+    </button>
+    }
+</div>
