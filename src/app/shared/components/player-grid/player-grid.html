@@ -1,0 +1,55 @@
+<div class="player-grid">
+    @for (entry of entries(); track entry.playerId) {
+    <div
+        class="player-grid__card"
+        [class.player-grid__card--dead]="!entry.isAlive"
+        [class.player-grid__card--selected]="entry.selected"
+    >
+        <div class="player-grid__identity">
+            <div class="player-grid__avatar-wrap">
+                <app-avatar [seed]="entry.displayName" [size]="48"></app-avatar>
+                <span
+                    class="player-grid__status-dot"
+                    [class.player-grid__status-dot--dead]="!entry.isAlive"
+                ></span>
+            </div>
+            <div>
+                <div class="player-grid__name">
+                    {{ entry.displayName }} @if (entry.isMe) {
+                    <span class="player-grid__tag">YOU</span>
+                    } @if (entry.isHost) {
+                    <span class="player-grid__tag player-grid__tag--host">HOST</span>
+                    }
+                </div>
+                <div class="player-grid__meta">
+                    <span>{{ entry.isAlive ? 'Active' : 'Deceased' }}</span>
+                    @if (entry.isReady !== undefined) {
+                    <span [class.player-grid__ready--yes]="entry.isReady"
+                        >{{ entry.isReady ? '• Ready' : '• Not ready' }}</span
+                    >
+                    } @if (entry.voteCount) {
+                    <span class="player-grid__votes">• {{ entry.voteCount }} votes</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (entry.revealedRole; as role) {
+        <div class="player-grid__reveal">
+            <app-role-card [role]="role" [revealed]="true"></app-role-card>
+        </div>
+        } @else if (entry.actionLabel) {
+        <button
+            type="button"
+            class="player-grid__action"
+            [class.player-grid__action--danger]="entry.actionVariant === 'danger'"
+            [class.player-grid__action--accent]="entry.actionVariant === 'accent'"
+            [disabled]="entry.actionDisabled"
+            (click)="action.emit(entry.playerId)"
+        >
+            {{ entry.actionLabel }}
+        </button>
+        }
+    </div>
+    }
+</div>
