@@ -1,0 +1,116 @@
+.identity-grimoire {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    align-items: center;
+
+    &__title {
+        align-self: flex-start;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+        font-weight: 700;
+        margin: 0;
+    }
+
+    &__card {
+        width: 100%;
+        max-width: 170px;
+        height: 240px;
+        perspective: 1200px;
+        cursor: pointer;
+
+        &--inert {
+            cursor: default;
+        }
+    }
+
+    &__card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform-style: preserve-3d;
+
+        .identity-grimoire__card--flipped & {
+            transform: rotateY(180deg);
+        }
+    }
+
+    &__face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        border-radius: 1rem;
+        border: 1px solid var(--border);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        text-align: center;
+
+        &--front {
+            background: linear-gradient(180deg, #1c1830 0%, #101218 60%, var(--bg-main) 100%);
+            border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+        }
+
+        &--back {
+            transform: rotateY(180deg);
+            background: linear-gradient(180deg, #120f24 0%, #181a24 55%, var(--bg-main) 100%);
+            border-color: var(--primary);
+        }
+    }
+
+    &__eyebrow {
+        font-size: 0.62rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--primary);
+    }
+
+    &__glyph {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        background: color-mix(in srgb, var(--primary) 15%, transparent);
+        box-shadow: 0 0 15px color-mix(in srgb, var(--primary) 25%, transparent);
+    }
+
+    &__hint {
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--primary);
+        opacity: 0.8;
+    }
+
+    &__role-icon {
+        width: 2.75rem;
+        height: 2.75rem;
+        color: var(--primary);
+    }
+
+    &__role-text {
+        h4 {
+            margin: 0 0 0.35rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+    }
+}

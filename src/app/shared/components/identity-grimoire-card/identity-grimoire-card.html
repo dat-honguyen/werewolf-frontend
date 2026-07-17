@@ -1,0 +1,31 @@
+<div class="identity-grimoire">
+    <h3 class="identity-grimoire__title">Identity Grimoire</h3>
+
+    <div
+        class="identity-grimoire__card"
+        [class.identity-grimoire__card--flipped]="flipped()"
+        [class.identity-grimoire__card--inert]="!role()"
+        (click)="toggleFlip()"
+    >
+        <div class="identity-grimoire__card-inner">
+            <div class="identity-grimoire__face identity-grimoire__face--front">
+                <span class="identity-grimoire__eyebrow">LUNARIS</span>
+                <div class="identity-grimoire__glyph">✨</div>
+                <span class="identity-grimoire__hint">
+                    {{ role() ? 'Tap card to inspect' : 'Awaiting the game to start' }}
+                </span>
+            </div>
+
+            <div class="identity-grimoire__face identity-grimoire__face--back">
+                <span class="identity-grimoire__eyebrow">Your Role</span>
+                @if (icon(); as icon) {
+                <div class="identity-grimoire__role-icon" [innerHTML]="icon"></div>
+                }
+                <div class="identity-grimoire__role-text">
+                    <h4>{{ role() }}</h4>
+                    <p>{{ description() }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
