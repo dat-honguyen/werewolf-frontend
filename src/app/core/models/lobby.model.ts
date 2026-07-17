@@ -3,7 +3,6 @@ import { Role } from './role.model';
 export interface GameSettings {
     revealRoleOnDeath: boolean;
     doctorCanSelfProtect: boolean;
-    werewolfRequiresConsensus: boolean;
     werewolfCanTargetWerewolf: boolean;
     werewolfCanVoteNoKill: boolean;
     witchSinglePotionPerNight: boolean;
@@ -16,7 +15,6 @@ export interface GameSettings {
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
     revealRoleOnDeath: true,
     doctorCanSelfProtect: true,
-    werewolfRequiresConsensus: true,
     werewolfCanTargetWerewolf: false,
     werewolfCanVoteNoKill: false,
     witchSinglePotionPerNight: false,

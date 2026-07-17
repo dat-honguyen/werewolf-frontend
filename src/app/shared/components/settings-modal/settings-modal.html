@@ -59,15 +59,6 @@
             <label class="settings-modal__check-row">
                 <input
                     type="checkbox"
-                    [ngModel]="gameSettingsDraft().werewolfRequiresConsensus"
-                    (ngModelChange)="setDraftSetting('werewolfRequiresConsensus', $event)"
-                    [disabled]="readOnly()"
-                />
-                <span>Werewolves require consensus</span>
-            </label>
-            <label class="settings-modal__check-row">
-                <input
-                    type="checkbox"
                     [ngModel]="gameSettingsDraft().werewolfCanTargetWerewolf"
                     (ngModelChange)="setDraftSetting('werewolfCanTargetWerewolf', $event)"
                     [disabled]="readOnly()"
