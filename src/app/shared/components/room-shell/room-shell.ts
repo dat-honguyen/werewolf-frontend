@@ -525,6 +525,14 @@ export class RoomShell {
         });
     }
 
+    copyInviteLink(): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        void navigator.clipboard.writeText(`${location.origin}/room/${roomCode}`);
+    }
+
     playerName(playerId: string): string {
         return this.lobby()?.players.find((p) => p.playerId === playerId)?.displayName ?? playerId;
     }
