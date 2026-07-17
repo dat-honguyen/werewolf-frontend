@@ -246,6 +246,15 @@
         @media (max-width: 900px) {
             overflow-y: visible;
             justify-content: flex-start;
+
+            // min-height: 0 (set unconditionally above) is what lets this flex column shrink
+            // below its content's height on desktop, where the grid row's real height comes from
+            // &__viewport's own explicit height. Once the grid collapses to one column below
+            // 900px, each item becomes its own auto-sized implicit row with no such outer height
+            // to size against -- min-height: 0 then collapses this whole column to 0px (its
+            // children still render, just entirely overlapping &__chat below them instead of
+            // pushing it down). Restoring the default undoes that collapse.
+            min-height: auto;
         }
     }
 

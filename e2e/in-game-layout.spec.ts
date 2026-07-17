@@ -63,6 +63,20 @@ test('a started game renders a balanced layout at desktop and mobile widths', as
         // should render inside a bordered card, not float bare over the background.
         await expect(host.locator('.room-action-panel')).toHaveCSS('border-style', /solid/);
 
+        // Regression check: 640-900px is the range where &__viewport's grid has already
+        // collapsed to a single column (<= 900px) but &player-grid hasn't yet dropped to its own
+        // single-column layout (<= 640px). &__center had `min-height: 0` unconditionally, which
+        // -- only in a single-column *implicit-row* grid, not the desktop 3-column one -- collapsed
+        // the whole column (banner, player grid, action panel) to 0px height, silently overlapping
+        // &__chat below it instead of pushing it down. The DOM content was all still there and
+        // correct; only its layout box collapsed, so this needs a real height assertion, not a
+        // visibility/text check.
+        await host.setViewportSize({ width: 663, height: 1000 });
+        await host.waitForTimeout(300);
+        const centerBox = await host.locator('.room-shell__center').boundingBox();
+        expect(centerBox?.height ?? 0).toBeGreaterThan(100);
+        await shoot('tablet viewport (640-900px)');
+
         await host.setViewportSize({ width: 390, height: 844 });
         await host.waitForTimeout(300);
 
