@@ -150,6 +150,7 @@ export class RoomShell {
         const role = this.state()?.currentNightRole ?? null;
         return role !== null && role === this.myRole() ? role : null;
     });
+    private readonly currentNightNumber = computed(() => this.state()?.nightNumber);
     readonly showCupid = computed(
         () =>
             this.myRole() === 'Cupid' &&
@@ -182,6 +183,25 @@ export class RoomShell {
             this.myTurnRole() === 'Witch' &&
             !this.actionsTaken().has('witch')
     );
+
+    readonly werewolfTallyDisplay = computed(() => {
+        if (!this.showWerewolf()) {
+            return null;
+        }
+        const entries = Array.from(this.wolfVotes().entries()).map(([voterId, targetId]) => ({
+            voterName: this.playerName(voterId),
+            targetName: targetId ? this.playerName(targetId) : 'no kill'
+        }));
+        return entries.length > 0 ? entries : null;
+    });
+
+    readonly werewolfLockedLabel = computed(() => {
+        const locked = this.wolfLockedTarget();
+        if (locked === undefined) {
+            return null;
+        }
+        return locked ? this.playerName(locked) : 'no kill';
+    });
 
     readonly secondsRemaining = computed(() => {
         const deadline = this.state()?.discussionDeadlineUtc;
@@ -259,7 +279,7 @@ export class RoomShell {
      * with whatever real host action applies to the current phase (null hides the button). */
     readonly headerAction = computed<{ label: string; disabled?: boolean } | null>(() => {
         if (!this.isHost()) {
-            return this.view() === 'game-over' ? null : null;
+            return null;
         }
         switch (this.view()) {
             case 'lobby':
@@ -397,8 +417,7 @@ export class RoomShell {
 
     constructor() {
         effect(() => {
-            const nightNumber = this.state()?.nightNumber;
-            void nightNumber;
+            this.currentNightNumber();
             this.actionsTaken.set(new Set());
             this.wolfVotes.set(new Map());
             this.wolfLockedTarget.set(undefined);
