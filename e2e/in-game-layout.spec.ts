@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { createStepper } from './utils/screenshot';
 
 const PLAYER_NAMES = ['Host', 'Bob', 'Cara', 'Dan', 'Eve'];
 
@@ -9,9 +10,10 @@ test('a started game renders a balanced layout at desktop and mobile widths', as
         PLAYER_NAMES.map(() => browser.newContext({ viewport: { width: 1440, height: 900 } }))
     );
     const pages = await Promise.all(contexts.map((ctx) => ctx.newPage()));
+    const host = pages[0];
+    const shoot = createStepper(host, 'in-game-layout');
 
     try {
-        const host = pages[0];
         await host.goto('/');
         await host.getByPlaceholder('Your name').fill(PLAYER_NAMES[0]);
         await host.getByRole('button', { name: 'Gather a New Village' }).click();
@@ -19,6 +21,7 @@ test('a started game renders a balanced layout at desktop and mobile widths', as
         const roomCodeMatch = /\/room\/([A-Z0-9]+)/.exec(host.url());
         const roomCode = roomCodeMatch?.[1] ?? '';
         expect(roomCode).not.toBe('');
+        await shoot('room created');
 
         for (let i = 1; i < pages.length; i++) {
             const page = pages[i];
@@ -32,24 +35,33 @@ test('a started game renders a balanced layout at desktop and mobile widths', as
             await page.getByRole('button', { name: 'Enter Village' }).click();
             await page.waitForURL(/\/room\/[A-Z0-9]+/);
         }
+        await shoot('all players joined');
 
         for (let i = 1; i < pages.length; i++) {
             await pages[i].getByRole('button', { name: 'Ready Up' }).click();
         }
+        await shoot('all players ready');
 
         await host.getByRole('button', { name: /Start Game|Force Start/ }).click();
         await expect(host.getByText(/NIGHT 1/)).toBeVisible();
+        await shoot('game started (role reveal)');
+
+        // Reveals the host's role card, which also flips GameStateService.currentView() from
+        // 'role-reveal' to 'night' -- see room-shell's phase-announcement effect, which only then
+        // adds the "Night has fallen" system chat message this step's screenshot should show.
+        await host
+            .locator('[class*="identity-grimoire"]')
+            .first()
+            .click({ timeout: 2000 })
+            .catch(() => {});
+        await host.waitForTimeout(500);
+        await shoot('night view with system chat message');
 
         // Regression check: room-shell's 3-column layout used to leave a wall of empty
         // background under &__left/&__center once the game started (short content in a
         // full-viewport-height column) -- the action panel (waiting text, results, etc.)
         // should render inside a bordered card, not float bare over the background.
         await expect(host.locator('.room-action-panel')).toHaveCSS('border-style', /solid/);
-
-        await host.screenshot({
-            path: 'e2e/screenshots/in-game-desktop.png',
-            fullPage: false
-        });
 
         await host.setViewportSize({ width: 390, height: 844 });
         await host.waitForTimeout(300);
@@ -65,11 +77,9 @@ test('a started game renders a balanced layout at desktop and mobile widths', as
                 expect(toastBox.y).toBeGreaterThan(headerBox.y + headerBox.height);
             }
         }
+        await shoot('mobile viewport');
 
-        await host.screenshot({
-            path: 'e2e/screenshots/in-game-mobile.png',
-            fullPage: false
-        });
+        await host.setViewportSize({ width: 1440, height: 900 });
     } finally {
         await Promise.all(contexts.map((ctx) => ctx.close()));
     }
