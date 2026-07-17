@@ -9,10 +9,12 @@
             <h3>Role Distribution</h3>
 
             @for (role of allRoles; track role) {
-            <label class="settings-modal__role-row">
+            <div class="settings-modal__role-row">
                 <span class="settings-modal__role-label">
-                    <span class="settings-modal__role-icon" [innerHTML]="roleIcon(role)"></span>
-                    {{ role }}
+                    <span class="settings-modal__role-icon" [style.color]="roleColor(role)"
+                        >{{ roleEmoji(role) }}</span
+                    >
+                    <span class="settings-modal__role-name">{{ role }}</span>
                 </span>
                 <input
                     type="number"
@@ -21,7 +23,7 @@
                     (ngModelChange)="setDraftRoleCount(role, $event)"
                     [disabled]="readOnly()"
                 />
-            </label>
+            </div>
             } @if (!readOnly()) {
             <button
                 type="button"

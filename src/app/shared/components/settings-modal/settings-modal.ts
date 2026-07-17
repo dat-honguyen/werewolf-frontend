@@ -1,6 +1,5 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer } from '@angular/platform-browser';
 import { GameStateService } from '../../../core/services/game-state.service';
 import { LobbyApiService } from '../../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../../core/services/player-identity.service';
@@ -8,7 +7,6 @@ import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { DEFAULT_GAME_SETTINGS, GameSettings } from '../../../core/models/lobby.model';
 import { Role } from '../../../core/models/role.model';
-import { ROLE_ICON } from '../../../core/utils/role-icon.util';
 
 const ALL_ROLES: Role[] = [
     'Villager',
@@ -21,6 +19,32 @@ const ALL_ROLES: Role[] = [
     'Tanner'
 ];
 
+/** Emoji + accent color per role, matching the mockup's Role Distribution rows
+ * (werewolf_game_interface (2).html: 🌾 amber Villagers, 🐺 red Werewolves, 🔮 purple Seer,
+ * 🧪 emerald Doctor, 🏹 blue Hunter). The mockup only demos those 5 roles; Witch/Cupid/Tanner
+ * are real playable roles here too, so they get the same emoji+color treatment extended to fit. */
+const ROLE_EMOJI: Record<Role, string> = {
+    Villager: '🌾',
+    Werewolf: '🐺',
+    Seer: '🔮',
+    Doctor: '🩺',
+    Hunter: '🏹',
+    Witch: '🧪',
+    Cupid: '💘',
+    Tanner: '🎭'
+};
+
+const ROLE_COLOR: Record<Role, string> = {
+    Villager: '#fcd34d',
+    Werewolf: '#f87171',
+    Seer: '#c084fc',
+    Doctor: '#34d399',
+    Hunter: '#60a5fa',
+    Witch: '#a78bfa',
+    Cupid: '#f472b6',
+    Tanner: '#a3e635'
+};
+
 @Component({
     selector: 'app-settings-modal',
     imports: [FormsModule],
@@ -32,7 +56,6 @@ export class SettingsModal {
     private readonly lobbyApi = inject(LobbyApiService);
     private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly toast = inject(ToastService);
-    private readonly sanitizer = inject(DomSanitizer);
 
     readonly closed = output<void>();
     /** True while a game is in progress -- rules are locked in once assigned, so this shows
@@ -52,8 +75,12 @@ export class SettingsModal {
 
     readonly roomCode = computed(() => this.lobby()?.roomCode ?? '');
 
-    roleIcon(role: Role) {
-        return this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[role]);
+    roleEmoji(role: Role): string {
+        return ROLE_EMOJI[role];
+    }
+
+    roleColor(role: Role): string {
+        return ROLE_COLOR[role];
     }
 
     draftRoleCount(role: Role): number {
