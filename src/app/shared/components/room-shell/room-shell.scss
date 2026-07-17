@@ -34,7 +34,11 @@
         justify-content: space-between;
         align-items: center;
         gap: 0.75rem;
-        padding: 1rem 1.5rem;
+
+        // Right-padding reserves space for the app-wide <app-theme-toggle> button, which is
+        // `position: fixed; top: 1rem; right: 1rem` (src/app/shared/components/theme-toggle) on
+        // every page -- without this, the header's own rightmost CTA button renders underneath it.
+        padding: 1rem 9rem 1rem 1.5rem;
         border-bottom: 1px solid var(--border);
         background: color-mix(in srgb, var(--bg-main) 80%, transparent);
         backdrop-filter: blur(16px);

@@ -120,10 +120,22 @@ export class RoomShell {
     });
 
     readonly isNight = computed(() => this.state()?.phase === 'Night');
-    readonly aliveCount = computed(
-        () => (this.state()?.players ?? []).filter((p) => p.isAlive).length
-    );
-    readonly deadCount = computed(() => (this.state()?.players ?? []).length - this.aliveCount());
+    /** Before a game starts, there's no GameState yet -- fall back to the lobby roster so "Living
+     * Souls" reads as the room's current player count instead of a misleading 0. */
+    readonly aliveCount = computed(() => {
+        const state = this.state();
+        if (!state) {
+            return this.lobby()?.players.length ?? 0;
+        }
+        return state.players.filter((p) => p.isAlive).length;
+    });
+    readonly deadCount = computed(() => {
+        const state = this.state();
+        if (!state) {
+            return 0;
+        }
+        return state.players.length - this.aliveCount();
+    });
 
     readonly canSeePackChat = computed(
         () => this.myRole() === 'Werewolf' && this.myPlayer() !== undefined
