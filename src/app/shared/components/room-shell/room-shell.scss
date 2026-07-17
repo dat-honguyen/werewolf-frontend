@@ -26,7 +26,20 @@
         var(--bg-main) 70%
     );
     color: var(--text-main);
+    font-family: Inter, system-ui, sans-serif;
     overflow: hidden;
+
+    // Every heading/button this component renders explicitly opts back into Inter -- the global
+    // stylesheet (src/styles/base/_typography.scss, _buttons.scss) applies --font-display
+    // (Cinzel, a medieval serif used by the classic/bloody theme) to every h1-h3 and <button> in
+    // the app, which clashes with the LUNARIS mockup's clean sans-serif look.
+    h1,
+    h2,
+    h3,
+    h4,
+    button {
+        font-family: inherit;
+    }
 
     &__header {
         display: flex;
@@ -34,11 +47,7 @@
         justify-content: space-between;
         align-items: center;
         gap: 0.75rem;
-
-        // Right-padding reserves space for the app-wide <app-theme-toggle> button, which is
-        // `position: fixed; top: 1rem; right: 1rem` (src/app/shared/components/theme-toggle) on
-        // every page -- without this, the header's own rightmost CTA button renders underneath it.
-        padding: 1rem 9rem 1rem 1.5rem;
+        padding: 1rem 1.5rem;
         border-bottom: 1px solid var(--border);
         background: color-mix(in srgb, var(--bg-main) 80%, transparent);
         backdrop-filter: blur(16px);
@@ -126,6 +135,13 @@
         flex-direction: column;
         gap: 1rem;
         overflow-y: auto;
+
+        @media (max-width: 900px) {
+            // The whole viewport scrolls as one page on mobile (see &__viewport's media query) --
+            // giving this its own scroll container too would nest scrollbars inside a scrolling
+            // page, which is confusing to use. Only &__chat keeps its own internal scroll below.
+            overflow-y: visible;
+        }
     }
 
     &__stats {
@@ -194,6 +210,10 @@
         gap: 1rem;
         overflow-y: auto;
         min-height: 0;
+
+        @media (max-width: 900px) {
+            overflow-y: visible;
+        }
     }
 
     &__death {

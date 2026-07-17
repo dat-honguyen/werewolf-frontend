@@ -4,20 +4,36 @@
 }
 
 .room__quit-button {
+    // Bottom-left, clear of the room-shell header's own right-aligned action buttons (top-right)
+    // and its chat sidebar (right edge, full height) -- there's no other fixed/floating UI here.
     position: fixed;
-    top: 0.75rem;
-    right: 0.75rem;
+    bottom: 1rem;
+    left: 1rem;
     z-index: 10;
     padding: 0.4rem 0.75rem;
     border: 1px solid #b91c1c;
     border-radius: 0.375rem;
     background: transparent;
     color: #b91c1c;
+    font-family: Inter, system-ui, sans-serif;
     font-size: 0.85rem;
     cursor: pointer;
 
     &:hover {
         background: #b91c1c;
         color: #ffffff;
+    }
+
+    // A fixed corner button has nowhere safe to sit once room-shell's 3 columns collapse into one
+    // tall stacked column -- any screen corner ends up overlapping whatever content has scrolled
+    // underneath it. Below that breakpoint, render it in normal flow instead: a full-width button
+    // above the room-shell content that you scroll past once, rather than an overlay you scroll
+    // through forever.
+    @media (max-width: 900px) {
+        position: static;
+        display: block;
+        width: 100%;
+        margin: 0.5rem 0 0;
+        text-align: center;
     }
 }

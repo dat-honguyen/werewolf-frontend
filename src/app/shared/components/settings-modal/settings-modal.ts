@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer } from '@angular/platform-browser';
 import { GameStateService } from '../../../core/services/game-state.service';
 import { LobbyApiService } from '../../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../../core/services/player-identity.service';
@@ -7,6 +8,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { DEFAULT_GAME_SETTINGS, GameSettings } from '../../../core/models/lobby.model';
 import { Role } from '../../../core/models/role.model';
+import { ROLE_ICON } from '../../../core/utils/role-icon.util';
 
 const ALL_ROLES: Role[] = [
     'Villager',
@@ -30,6 +32,7 @@ export class SettingsModal {
     private readonly lobbyApi = inject(LobbyApiService);
     private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly toast = inject(ToastService);
+    private readonly sanitizer = inject(DomSanitizer);
 
     readonly closed = output<void>();
     /** True while a game is in progress -- rules are locked in once assigned, so this shows
@@ -48,6 +51,10 @@ export class SettingsModal {
     readonly myPlayerId = this.playerIdentity.playerId;
 
     readonly roomCode = computed(() => this.lobby()?.roomCode ?? '');
+
+    roleIcon(role: Role) {
+        return this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[role]);
+    }
 
     draftRoleCount(role: Role): number {
         return this.roleDistributionDraft()[role] ?? 0;

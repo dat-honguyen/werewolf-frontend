@@ -1,15 +1,19 @@
 <div class="settings-modal">
     <div class="settings-modal__card">
         <header class="settings-modal__header">
-            <h2 class="phase-title">Game Settings</h2>
+            <h2>Rules & Setup</h2>
             <button type="button" class="settings-modal__close" (click)="closed.emit()">✕</button>
         </header>
 
         <section class="settings-modal__section">
-            <h3>Role distribution</h3>
+            <h3>Role Distribution</h3>
+
             @for (role of allRoles; track role) {
             <label class="settings-modal__role-row">
-                {{ role }}
+                <span class="settings-modal__role-label">
+                    <span class="settings-modal__role-icon" [innerHTML]="roleIcon(role)"></span>
+                    {{ role }}
+                </span>
                 <input
                     type="number"
                     min="0"
@@ -21,72 +25,83 @@
             } @if (!readOnly()) {
             <button
                 type="button"
-                class="settings-modal__button settings-modal__button--primary"
+                class="settings-modal__button settings-modal__button--primary settings-modal__button--block"
                 (click)="applyRoleDistribution()"
             >
-                Apply role distribution
+                Apply Role Distribution
             </button>
             }
         </section>
 
         <section class="settings-modal__section">
-            <h3>Game rules</h3>
-            <label>
+            <h3>Advanced Gameplay Logic</h3>
+
+            <label class="settings-modal__check-row">
                 <input
                     type="checkbox"
                     [ngModel]="gameSettingsDraft().revealRoleOnDeath"
                     (ngModelChange)="setDraftSetting('revealRoleOnDeath', $event)"
                     [disabled]="readOnly()"
                 />
-                Reveal role on death
+                <span>Reveal role on death</span>
             </label>
-            <label>
+            <label class="settings-modal__check-row">
                 <input
                     type="checkbox"
                     [ngModel]="gameSettingsDraft().doctorCanSelfProtect"
                     (ngModelChange)="setDraftSetting('doctorCanSelfProtect', $event)"
                     [disabled]="readOnly()"
                 />
-                Doctor can self-protect
+                <span>Doctor can self-protect</span>
             </label>
-            <label>
+            <label class="settings-modal__check-row">
                 <input
                     type="checkbox"
                     [ngModel]="gameSettingsDraft().werewolfRequiresConsensus"
                     (ngModelChange)="setDraftSetting('werewolfRequiresConsensus', $event)"
                     [disabled]="readOnly()"
                 />
-                Werewolves require consensus
+                <span>Werewolves require consensus</span>
             </label>
-            <label>
+            <label class="settings-modal__check-row">
                 <input
                     type="checkbox"
                     [ngModel]="gameSettingsDraft().werewolfCanTargetWerewolf"
                     (ngModelChange)="setDraftSetting('werewolfCanTargetWerewolf', $event)"
                     [disabled]="readOnly()"
                 />
-                Werewolves can target werewolves
+                <span>Werewolves can target werewolves</span>
             </label>
-            <label>
+            <label class="settings-modal__check-row">
                 <input
                     type="checkbox"
                     [ngModel]="gameSettingsDraft().werewolfCanVoteNoKill"
                     (ngModelChange)="setDraftSetting('werewolfCanVoteNoKill', $event)"
                     [disabled]="readOnly()"
                 />
-                Werewolves can vote no-kill (pass)
+                <span>Werewolves can vote no-kill (pass)</span>
             </label>
-            <label>
+            <label class="settings-modal__check-row">
                 <input
                     type="checkbox"
                     [ngModel]="gameSettingsDraft().witchSinglePotionPerNight"
                     (ngModelChange)="setDraftSetting('witchSinglePotionPerNight', $event)"
                     [disabled]="readOnly()"
                 />
-                Witch: single potion per night
+                <span>Witch: single potion per night</span>
             </label>
-            <label>
-                Min players
+            <label class="settings-modal__check-row">
+                <input
+                    type="checkbox"
+                    [ngModel]="gameSettingsDraft().allowForceStart"
+                    (ngModelChange)="setDraftSetting('allowForceStart', $event)"
+                    [disabled]="readOnly()"
+                />
+                <span>Allow force start</span>
+            </label>
+
+            <div class="settings-modal__number-row">
+                <span>Minimum Players Required</span>
                 <input
                     type="number"
                     min="1"
@@ -94,9 +109,9 @@
                     (ngModelChange)="setDraftSetting('minPlayers', $event)"
                     [disabled]="readOnly()"
                 />
-            </label>
-            <label>
-                Discussion duration (seconds)
+            </div>
+            <div class="settings-modal__number-row">
+                <span>Discussion Duration (seconds)</span>
                 <input
                     type="number"
                     min="30"
@@ -105,27 +120,25 @@
                     (ngModelChange)="setDraftSetting('discussionDurationSeconds', $event)"
                     [disabled]="readOnly()"
                 />
-            </label>
-            <label>
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().allowForceStart"
-                    (ngModelChange)="setDraftSetting('allowForceStart', $event)"
-                    [disabled]="readOnly()"
-                />
-                Allow force start
-            </label>
+            </div>
+
             @if (!readOnly()) {
             <button
                 type="button"
-                class="settings-modal__button settings-modal__button--primary"
+                class="settings-modal__button settings-modal__button--primary settings-modal__button--block"
                 (click)="applyGameSettings()"
             >
-                Apply game settings
+                Apply Session Rules
             </button>
             }
         </section>
 
-        <button type="button" class="settings-modal__button" (click)="closed.emit()">Done</button>
+        <button
+            type="button"
+            class="settings-modal__button settings-modal__button--outline settings-modal__button--block"
+            (click)="closed.emit()"
+        >
+            Confirm & Close
+        </button>
     </div>
 </div>
