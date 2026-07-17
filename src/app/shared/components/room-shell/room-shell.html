@@ -2,7 +2,11 @@
 <div class="room-shell" [attr.data-phase]="isNight() ? 'night' : 'day'">
     <header class="room-shell__header">
         <div class="room-shell__logo">
-            🔮 LUNARIS @if (roomCode(); as code) {
+            🔮 LUNARIS @if (state(); as s) {
+            <span class="room-shell__mode-badge" [class.room-shell__mode-badge--night]="isNight()">
+                {{ isNight() ? '🌙 Night Mode' : '☀️ Day Mode' }}
+            </span>
+            } @if (roomCode(); as code) {
             <span class="room-shell__room-code">Room #{{ code }}</span>
             }
         </div>
@@ -145,12 +149,15 @@
 
             @if (chatTab() === 'town') {
             <div class="room-shell__chat-history">
-                @for (message of townMessages(); track message.sentAtUtc + message.senderId) {
+                @for (message of townMessages(); track message.sentAtUtc + message.senderId) { @if
+                (message.isSystem) {
+                <p class="room-shell__chat-system">{{ message.text }}</p>
+                } @else {
                 <p class="room-shell__chat-message">
                     <span class="room-shell__chat-sender">{{ message.senderName }}:</span> {{
                     message.text }}
                 </p>
-                }
+                } }
             </div>
             <form class="room-shell__chat-input-area" (ngSubmit)="sendTownMessage()">
                 <input

@@ -69,6 +69,26 @@
         color: var(--text-muted);
     }
 
+    // Reflects the server-driven phase -- there is deliberately no click handler here. The mockup
+    // this is based on had a manual "Switch to Night" button, but the app already knows the real
+    // phase, so a player-facing toggle would just be able to lie about it.
+    &__mode-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        border: 1px solid color-mix(in srgb, var(--accent-day) 45%, transparent);
+        color: var(--accent-day);
+        background: color-mix(in srgb, var(--accent-day) 12%, transparent);
+
+        &--night {
+            border-color: color-mix(in srgb, var(--accent-night) 45%, transparent);
+            color: var(--accent-night);
+            background: color-mix(in srgb, var(--accent-night) 12%, transparent);
+        }
+    }
+
     &__header-actions {
         display: flex;
         gap: 0.75rem;
@@ -293,6 +313,16 @@
         font-weight: 700;
         color: var(--primary);
         margin-right: 0.3rem;
+    }
+
+    &__chat-system {
+        margin: 0 0 0.75rem;
+        padding: 0.65rem 0.85rem;
+        border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        border-radius: 0.6rem;
+        background: color-mix(in srgb, var(--primary) 10%, transparent);
+        font-size: 0.78rem;
+        color: var(--text-main);
     }
 
     &__chat-disabled {

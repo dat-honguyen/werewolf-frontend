@@ -23,6 +23,14 @@
             background: color-mix(in srgb, var(--primary) 8%, transparent);
         }
 
+        // Flags a player who already has at least one accusation against them, independent of
+        // who *I've* selected to vote for (that's &--selected above) -- matches the mockup's
+        // highlighted border on already-suspected players during Day Voting.
+        &--suspected {
+            border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent);
+        }
+
         &--dead {
             opacity: 0.45;
             background: color-mix(in srgb, var(--bg-main) 30%, transparent);

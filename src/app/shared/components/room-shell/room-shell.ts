@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval, switchMap } from 'rxjs';
 import { GameApiService } from '../../../core/services/game-api.service';
-import { GameStateService } from '../../../core/services/game-state.service';
+import { GameStateService, GameView } from '../../../core/services/game-state.service';
 import { LobbyApiService } from '../../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../../core/services/player-identity.service';
 import { RulesApiService } from '../../../core/services/rules-api.service';
@@ -25,7 +25,14 @@ interface ChatMessage {
     senderName: string;
     text: string;
     sentAtUtc: string;
+    isSystem?: boolean;
 }
+
+const PHASE_ANNOUNCEMENT: Partial<Record<GameView, string>> = {
+    'day-discussion': '☀️ Day discussion is open. Chat is visible to everyone.',
+    night: '🌙 Night has fallen. The village sleeps.',
+    voting: '⚖️ Voting is open — cast your suspicion.'
+};
 
 type ChatTab = 'town' | 'pack';
 type NightAction = 'cupid' | 'seer' | 'werewolf' | 'doctor' | 'witch';
@@ -428,6 +435,25 @@ export class RoomShell {
     });
 
     constructor() {
+        let lastAnnouncedView: GameView | null = null;
+        effect(() => {
+            const view = this.view();
+            const text = PHASE_ANNOUNCEMENT[view];
+            if (text && view !== lastAnnouncedView) {
+                this.townMessages.update((messages) => [
+                    ...messages,
+                    {
+                        senderId: 'system',
+                        senderName: 'System',
+                        text,
+                        sentAtUtc: new Date().toISOString(),
+                        isSystem: true
+                    }
+                ]);
+            }
+            lastAnnouncedView = view;
+        });
+
         effect(() => {
             this.currentNightNumber();
             this.actionsTaken.set(new Set());
@@ -454,14 +480,19 @@ export class RoomShell {
         const roomCode = this.roomCode();
         if (roomCode) {
             this.gameApi.getRoomChat(roomCode).subscribe((response) => {
-                this.townMessages.set(
-                    response.messages.map((m) => ({
-                        senderId: m.senderId,
-                        senderName: m.senderDisplayName,
-                        text: m.text,
-                        sentAtUtc: m.sentAtUtc
-                    }))
-                );
+                const serverMessages = response.messages.map((m) => ({
+                    senderId: m.senderId,
+                    senderName: m.senderDisplayName,
+                    text: m.text,
+                    sentAtUtc: m.sentAtUtc
+                }));
+                // A phase-announcement system message (see the effect above) can already have
+                // been appended locally by the time this resolves -- keep it instead of a blind
+                // overwrite, which would silently drop it.
+                this.townMessages.update((current) => [
+                    ...serverMessages,
+                    ...current.filter((m) => m.isSystem)
+                ]);
             });
         }
 

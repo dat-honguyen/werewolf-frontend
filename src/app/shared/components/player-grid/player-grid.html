@@ -4,10 +4,11 @@
         class="player-grid__card"
         [class.player-grid__card--dead]="!entry.isAlive"
         [class.player-grid__card--selected]="entry.selected"
+        [class.player-grid__card--suspected]="!entry.selected && (entry.voteCount ?? 0) > 0"
     >
         <div class="player-grid__identity">
             <div class="player-grid__avatar-wrap">
-                <app-avatar [seed]="entry.displayName" [size]="48"></app-avatar>
+                <app-avatar [seed]="entry.displayName" [size]="56"></app-avatar>
                 <span
                     class="player-grid__status-dot"
                     [class.player-grid__status-dot--dead]="!entry.isAlive"
