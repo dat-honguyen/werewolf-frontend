@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="en" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LUNARIS - Werewolf Session</title>
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Google Sans & Inter Fonts -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <!-- Tone.js for high-fidelity procedurally generated audio -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+        <style>
+            :root {
+                --font-sans: 'Google Sans', 'Inter', sans-serif;
+                --font-body: 'Inter', sans-serif;
+
+                /* Custom Design Tokens matching Google/Spark modern premium dark mode */
+                --primary: #a8c7fa;
+                --on-primary: #062e6f;
+                --primary-container: #1f3760;
+                --surface: #0f1115;
+                --surface-container: #1a1d24;
+                --surface-container-high: #242932;
+                --border: #2d323f;
+                --text-primary: #f1f3f4;
+                --text-secondary: #9aa0a6;
+                --accent: #c084fc; /* Amethyst Purple */
+                --accent-glow: rgba(192, 132, 252, 0.15);
+            }
+
+            body {
+                font-family: var(--font-body);
+                background-color: var(--surface);
+                color: var(--text-primary);
+                background-image: radial-gradient(circle at 50% 0%, #1c1830 0%, #0f1115 100%);
+                overflow-x: hidden;
+                transition: background 1s ease-in-out;
+            }
+
+            .heading-sans {
+                font-family: var(--font-sans);
+                font-weight: 500;
+            }
+
+            /* Ambient glowing highlights */
+            .premium-glow {
+                box-shadow: 0 0 25px var(--accent-glow);
+                border-color: rgba(192, 132, 252, 0.3);
+            }
+
+            /* Smoothed scrollbars */
+            ::-webkit-scrollbar {
+                width: 5px;
+                height: 5px;
+            }
+            ::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.2);
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #2d323f;
+                border-radius: 99px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--accent);
+            }
+
+            /* 3D Identity card flipping mechanics */
+            .card-container {
+                perspective: 1200px;
+            }
+            .card-inner {
+                transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                transform-style: preserve-3d;
+            }
+            .card-container.flipped .card-inner {
+                transform: rotateY(180deg);
+            }
+            .card-front,
+            .card-back {
+                backface-visibility: hidden;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+            .card-back {
+                transform: rotateY(180deg);
+            }
+
+            /* Micro-animations */
+            @keyframes pulse-accent {
+                0%,
+                100% {
+                    box-shadow: 0 0 8px rgba(192, 132, 252, 0.2);
+                    border-color: rgba(192, 132, 252, 0.3);
+                }
+                50% {
+                    box-shadow: 0 0 16px rgba(192, 132, 252, 0.5);
+                    border-color: rgba(192, 132, 252, 0.6);
+                }
+            }
+            .suspicious-pulse {
+                animation: pulse-accent 2s infinite;
+            }
+
+            .interactive-scale {
+                transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .interactive-scale:hover {
+                transform: translateY(-2px) scale(1.01);
+            }
+            .interactive-scale:active {
+                transform: translateY(0) scale(0.98);
+            }
+        </style>
+    </head>
+    <body class="min-h-screen flex flex-col">
+        <header
+            class="border-b border-[#2d323f]/80 bg-[#0f1115]/80 backdrop-blur-xl px-6 py-4 flex flex-wrap justify-between items-center gap-4 z-20 sticky top-0"
+        >
+            <div class="flex items-center gap-3">
+                <div
+                    class="text-xl tracking-wider font-bold heading-sans text-white flex items-center gap-2"
+                >
+                    <span
+                        class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-sm shadow-md"
+                        >🔮</span
+                    >
+                    LUNARIS
+                    <span
+                        class="text-[10px] text-purple-300 font-medium tracking-widest uppercase bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded"
+                        >MODERN COVEN</span
+                    >
+                </div>
+            </div>
+
+            <!-- Global Navigation Controls & Phase Toggles -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- Settings trigger Button -->
+                <button
+                    onclick="toggleSettingsModal(true)"
+                    class="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#2d323f] bg-[#1a1d24] hover:bg-[#242932] transition duration-200 text-xs font-medium text-[#f1f3f4]"
+                >
+                    <span>⚙️</span> Rules & Setup
+                </button>
+
+                <!-- Sound toggle Trigger -->
+                <button
+                    onclick="toggleAmbiance()"
+                    id="audio-toggle"
+                    class="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#2d323f] bg-[#1a1d24] hover:bg-[#242932] transition duration-200 text-xs font-medium"
+                >
+                    <span id="speaker-icon">🔇</span> <span id="audio-text">Ambience Synth</span>
+                </button>
+
+                <!-- Play Phase transition Trigger -->
+                <button
+                    onclick="triggerPhaseTransition()"
+                    class="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-xs bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white shadow-lg shadow-purple-500/20 active:scale-95 transition-all"
+                >
+                    <span id="phase-btn-icon">🌘</span>
+                    <span id="phase-btn-text">Switch to Night</span>
+                </button>
+            </div>
+        </header>
+
+        <main
+            class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 p-5 max-w-7xl mx-auto w-full overflow-hidden"
+        >
+            <!-- SECTION 1: Profile Grimoire (Left Column - 3 Units) -->
+            <section class="lg:col-span-3 flex flex-col gap-4">
+                <!-- Modern Identity Card Container -->
+                <div
+                    class="bg-[#1a1d24] border border-[#2d323f] rounded-2xl p-5 flex flex-col items-center gap-4 relative overflow-hidden shadow-xl"
+                >
+                    <div
+                        class="absolute top-3 right-3 text-[9px] text-[#9aa0a6] font-mono uppercase tracking-widest"
+                    >
+                        PRIVATE INFO
+                    </div>
+
+                    <h3
+                        class="heading-sans text-xs font-bold uppercase text-[#9aa0a6] tracking-widest self-start"
+                    >
+                        Identity Grimoire
+                    </h3>
+
+                    <!-- Gorgeous Interactive 3D Role Card -->
+                    <div
+                        class="card-container w-full max-w-[170px] h-[240px] cursor-pointer"
+                        id="role-card"
+                        onclick="flipRoleCard()"
+                    >
+                        <div class="card-inner w-full h-full relative duration-500">
+                            <!-- CARD FRONT: Covered mysterious screen -->
+                            <div
+                                class="card-front absolute w-full h-full rounded-2xl border border-purple-500/30 bg-gradient-to-b from-[#1c1830] via-[#101218] to-[#0f1115] p-4 flex flex-col justify-between items-center shadow-lg"
+                            >
+                                <div
+                                    class="text-[10px] text-purple-400/80 font-medium uppercase tracking-widest"
+                                >
+                                    LUNARIS
+                                </div>
+                                <div
+                                    class="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center text-3xl filter drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                                >
+                                    ✨
+                                </div>
+                                <div
+                                    class="text-[9px] text-center text-purple-300/60 font-semibold uppercase tracking-wider"
+                                >
+                                    TAP CARD TO INSPECT
+                                </div>
+                            </div>
+
+                            <!-- CARD BACK: Exposed Role face -->
+                            <div
+                                class="card-back absolute w-full h-full rounded-2xl border border-purple-500/80 bg-gradient-to-b from-[#120f24] via-[#181a24] to-[#101218] p-4 flex flex-col justify-between items-center shadow-lg"
+                            >
+                                <div
+                                    class="text-[10px] text-purple-400 font-medium uppercase tracking-widest"
+                                >
+                                    Your Role
+                                </div>
+                                <div
+                                    class="text-5xl filter drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]"
+                                    id="card-emoji"
+                                >
+                                    🔮
+                                </div>
+                                <div class="text-center">
+                                    <h4
+                                        class="font-bold text-base text-purple-200 heading-sans"
+                                        id="card-role-name"
+                                    >
+                                        Seer
+                                    </h4>
+                                    <p
+                                        class="text-[11px] text-[#9aa0a6] mt-1.5 leading-relaxed"
+                                        id="card-role-desc"
+                                    >
+                                        At night, look inside a sleeping soul's grimoire.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full flex flex-col gap-2">
+                        <button
+                            onclick="changeRoleIdentity()"
+                            class="text-[11px] text-center text-[#9aa0a6] hover:text-purple-400 transition underline decoration-dashed underline-offset-4"
+                        >
+                            Test Next Character Identity
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Session Stats Card -->
+                <div
+                    class="bg-[#1a1d24] border border-[#2d323f] rounded-2xl p-5 flex flex-col gap-4 shadow-xl"
+                >
+                    <h3
+                        class="heading-sans text-xs font-bold text-[#9aa0a6] uppercase tracking-widest"
+                    >
+                        Coven Live Overview
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3">
+                            <div
+                                class="text-[10px] text-emerald-400 uppercase font-medium tracking-wider"
+                            >
+                                Living Souls
+                            </div>
+                            <div
+                                class="text-2xl font-bold text-emerald-300 mt-1 heading-sans"
+                                id="living-count"
+                            >
+                                6
+                            </div>
+                        </div>
+                        <div class="bg-rose-500/5 border border-rose-500/20 rounded-xl p-3">
+                            <div
+                                class="text-[10px] text-rose-400 uppercase font-medium tracking-wider"
+                            >
+                                Spectral Ghosts
+                            </div>
+                            <div
+                                class="text-2xl font-bold text-rose-300 mt-1 heading-sans"
+                                id="dead-count"
+                            >
+                                2
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="text-xs text-[#9aa0a6] leading-relaxed border-t border-[#2d323f] pt-3.5 flex items-center gap-2"
+                    >
+                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                        <span id="role-goal-text"
+                            >Expose the beasts concealed among the living.</span
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <section class="lg:col-span-6 flex flex-col gap-4">
+                <!-- Dynamic Status Banner & Phase Countdown Clock -->
+                <div
+                    class="bg-[#1a1d24] border border-[#2d323f] rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-xl relative overflow-hidden"
+                    id="phase-banner"
+                >
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-2xl"
+                            id="phase-icon"
+                        >
+                            ☀️
+                        </div>
+                        <div>
+                            <div
+                                class="text-[10px] uppercase tracking-widest text-[#a8c7fa] font-bold font-sans"
+                                id="phase-status"
+                            >
+                                DAY DISCUSSION
+                            </div>
+                            <h2
+                                class="text-base font-bold text-white heading-sans mt-0.5"
+                                id="phase-instruction"
+                            >
+                                Cast your votes of suspicion!
+                            </h2>
+                        </div>
+                    </div>
+                    <!-- Countdown clock wrapper -->
+                    <div
+                        class="flex items-center gap-3 bg-[#0f1115] px-4 py-2 rounded-xl border border-[#2d323f]"
+                    >
+                        <span class="text-[10px] text-[#9aa0a6] uppercase tracking-wider font-mono"
+                            >Sunset in</span
+                        >
+                        <span
+                            class="text-lg font-bold font-mono text-purple-400"
+                            id="game-countdown"
+                            >01:45</span
+                        >
+                    </div>
+                </div>
+
+                <!-- Dynamic Player Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="player-grid">
+                    <!-- Executed dynamically in Javascript to sync real-time visual states -->
+                </div>
+            </section>
+
+            <section class="lg:col-span-3 flex flex-col gap-4">
+                <div
+                    class="bg-[#1a1d24] border border-[#2d323f] rounded-2xl flex-1 flex flex-col overflow-hidden shadow-xl min-h-[400px]"
+                >
+                    <!-- Chat Navigation/Tabs -->
+                    <div class="grid grid-cols-2 bg-[#0f1115] border-b border-[#2d323f]">
+                        <button
+                            onclick="switchChatTab('town')"
+                            id="tab-town"
+                            class="py-3 text-[10px] font-bold tracking-wider uppercase border-b-2 border-purple-400 text-white"
+                        >
+                            💬 Public Square
+                        </button>
+                        <button
+                            onclick="switchChatTab('whispers')"
+                            id="tab-whispers"
+                            class="py-3 text-[10px] font-bold tracking-wider uppercase border-b-2 border-transparent text-[#9aa0a6] hover:text-white transition-all"
+                        >
+                            🔮 Private Grimoires
+                        </button>
+                    </div>
+
+                    <!-- Live Logs / Chat Messages Box -->
+                    <div
+                        class="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs flex flex-col justify-end"
+                        id="chat-box"
+                    >
+                        <!-- Dynamically loaded messages -->
+                    </div>
+
+                    <!-- Chat Command/Input Line -->
+                    <form
+                        onsubmit="handleSendMessage(event)"
+                        class="p-3 border-t border-[#2d323f] bg-[#0f1115] flex gap-2"
+                    >
+                        <input
+                            type="text"
+                            id="chat-input"
+                            placeholder="Cast suspicion or whisper secret info..."
+                            class="flex-1 bg-[#1a1d24] border border-[#2d323f] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-purple-500 transition"
+                        />
+                        <button
+                            type="submit"
+                            class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-bold rounded-xl px-4 transition text-xs tracking-wider"
+                        >
+                            Speak
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <div
+            id="settings-modal"
+            class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
+        >
+            <div
+                class="max-w-[440px] w-full bg-[#101218] border border-[#2d323f] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar"
+            >
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center mb-6 border-b border-[#2d323f] pb-3">
+                    <h2 class="text-lg font-bold text-white heading-sans uppercase tracking-widest">
+                        Rules & Setup
+                    </h2>
+                    <button
+                        onclick="toggleSettingsModal(false)"
+                        class="text-[#9aa0a6] hover:text-white text-xl transition-all"
+                    >
+                        &times;
+                    </button>
+                </div>
+
+                <!-- Role Balance Selector Section -->
+                <div class="bg-[#1a1d24] border border-[#2d323f] rounded-xl p-4 mb-5">
+                    <h3
+                        class="text-[10px] font-bold tracking-widest text-[#a8c7fa] uppercase mb-4 heading-sans"
+                    >
+                        Role Distribution
+                    </h3>
+
+                    <div class="space-y-3">
+                        <!-- Villager Input Row -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-amber-300">🌾</span>
+                                <span class="text-xs font-medium text-white">Villagers</span>
+                            </div>
+                            <input
+                                type="number"
+                                id="cfg-villager"
+                                value="2"
+                                class="w-16 bg-[#0f1115] text-white font-bold text-center py-1.5 rounded-lg border border-[#2d323f] focus:outline-none focus:border-purple-500 text-xs"
+                            />
+                        </div>
+
+                        <!-- Werewolf Input Row -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-red-400">🐺</span>
+                                <span class="text-xs font-medium text-white">Werewolves</span>
+                            </div>
+                            <input
+                                type="number"
+                                id="cfg-werewolf"
+                                value="1"
+                                class="w-16 bg-[#0f1115] text-white font-bold text-center py-1.5 rounded-lg border border-[#2d323f] focus:outline-none focus:border-purple-500 text-xs"
+                            />
+                        </div>
+
+                        <!-- Seer Input Row -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-purple-400">🔮</span>
+                                <span class="text-xs font-medium text-white">Seer</span>
+                            </div>
+                            <input
+                                type="number"
+                                id="cfg-seer"
+                                value="1"
+                                class="w-16 bg-[#0f1115] text-white font-bold text-center py-1.5 rounded-lg border border-[#2d323f] focus:outline-none focus:border-purple-500 text-xs"
+                            />
+                        </div>
+
+                        <!-- Doctor Input Row -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-emerald-400">🧪</span>
+                                <span class="text-xs font-medium text-white">Doctor</span>
+                            </div>
+                            <input
+                                type="number"
+                                id="cfg-doctor"
+                                value="1"
+                                class="w-16 bg-[#0f1115] text-white font-bold text-center py-1.5 rounded-lg border border-[#2d323f] focus:outline-none focus:border-[#d9a043] text-xs"
+                            />
+                        </div>
+
+                        <!-- Hunter Input Row -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-blue-400">🏹</span>
+                                <span class="text-xs font-medium text-white">Hunter</span>
+                            </div>
+                            <input
+                                type="number"
+                                id="cfg-hunter"
+                                value="1"
+                                class="w-16 bg-[#0f1115] text-white font-bold text-center py-1.5 rounded-lg border border-[#2d323f] focus:outline-none focus:border-[#d9a043] text-xs"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        onclick="applySettingsGroup('roles')"
+                        class="w-full mt-4 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-bold tracking-wider text-[11px] py-2.5 rounded-xl transition duration-150 active:scale-95 uppercase heading-sans"
+                    >
+                        Apply Active Characters
+                    </button>
+                </div>
+
+                <!-- Rules Checkboxes Section -->
+                <div class="bg-[#1a1d24] border border-[#2d323f] rounded-xl p-4 mb-6">
+                    <h3
+                        class="text-[10px] font-bold tracking-widest text-[#a8c7fa] uppercase mb-4 heading-sans"
+                    >
+                        Advanced Gameplay Logic
+                    </h3>
+
+                    <div class="space-y-3.5 text-xs">
+                        <label
+                            class="flex items-center gap-3 cursor-pointer select-none text-white"
+                        >
+                            <input
+                                type="checkbox"
+                                id="rule-reveal"
+                                checked
+                                class="w-4 h-4 accent-purple-500 rounded bg-[#0f1115] border-[#2d323f]"
+                            />
+                            <span>Reveal roles upon death</span>
+                        </label>
+
+                        <label
+                            class="flex items-center gap-3 cursor-pointer select-none text-white"
+                        >
+                            <input
+                                type="checkbox"
+                                id="rule-selfprotect"
+                                checked
+                                class="w-4 h-4 accent-purple-500 rounded bg-[#0f1115] border-[#2d323f]"
+                            />
+                            <span>Doctors can self-protect</span>
+                        </label>
+
+                        <label
+                            class="flex items-center gap-3 cursor-pointer select-none text-white"
+                        >
+                            <input
+                                type="checkbox"
+                                id="rule-consensus"
+                                checked
+                                class="w-4 h-4 accent-purple-500 rounded bg-[#0f1115] border-[#2d323f]"
+                            />
+                            <span>Werewolves must agree on targets</span>
+                        </label>
+
+                        <div class="flex items-center justify-between text-white pt-1">
+                            <span>Minimum Players Required</span>
+                            <input
+                                type="number"
+                                id="rule-minplayers"
+                                value="5"
+                                class="w-16 bg-[#0f1115] text-white font-bold text-center py-1.5 rounded-lg border border-[#2d323f] focus:outline-none focus:border-purple-500 text-xs"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        onclick="applySettingsGroup('rules')"
+                        class="w-full mt-4 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-bold tracking-wider text-[11px] py-2.5 rounded-xl transition duration-150 active:scale-95 uppercase heading-sans"
+                    >
+                        Apply Session Rules
+                    </button>
+                </div>
+
+                <button
+                    onclick="toggleSettingsModal(false)"
+                    class="w-full border border-purple-500/50 text-purple-300 hover:bg-purple-500/10 font-bold tracking-wider text-[11px] py-2.5 rounded-xl transition duration-150 active:scale-95 uppercase heading-sans"
+                >
+                    Confirm & Close
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Notification Wrapper -->
+        <div
+            id="custom-toast"
+            class="fixed bottom-6 right-6 z-50 bg-[#1a1d24] border-l-4 border-purple-500 px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 text-white text-xs font-medium hidden"
+        >
+            <span class="text-purple-400">🔮</span>
+            <span id="toast-text">Lobby update received.</span>
+        </div>
+
+        <script>
+            // Real-time Session Variables
+            let isNight = false;
+            let isAudioPlaying = false;
+            let soundInitialized = false;
+            let countdownTimer = 105; // 1:45 discusión timer
+            let currentChatTab = 'town';
+
+            // Procedural Audio Engine Variables
+            let ambientDrone, chimes, transitionSweep;
+
+            // Player Data & Profile Status
+            let players = [
+                {
+                    id: 1,
+                    name: 'Grimm (You)',
+                    role: 'Seer',
+                    emoji: '🔮',
+                    alive: true,
+                    votes: 0,
+                    votedFor: null,
+                    isUser: true,
+                    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 2,
+                    name: 'Elara',
+                    role: 'Villager',
+                    emoji: '🌾',
+                    alive: true,
+                    votes: 1,
+                    votedFor: 3,
+                    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 3,
+                    name: 'Father Thomas',
+                    role: 'Hunter',
+                    emoji: '🏹',
+                    alive: true,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 4,
+                    name: 'Victor',
+                    role: 'Werewolf',
+                    emoji: '🐺',
+                    alive: false,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 5,
+                    name: 'Selene',
+                    role: 'Witch',
+                    emoji: '🧪',
+                    alive: true,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 6,
+                    name: 'Garrick',
+                    role: 'Villager',
+                    emoji: '🌾',
+                    alive: true,
+                    votes: 2,
+                    votedFor: 2,
+                    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 7,
+                    name: 'Isabella',
+                    role: 'Villager',
+                    emoji: '🌾',
+                    alive: true,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 8,
+                    name: 'Marcus',
+                    role: 'Werewolf',
+                    emoji: '🐺',
+                    alive: false,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=150&q=80'
+                }
+            ];
+
+            // Identity Pools for Testing Identity Card Flips
+            const ROLES_POOL = [
+                {
+                    name: 'Seer',
+                    emoji: '🔮',
+                    desc: "At night, look inside a sleeping soul's grimoire."
+                },
+                {
+                    name: 'Werewolf',
+                    emoji: '🐺',
+                    desc: 'Awaken in shadow to feast and spread chaos.'
+                },
+                {
+                    name: 'Witch',
+                    emoji: '🧪',
+                    desc: 'Wield one healing potion and one mortal poison.'
+                },
+                {
+                    name: 'Villager',
+                    emoji: '🌾',
+                    desc: 'Vigilantly seek the wolves hid in plain sight.'
+                }
+            ];
+            let currentRoleIndex = 0;
+
+            // Auto Bot Simulated Phrases
+            const BOT_PHRASES = [
+                "We can't ignore {random_player}'s silent demeanor during the transition.",
+                "I'm voting to hang {random_player} before sunset. Are you with me?",
+                "If {random_player} isn't hiding anything, then tell us what you did last night!",
+                "I suspect {random_player} is steering this channel's chatter too actively."
+            ];
+
+            function initSound() {
+                if (soundInitialized) return;
+
+                // Soft atmospheric FM-synth drone
+                ambientDrone = new Tone.Oscillator({
+                    type: 'sine',
+                    frequency: 'D2',
+                    volume: -24
+                }).toDestination();
+
+                const lowpass = new Tone.Filter(180, 'lowpass').toDestination();
+                ambientDrone.connect(lowpass);
+
+                chimes = new Tone.MetalSynth({
+                    frequency: 250,
+                    envelope: { attack: 0.02, decay: 1.0, release: 0.4 },
+                    volume: -18
+                }).toDestination();
+
+                transitionSweep = new Tone.NoiseSynth({
+                    noise: { type: 'pink' },
+                    envelope: { attack: 0.2, decay: 1.8 },
+                    volume: -15
+                }).toDestination();
+
+                soundInitialized = true;
+            }
+
+            function toggleAmbiance() {
+                initSound();
+                const btn = document.getElementById('audio-toggle');
+                const icon = document.getElementById('speaker-icon');
+                const text = document.getElementById('audio-text');
+
+                if (!isAudioPlaying) {
+                    Tone.start();
+                    ambientDrone.start();
+                    isAudioPlaying = true;
+                    btn.classList.add('border-purple-500/50', 'bg-purple-500/10');
+                    icon.textContent = '🔊';
+                    text.textContent = 'Synth Active';
+                    chimes.triggerAttackRelease(0.5);
+                } else {
+                    ambientDrone.stop();
+                    isAudioPlaying = false;
+                    btn.classList.remove('border-purple-500/50', 'bg-purple-500/10');
+                    icon.textContent = '🔇';
+                    text.textContent = 'Synth Idle';
+                }
+            }
+
+            function renderPlayers() {
+                const grid = document.getElementById('player-grid');
+                grid.innerHTML = '';
+
+                players.forEach((player) => {
+                    const isSelected = player.votedFor !== null;
+
+                    let dynamicBorder = 'border-[#2d323f] bg-[#1a1d24]/60 hover:border-[#3a4253]';
+                    if (!player.alive) {
+                        dynamicBorder = 'border-[#1a1d24]/50 bg-[#0f1115]/30 opacity-40';
+                    } else if (isSelected) {
+                        dynamicBorder = 'border-purple-500/80 bg-[#121021]/80 suspicious-pulse';
+                    }
+
+                    // Generates conditional actions inside player cards
+                    let actionBtnHTML = '';
+                    if (player.alive && !player.isUser) {
+                        if (isNight) {
+                            const userRole = players[0].role;
+                            if (userRole === 'Seer') {
+                                actionBtnHTML = `
+                                <button onclick="performNightAction('inspect', ${player.id})" class="text-[10px] font-bold py-1.5 px-3 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white transition active:scale-95 shadow">
+                                    INSPECT
+                                </button>
+                            `;
+                            } else if (userRole === 'Werewolf') {
+                                actionBtnHTML = `
+                                <button onclick="performNightAction('shred', ${player.id})" class="text-[10px] font-bold py-1.5 px-3 rounded-full bg-rose-600 hover:bg-rose-500 text-white transition active:scale-95 shadow">
+                                    ATTACK
+                                </button>
+                            `;
+                            } else if (userRole === 'Witch') {
+                                actionBtnHTML = `
+                                <button onclick="performNightAction('poison', ${player.id})" class="text-[10px] font-bold py-1.5 px-3 rounded-full bg-purple-600 hover:bg-purple-500 text-white transition active:scale-95 shadow">
+                                    POISON
+                                </button>
+                            `;
+                            }
+                        } else {
+                            // Day Phase Suspicions Trigger
+                            actionBtnHTML = `
+                            <button onclick="castAccusation(${player.id})" class="text-[10px] font-bold py-1.5 px-3 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-300 hover:bg-purple-500 hover:text-white transition active:scale-95">
+                                VOTE
+                            </button>
+                        `;
+                        }
+                    }
+
+                    grid.innerHTML += `
+                    <div class="border rounded-2xl p-4 flex items-center justify-between gap-4 transition-all duration-300 ${dynamicBorder}">
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <img src="${player.avatar}" alt="${player.name}" class="w-12 h-12 rounded-xl object-cover border ${player.alive ? 'border-purple-500/30' : 'border-[#2d323f] filter grayscale'}" onerror="this.src='https://placehold.co/150x150/1c1917/94a3b8?text=Soul'">
+                                ${player.alive ? '<span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#1a1d24] rounded-full"></span>' : '<span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-rose-600 border-2 border-[#1a1d24] rounded-full flex items-center justify-center text-[8px] font-bold text-white">🪦</span>'}
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm flex items-center gap-1.5 ${player.alive ? 'text-white' : 'text-[#9aa0a6] line-through'}">
+                                    ${player.name} ${player.isUser ? '<span class="text-[8px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-medium tracking-widest uppercase">YOU</span>' : ''}
+                                </div>
+                                <div class="text-[10px] text-[#9aa0a6] mt-0.5 flex items-center gap-2">
+                                    <span>${player.alive ? 'Active' : 'Deceased'}</span>
+                                    ${player.votes > 0 ? `<span class="text-purple-400 font-bold">• ${player.votes} Suspicions</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            ${actionBtnHTML}
+                        </div>
+                    </div>
+                `;
+                });
+
+                // Refresh living count counters
+                document.getElementById('living-count').textContent = players.filter(
+                    (p) => p.alive
+                ).length;
+                document.getElementById('dead-count').textContent = players.filter(
+                    (p) => !p.alive
+                ).length;
+            }
+
+            function triggerPhaseTransition() {
+                isNight = !isNight;
+                const body = document.body;
+                const banner = document.getElementById('phase-banner');
+                const phaseIcon = document.getElementById('phase-icon');
+                const phaseStatus = document.getElementById('phase-status');
+                const phaseInstruction = document.getElementById('phase-instruction');
+                const btnIcon = document.getElementById('phase-btn-icon');
+                const btnText = document.getElementById('phase-btn-text');
+
+                if (isAudioPlaying) {
+                    transitionSweep.triggerAttackRelease();
+                }
+
+                if (isNight) {
+                    // Changing to Night Mode Theme variables
+                    body.style.backgroundImage =
+                        'radial-gradient(circle at 50% 0%, #0d0c1b 0%, #08090d 100%)';
+                    banner.classList.add('border-purple-500/30');
+
+                    phaseIcon.textContent = '🌙';
+                    phaseIcon.classList.remove('bg-purple-500/10', 'border-purple-500/20');
+                    phaseIcon.classList.add('bg-indigo-500/10', 'border-indigo-500/20');
+
+                    phaseStatus.textContent = 'NIGHT ROUND';
+                    phaseStatus.classList.remove('text-[#a8c7fa]');
+                    phaseStatus.classList.add('text-indigo-300');
+
+                    phaseInstruction.textContent =
+                        'Silence fell. Perform your secretive ritual actions...';
+                    btnIcon.textContent = '☀️';
+                    btnText.textContent = 'Switch to Day';
+
+                    pushSystemMessage(
+                        '🌑 Moonlight envelopes the coven. Sleep comes, and shadow roles awaken...'
+                    );
+                } else {
+                    // Changing to Day Mode Theme variables
+                    body.style.backgroundImage =
+                        'radial-gradient(circle at 50% 0%, #1c1830 0%, #0f1115 100%)';
+                    banner.classList.remove('border-purple-500/30');
+
+                    phaseIcon.textContent = '☀️';
+                    phaseIcon.classList.remove('bg-indigo-500/10', 'border-indigo-500/20');
+                    phaseIcon.classList.add('bg-purple-500/10', 'border-purple-500/20');
+
+                    phaseStatus.textContent = 'DAY DISCUSSION';
+                    phaseStatus.classList.remove('text-indigo-300');
+                    phaseStatus.classList.add('text-[#a8c7fa]');
+
+                    phaseInstruction.textContent = 'Cast your votes of suspicion!';
+                    btnIcon.textContent = '🌘';
+                    btnText.textContent = 'Switch to Night';
+
+                    // Wipe suspicion counters
+                    players.forEach((p) => (p.votes = 0));
+
+                    pushSystemMessage(
+                        '☀️ Dawn breaks over the village. The living must agree on suspects before twilight.'
+                    );
+                }
+
+                renderPlayers();
+            }
+
+            function flipRoleCard() {
+                initSound();
+                const card = document.getElementById('role-card');
+                card.classList.toggle('flipped');
+                if (isAudioPlaying) {
+                    chimes.triggerAttackRelease(0.12);
+                }
+            }
+
+            function changeRoleIdentity() {
+                currentRoleIndex = (currentRoleIndex + 1) % ROLES_POOL.length;
+                const targetRole = ROLES_POOL[currentRoleIndex];
+
+                // Update user role state
+                players[0].role = targetRole.name;
+                players[0].emoji = targetRole.emoji;
+
+                // Mutate visual face of secret card
+                document.getElementById('card-emoji').textContent = targetRole.emoji;
+                document.getElementById('card-role-name').textContent = targetRole.name;
+                document.getElementById('card-role-desc').textContent = targetRole.desc;
+                document.getElementById('role-goal-text').textContent =
+                    targetRole.name === 'Werewolf'
+                        ? 'Shred all villagers and keep control of the shadows.'
+                        : 'Expose the beasts concealed among the living.';
+
+                pushSystemMessage(
+                    `🔮 Astral shifting complete. Your role is now: ${targetRole.name}.`
+                );
+                renderPlayers();
+            }
+
+            function castAccusation(playerId) {
+                initSound();
+                const target = players.find((p) => p.id === playerId);
+                if (!target) return;
+
+                target.votes += 1;
+
+                if (isAudioPlaying) {
+                    chimes.triggerAttackRelease(0.6);
+                }
+
+                pushChatMessage(
+                    'Grimm (You)',
+                    `I suspect ${target.name} harboring shadows within!`
+                );
+
+                // Bot automatic defense response logic
+                setTimeout(() => {
+                    const defenses = [
+                        `I spent my entire evening guarding my family!`,
+                        `Do not shift the light onto me to hide your own claws!`,
+                        `Nonsense! I was performing chores under the twilight church bells.`
+                    ];
+                    const selectedDefense = defenses[Math.floor(Math.random() * defenses.length)];
+                    pushChatMessage(target.name, selectedDefense);
+                }, 1000);
+
+                renderPlayers();
+            }
+
+            function performNightAction(actionType, playerId) {
+                const target = players.find((p) => p.id === playerId);
+                if (!target) return;
+
+                initSound();
+                if (isAudioPlaying) {
+                    chimes.triggerAttackRelease(1.2);
+                }
+
+                if (actionType === 'inspect') {
+                    pushWhisperLog(
+                        `🔮 Divination Gaze: Peer inside the soul of ${target.name}. They align with the [ ${target.role === 'Werewolf' ? '🔥 BEASTS' : '🌾 VILLAGERS'} ].`
+                    );
+                } else if (actionType === 'shred') {
+                    target.alive = false;
+                    pushSystemMessage(
+                        `🩸 Lunar Shred: ${target.name} was devoured under the cover of silence!`
+                    );
+                    renderPlayers();
+                } else if (actionType === 'poison') {
+                    target.alive = false;
+                    pushSystemMessage(
+                        `🧪 Witch Brew: ${target.name} perished by mortal toxin ingestion.`
+                    );
+                    renderPlayers();
+                }
+            }
+
+            function pushChatMessage(sender, text) {
+                const box = document.getElementById('chat-box');
+                box.innerHTML += `
+                <div class="space-y-1">
+                    <span class="font-bold text-purple-300">${sender}:</span>
+                    <span class="text-white/90">${text}</span>
+                </div>
+            `;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function pushSystemMessage(text) {
+                const box = document.getElementById('chat-box');
+                box.innerHTML += `
+                <div class="bg-[#101218]/50 p-3 rounded-xl border-l-2 border-purple-500 leading-relaxed text-white/70">
+                    <span>${text}</span>
+                </div>
+            `;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function pushWhisperLog(text) {
+                const box = document.getElementById('chat-box');
+                box.innerHTML += `
+                <div class="bg-indigo-950/20 p-3 rounded-xl border-l-2 border-indigo-500 leading-relaxed text-indigo-200">
+                    <span>${text}</span>
+                </div>
+            `;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function handleSendMessage(e) {
+                e.preventDefault();
+                const input = document.getElementById('chat-input');
+                const text = input.value.trim();
+                if (!text) return;
+
+                pushChatMessage('Grimm (You)', text);
+                input.value = '';
+
+                // Bot contextual counter-arguments trigger
+                setTimeout(() => {
+                    const respondent = players.find((p) => p.alive && !p.isUser);
+                    if (respondent) {
+                        const phrase = BOT_PHRASES[
+                            Math.floor(Math.random() * BOT_PHRASES.length)
+                        ].replace(
+                            '{random_player}',
+                            players.find((p) => p.alive && p.id !== respondent.id).name
+                        );
+                        pushChatMessage(respondent.name, phrase);
+                    }
+                }, 1200);
+            }
+
+            function switchChatTab(tabName) {
+                currentChatTab = tabName;
+                const tabTown = document.getElementById('tab-town');
+                const tabWhispers = document.getElementById('tab-whispers');
+
+                tabTown.className =
+                    'py-3 text-[10px] font-bold tracking-wider uppercase border-b-2 border-transparent text-[#9aa0a6] hover:text-white transition-all';
+                tabWhispers.className =
+                    'py-3 text-[10px] font-bold tracking-wider uppercase border-b-2 border-transparent text-[#9aa0a6] hover:text-white transition-all';
+
+                if (tabName === 'town') {
+                    tabTown.className =
+                        'py-3 text-[10px] font-bold tracking-wider uppercase border-b-2 border-purple-400 text-white';
+                } else {
+                    tabWhispers.className =
+                        'py-3 text-[10px] font-bold tracking-wider uppercase border-b-2 border-purple-400 text-white';
+                }
+
+                // Clear and filter chat feed contents
+                const box = document.getElementById('chat-box');
+                box.innerHTML = '';
+
+                if (tabName === 'town') {
+                    pushSystemMessage('☀️ Public discussion open. Chat log visible to everyone.');
+                    pushChatMessage('AlphaPack', 'Is Selene quiet or is she checking targets?');
+                    pushChatMessage(
+                        'Selene',
+                        "My focus has been looking for the wolves, let's look at Elara."
+                    );
+                } else {
+                    pushWhisperLog('🔮 Secret Grimoire Logs are strictly confidential.');
+                    pushWhisperLog('Night 1: Seer revealed Victor. Result: [ 🔥 BEASTS ]');
+                }
+            }
+
+            function startCountdown() {
+                setInterval(() => {
+                    if (countdownTimer > 0) {
+                        countdownTimer--;
+                        const mins = Math.floor(countdownTimer / 60)
+                            .toString()
+                            .padStart(2, '0');
+                        const secs = (countdownTimer % 60).toString().padStart(2, '0');
+                        document.getElementById('game-countdown').textContent = `${mins}:${secs}`;
+                    } else {
+                        countdownTimer = 105;
+                        triggerPhaseTransition();
+                    }
+                }, 1000);
+            }
+
+            function toggleSettingsModal(show) {
+                const modal = document.getElementById('settings-modal');
+                if (show) {
+                    modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
+            }
+
+            function triggerToastNotification(message, icon = '🔮') {
+                const toast = document.getElementById('custom-toast');
+                const toastText = document.getElementById('toast-text');
+                toastText.textContent = message;
+                toast.classList.remove('hidden');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 3000);
+            }
+
+            function applySettingsGroup(groupType) {
+                if (groupType === 'roles') {
+                    const vil = document.getElementById('cfg-villager').value;
+                    const wolf = document.getElementById('cfg-werewolf').value;
+                    const seer = document.getElementById('cfg-seer').value;
+                    const doc = document.getElementById('cfg-doctor').value;
+                    const hunt = document.getElementById('cfg-hunter').value;
+
+                    pushWhisperLog(
+                        `⚙️ Role Pool Mutated: Villagers (${vil}) | Wolves (${wolf}) | Seers (${seer}) | Doctors (${doc}) | Hunters (${hunt})`
+                    );
+                    triggerToastNotification('Lobby roster updated!', '🎭');
+                } else if (groupType === 'rules') {
+                    const revealOnDeath = document.getElementById('rule-reveal').checked;
+                    const selfProtect = document.getElementById('rule-selfprotect').checked;
+                    const consensus = document.getElementById('rule-consensus').checked;
+                    const minPlayers = document.getElementById('rule-minplayers').value;
+
+                    pushWhisperLog(
+                        `⚙️ Session parameters saved: Reveal (${revealOnDeath}) | Self-Preservation (${selfProtect}) | Unanimity (${consensus}) | Minimum Players (${minPlayers})`
+                    );
+                    triggerToastNotification('Gameplay rules customized!', '📜');
+                }
+            }
+
+            // Start App on fully loaded container
+            window.onload = function () {
+                renderPlayers();
+                switchChatTab('town');
+                startCountdown();
+            };
+        </script>
+    </body>
+</html>

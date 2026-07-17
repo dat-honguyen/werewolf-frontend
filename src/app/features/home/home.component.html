@@ -1,6 +1,4 @@
 <div class="home">
-    <h1 class="phase-title home__title">Werewolf</h1>
-
     @if (activeRoomCode(); as roomCode) {
         <div class="home__rejoin">
             <p>
@@ -8,43 +6,203 @@
                 >.
             </p>
             <div class="home__rejoin-actions">
-                <button
-                    type="button"
-                    class="home__button home__button--primary"
-                    (click)="rejoinRoom()"
-                >
+                <button type="button" class="home-btn home-btn--primary" (click)="rejoinRoom()">
                     Rejoin
                 </button>
-                <button type="button" class="home__button" (click)="dismissRejoin()">
-                    Dismiss
-                </button>
+                <button type="button" class="home-btn" (click)="dismissRejoin()">Dismiss</button>
             </div>
         </div>
     }
 
-    <label class="home__field">
-        Display name
-        <input
-            type="text"
-            [ngModel]="displayName()"
-            (ngModelChange)="displayName.set($event)"
-            placeholder="Your name"
-        />
-    </label>
+    <div class="home-dashboard">
+        <header class="home-dashboard__header">
+            <div class="home-dashboard__logo">Wolf<span>were</span></div>
+            <nav class="home-dashboard__tabs">
+                <button
+                    type="button"
+                    class="home-dashboard__tab"
+                    [class.home-dashboard__tab--active]="activeTab() === 'create'"
+                    (click)="selectTab('create')"
+                >
+                    Create Room
+                </button>
+                <button
+                    type="button"
+                    class="home-dashboard__tab"
+                    [class.home-dashboard__tab--active]="activeTab() === 'join'"
+                    (click)="selectTab('join')"
+                >
+                    Join Room
+                </button>
+            </nav>
+        </header>
 
-    <div class="home__actions">
-        <button type="button" class="home__button home__button--primary" (click)="createRoom()">
-            Create Room
-        </button>
+        <div class="home-dashboard__body">
+            <label class="home-field">
+                <span class="home-field__label">Display name</span>
+                <input
+                    type="text"
+                    [ngModel]="displayName()"
+                    (ngModelChange)="displayName.set($event)"
+                    placeholder="Your name"
+                />
+            </label>
 
-        <div class="home__join">
-            <input
-                type="text"
-                [ngModel]="joinRoomCode()"
-                (ngModelChange)="joinRoomCode.set($event)"
-                placeholder="Room code"
-            />
-            <button type="button" class="home__button" (click)="joinRoom()">Join Room</button>
+            @if (activeTab() === 'create') {
+                <div class="home-panel">
+                    <div class="home-form-grid">
+                        <div class="home-field">
+                            <span class="home-field__label">Room privacy</span>
+                            <div class="home-segmented">
+                                <label
+                                    class="home-segmented__option home-segmented__option--active"
+                                >
+                                    <input type="radio" name="privacy" checked disabled />
+                                    <span>Public</span>
+                                </label>
+                                <label
+                                    class="home-segmented__option"
+                                    title="Private rooms aren't supported yet"
+                                >
+                                    <input type="radio" name="privacy" disabled />
+                                    <span>Private</span>
+                                </label>
+                            </div>
+                            <p class="home-field__note">
+                                Every room is public for now &mdash; anyone can find it in Join
+                                Room.
+                            </p>
+                        </div>
+
+                        <div class="home-field home-field--disabled" title="Not supported yet">
+                            <span class="home-field__label">Player limit</span>
+                            <div class="home-slider">
+                                <input type="range" min="6" max="18" value="10" disabled />
+                                <span class="home-slider__value">10</span>
+                            </div>
+                        </div>
+
+                        <div class="home-field home-field--disabled" title="Not supported yet">
+                            <span class="home-field__label">Day discussion phase</span>
+                            <select disabled>
+                                <option selected>120 Seconds (Classic)</option>
+                            </select>
+                        </div>
+
+                        <div
+                            class="home-field home-field--disabled"
+                            title="Configurable in-lobby after creation"
+                        >
+                            <span class="home-field__label">Special roles</span>
+                            <div class="home-chips">
+                                @for (role of defaultSpecialRoles; track role.label) {
+                                    <span
+                                        class="home-chip"
+                                        [class.home-chip--active]="role.included"
+                                    >
+                                        {{ role.label }}
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="home-btn home-btn--primary home-btn--block"
+                        (click)="createRoom()"
+                    >
+                        Gather a New Village
+                    </button>
+                </div>
+            } @else {
+                <div class="home-panel">
+                    <div class="home-code-entry">
+                        <span class="home-field__label">Enter village code</span>
+                        <div class="home-code-boxes">
+                            @for (char of codeChars(); track $index) {
+                                <input
+                                    type="text"
+                                    class="home-code-char"
+                                    maxlength="1"
+                                    [value]="char"
+                                    (input)="onCodeCharInput($event, $index)"
+                                    (keydown)="onCodeCharKeydown($event, $index)"
+                                />
+                            }
+                        </div>
+                        <button
+                            type="button"
+                            class="home-btn home-btn--primary"
+                            (click)="joinRoom()"
+                        >
+                            Enter Village
+                        </button>
+                    </div>
+
+                    <div class="home-browser">
+                        <span class="home-field__label">Or browse open villages</span>
+
+                        @if (isBrowsingLobbies()) {
+                            <p class="home-browser__status">Scouting the woods&hellip;</p>
+                        } @else if (openLobbies() === null || openLobbies()?.length === 0) {
+                            <p class="home-browser__status">
+                                No open villages right now. Create one.
+                            </p>
+                        } @else {
+                            <div class="home-browser__table-wrapper">
+                                <table class="home-browser__table">
+                                    <thead>
+                                        <tr>
+                                            <th>Code</th>
+                                            <th>Host</th>
+                                            <th>Players</th>
+                                            <th>Special roles</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (lobby of openLobbies(); track lobby.roomCode) {
+                                            <tr>
+                                                <td class="home-browser__code">
+                                                    {{ lobby.roomCode }}
+                                                </td>
+                                                <td>{{ lobby.hostDisplayName }}</td>
+                                                <td>
+                                                    {{ lobby.playerCount }} joined &middot; min
+                                                    {{ lobby.minPlayers }}
+                                                </td>
+                                                <td>
+                                                    <div class="home-chips home-chips--sm">
+                                                        @for (
+                                                            role of lobby.specialRoles;
+                                                            track role
+                                                        ) {
+                                                            <span
+                                                                class="home-chip home-chip--active"
+                                                                >{{ role }}</span
+                                                            >
+                                                        }
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        class="home-btn home-btn--sm"
+                                                        (click)="joinBrowsedLobby(lobby.roomCode)"
+                                                    >
+                                                        Join
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
         </div>
     </div>
 

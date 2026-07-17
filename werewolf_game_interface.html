@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WOLFWERE - Moonlight Seance</title>
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Google Fonts for Gothic/Medieval atmosphere -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <!-- Tone.js for dark procedural ambient sound effects -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+        <style>
+            :root {
+                --font-cinzel: 'Cinzel', serif;
+                --font-inter: 'Inter', sans-serif;
+                --color-blood: #991b1b;
+                --color-blood-glow: rgba(239, 68, 68, 0.4);
+                --color-moon: #38bdf8;
+                --color-moon-glow: rgba(56, 189, 248, 0.4);
+            }
+
+            body {
+                font-family: var(--font-inter);
+                background-color: #050508;
+                background-image: radial-gradient(circle at 50% 30%, #11111d 0%, #050508 100%);
+                overflow-x: hidden;
+            }
+
+            .medieval-header {
+                font-family: var(--font-cinzel);
+            }
+
+            /* Ambient phase transitions */
+            .night-phase-bg {
+                background-image: radial-gradient(
+                    circle at 50% 30%,
+                    #150a1a 0%,
+                    #050508 100%
+                ) !important;
+                transition: background 1.5s ease-in-out;
+            }
+
+            .day-phase-bg {
+                background-image: radial-gradient(
+                    circle at 50% 30%,
+                    #1a1711 0%,
+                    #050508 100%
+                ) !important;
+                transition: background 1.5s ease-in-out;
+            }
+
+            /* Custom scrollbars */
+            ::-webkit-scrollbar {
+                width: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: #0d0d15;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #27273a;
+                border-radius: 3px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--color-blood);
+            }
+
+            .card-container {
+                perspective: 1000px;
+            }
+            .card-inner {
+                transition: transform 0.6s;
+                transform-style: preserve-3d;
+            }
+            .card-container.flipped .card-inner {
+                transform: rotateY(180deg);
+            }
+            .card-front,
+            .card-back {
+                backface-visibility: hidden;
+            }
+            .card-back {
+                transform: rotateY(180deg);
+            }
+
+            /* Pulsing animation for suspicious voting elements */
+            @keyframes pulse-red {
+                0%,
+                100% {
+                    box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+                    border-color: rgba(239, 68, 68, 0.3);
+                }
+                50% {
+                    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+                    border-color: rgba(239, 68, 68, 0.8);
+                }
+            }
+            .suspicious-pulse {
+                animation: pulse-red 2s infinite;
+            }
+        </style>
+    </head>
+    <body class="text-slate-200 min-h-screen flex flex-col day-phase-bg" id="game-body">
+        <header
+            class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md px-6 py-4 flex flex-wrap justify-between items-center gap-4 z-20 sticky top-0"
+        >
+            <div class="flex items-center gap-3">
+                <div
+                    class="text-2xl tracking-widest font-extrabold medieval-header text-amber-500 flex items-center gap-2"
+                >
+                    <span class="text-3xl">🐺</span> WOLFWERE
+                    <span
+                        class="text-xs text-zinc-500 font-sans tracking-normal uppercase border border-zinc-700 px-2 py-0.5 rounded-full"
+                        >Beta 1.4</span
+                    >
+                </div>
+            </div>
+
+            <!-- Global Game Controls & Phase Switcher -->
+            <div class="flex items-center gap-4">
+                <!-- Ambient Sounds Toggle -->
+                <button
+                    onclick="toggleAmbiance()"
+                    id="audio-toggle"
+                    class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800 transition text-sm"
+                >
+                    <span id="speaker-icon">🔇</span> <span id="audio-text">Enable Ambience</span>
+                </button>
+
+                <!-- Play Phase Transition Trigger -->
+                <button
+                    onclick="triggerPhaseTransition()"
+                    class="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm bg-gradient-to-r from-purple-700 to-amber-700 hover:from-purple-600 hover:to-amber-600 shadow-lg shadow-purple-900/40 active:scale-95 transition-all"
+                >
+                    <span id="phase-btn-icon">🌘</span>
+                    <span id="phase-btn-text">Transition to Night</span>
+                </button>
+            </div>
+        </header>
+
+        <main
+            class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 max-w-7xl mx-auto w-full overflow-hidden"
+        >
+            <!-- COLUMN 1: left side, own role information (3 cols) -->
+            <section class="lg:col-span-3 flex flex-col gap-4">
+                <!-- The Secret Card Identity Box -->
+                <div
+                    class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 flex flex-col items-center gap-4 relative overflow-hidden backdrop-blur-sm shadow-xl"
+                >
+                    <div class="absolute top-2 right-2 text-xs text-zinc-500 tracking-wider">
+                        SECURE
+                    </div>
+
+                    <h3 class="medieval-header text-lg font-bold tracking-wider text-amber-400">
+                        Your Grimoire Card
+                    </h3>
+
+                    <!-- Interactive 3D Role Card flip -->
+                    <div
+                        class="card-container w-full max-w-[180px] h-[250px] cursor-pointer"
+                        id="role-card"
+                        onclick="flipRoleCard()"
+                    >
+                        <div class="card-inner w-full h-full relative duration-500">
+                            <!-- FRONT side (Hidden Face) -->
+                            <div
+                                class="card-front absolute w-full h-full rounded-2xl border-2 border-amber-600/50 bg-gradient-to-b from-amber-950 via-zinc-900 to-black p-4 flex flex-col justify-between items-center shadow-2xl"
+                            >
+                                <div class="text-zinc-600 font-serif">WOLFWERE</div>
+                                <div
+                                    class="text-5xl my-4 text-amber-500/80 filter drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                                >
+                                    🔮
+                                </div>
+                                <div
+                                    class="text-xs text-center text-amber-400/60 font-semibold uppercase tracking-widest"
+                                >
+                                    TAP CARD TO INQUIRE
+                                </div>
+                            </div>
+
+                            <!-- BACK side (Secret Role Face) -->
+                            <div
+                                class="card-back absolute w-full h-full rounded-2xl border-2 border-purple-600 bg-gradient-to-b from-purple-950 via-zinc-900 to-black p-4 flex flex-col justify-between items-center shadow-2xl"
+                            >
+                                <div
+                                    class="text-purple-400 font-serif tracking-widest text-xs uppercase font-bold"
+                                >
+                                    Secret Identity
+                                </div>
+                                <div
+                                    class="text-5xl my-4 filter drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+                                    id="card-emoji"
+                                >
+                                    🔮
+                                </div>
+                                <div class="text-center">
+                                    <h4
+                                        class="font-bold text-lg text-purple-300 medieval-header tracking-wide"
+                                        id="card-role-name"
+                                    >
+                                        Seer
+                                    </h4>
+                                    <p
+                                        class="text-[10px] text-zinc-400 mt-1 leading-relaxed"
+                                        id="card-role-desc"
+                                    >
+                                        At night, uncover the alignment of one active soul.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full flex flex-col gap-2">
+                        <button
+                            onclick="changeRoleIdentity()"
+                            class="text-xs text-center text-zinc-500 hover:text-amber-500 transition underline decoration-dotted"
+                        >
+                            Cycle Role for Testing
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alive and Dead list statistics panel -->
+                <div
+                    class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-3 backdrop-blur-sm shadow-xl"
+                >
+                    <h3 class="medieval-header text-sm font-bold text-zinc-400 tracking-wider">
+                        Coven Overview
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2 text-center text-sm">
+                        <div class="bg-emerald-950/30 border border-emerald-800/50 rounded-xl p-2">
+                            <div class="text-xs text-emerald-500 uppercase font-semibold">
+                                Living Souls
+                            </div>
+                            <div class="text-xl font-bold text-emerald-400 mt-1" id="living-count">
+                                6
+                            </div>
+                        </div>
+                        <div class="bg-rose-950/30 border border-rose-800/50 rounded-xl p-2">
+                            <div class="text-xs text-rose-500 uppercase font-semibold">
+                                Spectral Dead
+                            </div>
+                            <div class="text-xl font-bold text-rose-400 mt-1" id="dead-count">
+                                2
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="mt-2 text-xs text-zinc-500 leading-relaxed border-t border-zinc-800/60 pt-3"
+                    >
+                        Goal:
+                        <span class="text-amber-400 font-semibold" id="role-goal-text"
+                            >Expose the beasts concealed among the living.</span
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 2: The Core Game Circle Board Grid (6 cols) -->
+            <section class="lg:col-span-6 flex flex-col gap-4">
+                <!-- Global Stage Ambient Information Display -->
+                <div
+                    class="bg-zinc-950/80 border border-zinc-800/80 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-2xl relative overflow-hidden"
+                    id="phase-banner"
+                >
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl"
+                            id="phase-icon"
+                        >
+                            ☀️
+                        </div>
+                        <div>
+                            <div
+                                class="text-xs uppercase tracking-widest text-amber-500 font-bold font-mono"
+                                id="phase-status"
+                            >
+                                DAY DISCUSSION
+                            </div>
+                            <h2
+                                class="text-lg font-bold tracking-wider medieval-header text-slate-100 mt-0.5"
+                                id="phase-instruction"
+                            >
+                                Accusation Session is open!
+                            </h2>
+                        </div>
+                    </div>
+                    <!-- Dynamic countdown clock -->
+                    <div class="text-right flex items-center gap-3">
+                        <span class="text-xs text-zinc-500 uppercase tracking-widest font-mono"
+                            >Sun rises in:</span
+                        >
+                        <span
+                            class="text-2xl font-black font-mono text-amber-500"
+                            id="game-countdown"
+                            >01:45</span
+                        >
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="player-grid">
+                    <!-- Players will be rendered dynamically by JavaScript here to preserve full state control -->
+                </div>
+            </section>
+
+            <!-- COLUMN 3: Right side sidebar - Chat feeds and events (3 cols) -->
+            <section class="lg:col-span-3 flex flex-col gap-4">
+                <div
+                    class="bg-zinc-900/60 border border-zinc-800 rounded-2xl flex-1 flex flex-col backdrop-blur-sm overflow-hidden shadow-xl min-h-[400px]"
+                >
+                    <!-- Chat category tabs -->
+                    <div class="grid grid-cols-2 bg-zinc-950 border-b border-zinc-800">
+                        <button
+                            onclick="switchChatTab('town')"
+                            id="tab-town"
+                            class="py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-amber-500 text-slate-100"
+                        >
+                            💬 TOWN SQUARE
+                        </button>
+                        <button
+                            onclick="switchChatTab('whispers')"
+                            id="tab-whispers"
+                            class="py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-transparent text-zinc-500 hover:text-slate-300"
+                        >
+                            🔮 GRIMOIRE LOGS
+                        </button>
+                    </div>
+
+                    <!-- Chat message history viewport -->
+                    <div
+                        class="flex-1 p-4 overflow-y-auto space-y-3 text-sm flex flex-col justify-end"
+                        id="chat-box"
+                    >
+                        <!-- Chat logs rendered dynamically -->
+                    </div>
+
+                    <!-- Interactive message input bar -->
+                    <form
+                        onsubmit="handleSendMessage(event)"
+                        class="p-3 border-t border-zinc-800 bg-zinc-950/60 flex gap-2"
+                    >
+                        <input
+                            type="text"
+                            id="chat-input"
+                            placeholder="Cast suspicion or whisper an alibi..."
+                            class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-slate-200 outline-none focus:border-amber-500 transition"
+                        />
+                        <button
+                            type="submit"
+                            class="bg-amber-600 hover:bg-amber-500 text-black font-bold rounded-xl px-4 transition text-xs tracking-wider"
+                        >
+                            SPEAK
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <script>
+            // Game State Variables
+            let isNight = false;
+            let isAudioPlaying = false;
+            let soundInitialized = false;
+            let countdownTimer = 105; // 1:45
+            let currentChatTab = 'town';
+
+            // Ambient Sound Synths
+            let ambientDrone, chimes, transitionSweep;
+
+            // Player Data Pool
+            let players = [
+                {
+                    id: 1,
+                    name: 'Grimm (You)',
+                    role: 'Seer',
+                    emoji: '🔮',
+                    alive: true,
+                    votes: 0,
+                    votedFor: null,
+                    isUser: true,
+                    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 2,
+                    name: 'Elara',
+                    role: 'Villager',
+                    emoji: '🌾',
+                    alive: true,
+                    votes: 1,
+                    votedFor: 3,
+                    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 3,
+                    name: 'Father Thomas',
+                    role: 'Hunter',
+                    emoji: '🏹',
+                    alive: true,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 4,
+                    name: 'Victor',
+                    role: 'Werewolf',
+                    emoji: '🐺',
+                    alive: false,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 5,
+                    name: 'Selene',
+                    role: 'Witch',
+                    emoji: '🧪',
+                    alive: true,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 6,
+                    name: 'Garrick',
+                    role: 'Villager',
+                    emoji: '🔨',
+                    alive: true,
+                    votes: 2,
+                    votedFor: 2,
+                    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 7,
+                    name: 'Isabella',
+                    role: 'Villager',
+                    emoji: '🍞',
+                    alive: true,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80'
+                },
+                {
+                    id: 8,
+                    name: 'Marcus',
+                    role: 'Werewolf',
+                    emoji: '🐺',
+                    alive: false,
+                    votes: 0,
+                    votedFor: null,
+                    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=150&q=80'
+                }
+            ];
+
+            // Custom Role lists for cycle tests
+            const ROLES_POOL = [
+                {
+                    name: 'Seer',
+                    emoji: '🔮',
+                    desc: 'At night, uncover the alignment of one active soul.'
+                },
+                {
+                    name: 'Werewolf',
+                    emoji: '🐺',
+                    desc: 'Conspire under the blood moon to shred the villagers.'
+                },
+                {
+                    name: 'Witch',
+                    emoji: '🧪',
+                    desc: 'You wield two unique options: one healing tonic, one mortal poison.'
+                },
+                {
+                    name: 'Villager',
+                    emoji: '🌾',
+                    desc: 'You have no magic, only your vote to weed out concealed threats.'
+                }
+            ];
+            let currentRoleIndex = 0;
+
+            // Bot Accusation Chat templates
+            const BOT_PHRASES = [
+                'We cannot trust {random_player}! They looked very uncomfortable during the night transition.',
+                'I cast my vote to hang {random_player}. Who will back me?',
+                'If {random_player} is not a beast, then explain where they vanished to during the previous evening!',
+                'I suspect {random_player} is trying to control the discussion stream.',
+                "Let's be careful. The beasts want us divided."
+            ];
+
+            function initSound() {
+                if (soundInitialized) return;
+
+                // Simple ambient atmospheric sound generator
+                ambientDrone = new Tone.Oscillator({
+                    type: 'sawtooth',
+                    frequency: 'E1',
+                    volume: -25
+                }).toDestination();
+
+                // Lowpass filter to make it eerie and soft
+                const lowpass = new Tone.Filter(150, 'lowpass').toDestination();
+                ambientDrone.connect(lowpass);
+
+                chimes = new Tone.MetalSynth({
+                    frequency: 200,
+                    envelope: { attack: 0.01, decay: 1.4, release: 0.2 },
+                    volume: -15
+                }).toDestination();
+
+                transitionSweep = new Tone.NoiseSynth({
+                    noise: { type: 'pink' },
+                    envelope: { attack: 0.1, decay: 1.5 },
+                    volume: -12
+                }).toDestination();
+
+                soundInitialized = true;
+            }
+
+            function toggleAmbiance() {
+                initSound();
+                const btn = document.getElementById('audio-toggle');
+                const icon = document.getElementById('speaker-icon');
+                const text = document.getElementById('audio-text');
+
+                if (!isAudioPlaying) {
+                    Tone.start();
+                    ambientDrone.start();
+                    isAudioPlaying = true;
+                    btn.classList.add('bg-amber-600/20', 'border-amber-500');
+                    icon.textContent = '🔊';
+                    text.textContent = 'Ambience Active';
+                    chimes.triggerAttackRelease(0.5);
+                } else {
+                    ambientDrone.stop();
+                    isAudioPlaying = false;
+                    btn.classList.remove('bg-amber-600/20', 'border-amber-500');
+                    icon.textContent = '🔇';
+                    text.textContent = 'Enable Ambience';
+                }
+            }
+
+            function renderPlayers() {
+                const grid = document.getElementById('player-grid');
+                grid.innerHTML = '';
+
+                players.forEach((player) => {
+                    const isSelected = player.votedFor !== null;
+                    const dynamicBorder = !player.alive
+                        ? 'border-zinc-800 bg-zinc-950/40 opacity-40'
+                        : isSelected
+                          ? 'border-amber-500/80 bg-zinc-900/80 suspicious-pulse'
+                          : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700';
+
+                    // Generate active custom actions list
+                    let actionBtnHTML = '';
+                    if (player.alive && !player.isUser) {
+                        if (isNight) {
+                            const userRole = players[0].role;
+                            if (userRole === 'Seer') {
+                                actionBtnHTML = `
+                                <button onclick="performNightAction('inspect', ${player.id})" class="text-xs font-bold py-1 px-3 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white transition active:scale-95 shadow">
+                                    INSPECT
+                                </button>
+                            `;
+                            } else if (userRole === 'Werewolf') {
+                                actionBtnHTML = `
+                                <button onclick="performNightAction('shred', ${player.id})" class="text-xs font-bold py-1 px-3 rounded-full bg-rose-700 hover:bg-rose-600 text-white transition active:scale-95 shadow">
+                                    SHRED
+                                </button>
+                            `;
+                            } else if (userRole === 'Witch') {
+                                actionBtnHTML = `
+                                <button onclick="performNightAction('poison', ${player.id})" class="text-xs font-bold py-1 px-3 rounded-full bg-fuchsia-700 hover:bg-fuchsia-600 text-white transition active:scale-95 shadow">
+                                    POISON
+                                </button>
+                            `;
+                            }
+                        } else {
+                            // Day Phase Accusation buttons
+                            actionBtnHTML = `
+                            <button onclick="castAccusation(${player.id})" class="text-xs font-bold py-1.5 px-3 rounded-lg border border-amber-600/40 bg-amber-950/20 text-amber-400 hover:bg-amber-600 hover:text-black transition active:scale-95">
+                                ACCUSE
+                            </button>
+                        `;
+                        }
+                    }
+
+                    grid.innerHTML += `
+                    <div class="border rounded-2xl p-4 flex items-center justify-between gap-4 transition-all duration-300 ${dynamicBorder}">
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <img src="${player.avatar}" alt="${player.name}" class="w-12 h-12 rounded-full object-cover border-2 ${player.alive ? 'border-amber-600/40' : 'border-zinc-800 filter grayscale'}" onerror="this.src='https://placehold.co/150x150/1c1917/94a3b8?text=Soul'">
+                                ${player.alive ? '<span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-zinc-950 rounded-full"></span>' : '<span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-rose-600 border-2 border-zinc-950 rounded-full flex items-center justify-center text-[8px] font-bold text-white">X</span>'}
+                            </div>
+                            <div>
+                                <div class="font-bold flex items-center gap-1.5 ${player.alive ? 'text-zinc-100' : 'text-zinc-500 line-through'}">
+                                    ${player.name} ${player.isUser ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-amber-500 tracking-wider">YOU</span>' : ''}
+                                </div>
+                                <div class="text-xs text-zinc-500 mt-0.5 flex items-center gap-2">
+                                    <span>${player.alive ? 'Status: Alive' : 'Status: Spectral Ghost'}</span>
+                                    ${player.votes > 0 ? `<span class="text-amber-500 font-bold">• ${player.votes} Suspicions</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            ${actionBtnHTML}
+                        </div>
+                    </div>
+                `;
+                });
+
+                // Update stats counter
+                document.getElementById('living-count').textContent = players.filter(
+                    (p) => p.alive
+                ).length;
+                document.getElementById('dead-count').textContent = players.filter(
+                    (p) => !p.alive
+                ).length;
+            }
+
+            function triggerPhaseTransition() {
+                isNight = !isNight;
+                const body = document.getElementById('game-body');
+                const banner = document.getElementById('phase-banner');
+                const phaseIcon = document.getElementById('phase-icon');
+                const phaseStatus = document.getElementById('phase-status');
+                const phaseInstruction = document.getElementById('phase-instruction');
+                const btnIcon = document.getElementById('phase-btn-icon');
+                const btnText = document.getElementById('phase-btn-text');
+
+                if (isAudioPlaying) {
+                    transitionSweep.triggerAttackRelease();
+                }
+
+                if (isNight) {
+                    // NIGHT setup
+                    body.classList.remove('day-phase-bg');
+                    body.classList.add('night-phase-bg');
+
+                    banner.classList.add('border-purple-900/50');
+                    phaseIcon.textContent = '🌙';
+                    phaseIcon.classList.remove('bg-amber-500/10', 'border-amber-500/30');
+                    phaseIcon.classList.add('bg-purple-500/10', 'border-purple-500/30');
+
+                    phaseStatus.textContent = 'NIGHT CONSPIRACY';
+                    phaseStatus.classList.remove('text-amber-500');
+                    phaseStatus.classList.add('text-purple-400');
+
+                    phaseInstruction.textContent = 'Perform your secret role target interaction...';
+                    btnIcon.textContent = '☀️';
+                    btnText.textContent = 'Transition to Day';
+
+                    pushSystemMessage(
+                        '🌑 The shadows lengthen. The village drifts to sleep. Secret roles are awakening...'
+                    );
+                } else {
+                    // DAY setup
+                    body.classList.remove('night-phase-bg');
+                    body.classList.add('day-phase-bg');
+
+                    banner.classList.remove('border-purple-900/50');
+                    phaseIcon.textContent = '☀️';
+                    phaseIcon.classList.remove('bg-purple-500/10', 'border-purple-500/30');
+                    phaseIcon.classList.add('bg-amber-500/10', 'border-amber-500/30');
+
+                    phaseStatus.textContent = 'DAY DISCUSSION';
+                    phaseStatus.classList.remove('text-purple-400');
+                    phaseStatus.classList.add('text-amber-500');
+
+                    phaseInstruction.textContent = 'Accusation Session is open!';
+                    btnIcon.textContent = '🌘';
+                    btnText.textContent = 'Transition to Night';
+
+                    // Clear temporary votes
+                    players.forEach((p) => (p.votes = 0));
+
+                    pushSystemMessage(
+                        '☀️ Sun rises over the misty square. Cast your suspicions before dusk.'
+                    );
+                }
+
+                renderPlayers();
+            }
+
+            function flipRoleCard() {
+                initSound();
+                const card = document.getElementById('role-card');
+                card.classList.toggle('flipped');
+                if (isAudioPlaying) {
+                    chimes.triggerAttackRelease(0.1);
+                }
+            }
+
+            function changeRoleIdentity() {
+                currentRoleIndex = (currentRoleIndex + 1) % ROLES_POOL.length;
+                const targetRole = ROLES_POOL[currentRoleIndex];
+
+                // Change role inside local state list
+                players[0].role = targetRole.name;
+                players[0].emoji = targetRole.emoji;
+
+                // Change UI Display Face
+                document.getElementById('card-emoji').textContent = targetRole.emoji;
+                document.getElementById('card-role-name').textContent = targetRole.name;
+                document.getElementById('card-role-desc').textContent = targetRole.desc;
+                document.getElementById('role-goal-text').textContent =
+                    targetRole.name === 'Werewolf'
+                        ? 'Infiltrate and shred all villagers before dawn.'
+                        : 'Expose the beasts concealed among the living.';
+
+                pushSystemMessage(
+                    `🔮 Identity shifted! You are now playing as the ${targetRole.name}.`
+                );
+                renderPlayers();
+            }
+
+            function castAccusation(playerId) {
+                initSound();
+                const target = players.find((p) => p.id === playerId);
+                if (!target) return;
+
+                // Increment votes on player card
+                target.votes += 1;
+
+                if (isAudioPlaying) {
+                    chimes.triggerAttackRelease(0.8);
+                }
+
+                pushChatMessage(
+                    'Grimm (You)',
+                    `I suspect ${target.name} has blood on their hands!`
+                );
+
+                // Trigger auto reaction from accused bot
+                setTimeout(() => {
+                    const excuses = [
+                        `Why are you blaming me? I spent the evening safe at my forge!`,
+                        `Nonsense! I was performing sacred chimes at the church!`,
+                        `Do not distract us from the real beast, Grimm!`,
+                        `Grimm is throwing random accusations to deflect suspicion!`
+                    ];
+                    const randomExcuse = excuses[Math.floor(Math.random() * excuses.length)];
+                    pushChatMessage(target.name, randomExcuse);
+                }, 1000);
+
+                renderPlayers();
+            }
+
+            function performNightAction(actionType, playerId) {
+                const target = players.find((p) => p.id === playerId);
+                if (!target) return;
+
+                initSound();
+                if (isAudioPlaying) {
+                    chimes.triggerAttackRelease(1.5);
+                }
+
+                if (actionType === 'inspect') {
+                    pushWhisperLog(
+                        `🔮 Seer Gaze: You peer into the soul of ${target.name}. They are aligned with the [ ${target.role === 'Werewolf' ? '🔥 BEASTS' : '🌾 VILLAGE'} ].`
+                    );
+                } else if (actionType === 'shred') {
+                    target.alive = false;
+                    pushSystemMessage(
+                        `🩸 Werewolf attack: ${target.name} has been torn apart in the darkness!`
+                    );
+                    renderPlayers();
+                } else if (actionType === 'poison') {
+                    target.alive = false;
+                    pushSystemMessage(
+                        `🧪 Witch toxin: You slip poison to ${target.name}. They perished instantly.`
+                    );
+                    renderPlayers();
+                }
+            }
+
+            function pushChatMessage(sender, text) {
+                const box = document.getElementById('chat-box');
+                box.innerHTML += `
+                <div class="chat-msg">
+                    <span class="author font-bold text-amber-500">${sender}:</span>
+                    <span class="text-zinc-300">${text}</span>
+                </div>
+            `;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function pushSystemMessage(text) {
+                const box = document.getElementById('chat-box');
+                box.innerHTML += `
+                <div class="chat-msg system bg-zinc-950/40 p-2.5 rounded-xl border-l-2 border-amber-600 leading-relaxed">
+                    <span class="text-zinc-400 font-medium">${text}</span>
+                </div>
+            `;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function pushWhisperLog(text) {
+                const box = document.getElementById('chat-box');
+                box.innerHTML += `
+                <div class="chat-msg system bg-purple-950/20 p-2.5 rounded-xl border-l-2 border-purple-600 leading-relaxed">
+                    <span class="text-purple-300 font-medium">${text}</span>
+                </div>
+            `;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function handleSendMessage(e) {
+                e.preventDefault();
+                const input = document.getElementById('chat-input');
+                const text = input.value.trim();
+                if (!text) return;
+
+                pushChatMessage('Grimm (You)', text);
+                input.value = '';
+
+                // Bot response trigger
+                setTimeout(() => {
+                    const respondent = players.find((p) => p.alive && !p.isUser);
+                    if (respondent) {
+                        const phrase = BOT_PHRASES[
+                            Math.floor(Math.random() * BOT_PHRASES.length)
+                        ].replace(
+                            '{random_player}',
+                            players.find((p) => p.alive && p.id !== respondent.id).name
+                        );
+                        pushChatMessage(respondent.name, phrase);
+                    }
+                }, 1500);
+            }
+
+            function switchChatTab(tabName) {
+                currentChatTab = tabName;
+                const tabTown = document.getElementById('tab-town');
+                const tabWhispers = document.getElementById('tab-whispers');
+
+                tabTown.classList.remove('border-amber-500', 'text-slate-100');
+                tabTown.classList.add('border-transparent', 'text-zinc-500');
+                tabWhispers.classList.remove('border-amber-500', 'text-slate-100');
+                tabWhispers.classList.add('border-transparent', 'text-zinc-500');
+
+                if (tabName === 'town') {
+                    tabTown.classList.add('border-amber-500', 'text-slate-100');
+                    tabTown.classList.remove('border-transparent', 'text-zinc-500');
+                } else {
+                    tabWhispers.classList.add('border-amber-500', 'text-slate-100');
+                    tabWhispers.classList.remove('border-transparent', 'text-zinc-500');
+                }
+
+                // Clear and reload messages
+                const box = document.getElementById('chat-box');
+                box.innerHTML = '';
+
+                if (tabName === 'town') {
+                    pushSystemMessage(
+                        '☀️ Discussions are open. Town chat channels are fully public.'
+                    );
+                    pushChatMessage(
+                        'AlphaPack',
+                        'I suspect MoonSeer. Their quiet responses are suspicious.'
+                    );
+                    pushChatMessage(
+                        'Selene',
+                        "Let's check the graveyard log before making assumptions."
+                    );
+                } else {
+                    pushWhisperLog('🔮 Secret Grimoire Logs are only visible to you.');
+                    pushWhisperLog('Night 1: Seer analyzed Selene. Outcome: Neutral.');
+                }
+            }
+
+            function startCountdown() {
+                setInterval(() => {
+                    if (countdownTimer > 0) {
+                        countdownTimer--;
+                        const mins = Math.floor(countdownTimer / 60)
+                            .toString()
+                            .padStart(2, '0');
+                        const secs = (countdownTimer % 60).toString().padStart(2, '0');
+                        document.getElementById('game-countdown').textContent = `${mins}:${secs}`;
+                    } else {
+                        countdownTimer = 105; // Loop timer
+                        triggerPhaseTransition();
+                    }
+                }, 1000);
+            }
+
+            // Initialize board
+            window.onload = function () {
+                renderPlayers();
+                switchChatTab('town');
+                startCountdown();
+            };
+        </script>
+    </body>
+</html>

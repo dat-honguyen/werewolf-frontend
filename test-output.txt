@@ -1,0 +1,17 @@
+
+> werewolf-frontend@0.0.0 test
+> ng test --watch=false
+
+❯ Building...
+✔ Building...
+Application bundle generation complete. [1.829 seconds] - 2026-07-16T17:40:40.997Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/Users/CCDT/source/werewolf-frontend[39m
+
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m   Start at [22m 00:40:41
+[2m   Duration [22m 2.76s[2m (transform 440ms, setup 2.36s, import 623ms, tests 97ms, environment 6.17s)[22m
+
