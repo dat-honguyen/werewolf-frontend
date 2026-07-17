@@ -1,0 +1,276 @@
+// src/app/shared/components/room-shell/room-shell.scss
+.room-shell {
+    --bg-main: #0f1115;
+    --bg-surface: #1a1d24;
+    --bg-nested: #242932;
+    --accent-day: #f59e0b;
+    --accent-night: #c084fc;
+    --primary: var(--accent-day);
+    --danger: #ff3b30;
+    --success: #4cd964;
+    --text-main: #f1f3f4;
+    --text-muted: #9aa0a6;
+    --border: #2d323f;
+
+    &[data-phase='night'] {
+        --primary: var(--accent-night);
+    }
+
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--bg-main);
+    background-image: radial-gradient(
+        circle at 50% 0%,
+        color-mix(in srgb, var(--primary) 12%, transparent) 0%,
+        var(--bg-main) 70%
+    );
+    color: var(--text-main);
+    overflow: hidden;
+
+    &__header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg-main) 80%, transparent);
+        backdrop-filter: blur(16px);
+    }
+
+    &__logo {
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    &__header-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    &__ghost-button {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid var(--border);
+        background: var(--bg-surface);
+        color: var(--text-main);
+        border-radius: 0.75rem;
+        padding: 0.55rem 0.9rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+            border-color: var(--primary);
+        }
+    }
+
+    &__cta {
+        border: none;
+        border-radius: 999px;
+        padding: 0.55rem 1.25rem;
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: white;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--accent-day), #ea580c);
+        box-shadow: 0 4px 15px color-mix(in srgb, var(--primary) 25%, transparent);
+
+        &[data-phase='night'],
+        .room-shell[data-phase='night'] & {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    }
+
+    &__viewport {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 300px 1fr 320px;
+        gap: 1.25rem;
+        padding: 1.25rem;
+        min-height: 0;
+        overflow: hidden;
+
+        @media (max-width: 900px) {
+            grid-template-columns: 1fr;
+            overflow-y: auto;
+        }
+    }
+
+    &__left {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-y: auto;
+    }
+
+    &__stats {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 1.1rem;
+
+        h3 {
+            margin: 0 0 0.75rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+    }
+
+    &__stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+        text-align: center;
+    }
+
+    &__stat {
+        border-radius: 0.75rem;
+        padding: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+
+        span {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        strong {
+            font-size: 1.35rem;
+        }
+
+        &--alive {
+            background: color-mix(in srgb, var(--success) 8%, transparent);
+            border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
+            color: var(--success);
+        }
+
+        &--dead {
+            background: color-mix(in srgb, var(--danger) 8%, transparent);
+            border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent);
+            color: var(--danger);
+        }
+    }
+
+    &__objective {
+        margin: 0.85rem 0 0;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    &__center {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    &__death {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--danger);
+    }
+
+    &__chat {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 0;
+
+        @media (max-width: 900px) {
+            min-height: 50vh;
+        }
+    }
+
+    &__chat-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-main);
+    }
+
+    &__chat-tab {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        padding: 0.75rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+
+        &--active {
+            color: var(--text-main);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        &--danger {
+            color: var(--danger);
+        }
+    }
+
+    &__chat-history {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    &__chat-message {
+        margin: 0 0 0.6rem;
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+
+    &__chat-sender {
+        font-weight: 700;
+        color: var(--primary);
+        margin-right: 0.3rem;
+    }
+
+    &__chat-disabled {
+        color: var(--text-muted);
+        font-style: italic;
+        font-size: 0.85rem;
+    }
+
+    &__chat-input-area {
+        padding: 0.85rem;
+        border-top: 1px solid var(--border);
+        background: var(--bg-nested);
+
+        input {
+            width: 100%;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            color: var(--text-main);
+            outline: none;
+
+            &:focus {
+                border-color: var(--primary);
+            }
+        }
+    }
+}

@@ -1,0 +1,877 @@
+// src/app/shared/components/room-shell/room-shell.ts
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { interval, switchMap } from 'rxjs';
+import { GameApiService } from '../../../core/services/game-api.service';
+import { GameStateService } from '../../../core/services/game-state.service';
+import { LobbyApiService } from '../../../core/services/lobby-api.service';
+import { PlayerIdentityService } from '../../../core/services/player-identity.service';
+import { RulesApiService } from '../../../core/services/rules-api.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { WerewolfHubService } from '../../../core/services/werewolf-hub.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.util';
+import { DEFAULT_GAME_SETTINGS, LocalLobbyPlayer } from '../../../core/models/lobby.model';
+import { Role } from '../../../core/models/role.model';
+import { IdentityGrimoireCard } from '../identity-grimoire-card/identity-grimoire-card';
+import { PhaseBanner } from '../phase-banner/phase-banner';
+import { PlayerGrid, PlayerGridEntry } from '../player-grid/player-grid';
+import { RoomActionPanel } from '../room-action-panel/room-action-panel';
+import { SettingsModal } from '../../../features/room/lobby-screen/settings-modal/settings-modal';
+
+interface ChatMessage {
+    senderId: string;
+    senderName: string;
+    text: string;
+    sentAtUtc: string;
+}
+
+type ChatTab = 'town' | 'pack';
+type NightAction = 'cupid' | 'seer' | 'werewolf' | 'doctor' | 'witch';
+
+const WOLF_VOTE_POLL_MS = 2000;
+
+const ROLE_OBJECTIVE: Record<Role, string> = {
+    Villager: 'Find and eliminate every werewolf.',
+    Werewolf: 'Eliminate all villagers.',
+    Seer: 'Find and eliminate every werewolf.',
+    Doctor: 'Find and eliminate every werewolf.',
+    Hunter: 'Find and eliminate every werewolf.',
+    Witch: 'Find and eliminate every werewolf.',
+    Cupid: 'Find and eliminate every werewolf.',
+    Tanner: 'Get yourself lynched by the village.'
+};
+
+/**
+ * The single persistent Room view (LUNARIS layout): header, Identity Grimoire + stats on the left,
+ * phase banner + player grid + action panel in the middle, chat on the right. Absorbs the logic
+ * that used to live in lobby-screen, role-reveal-screen, night-action-panel, day-discussion-screen,
+ * voting-screen, hunter-revenge-modal, and game-over-screen -- those are retired as standalone
+ * screens (see docs/superpowers/plans/2026-07-17-unified-room-screen.md) in favor of this always-
+ * mounted shell whose *contents* change with GameStateService.currentView(), not the screen itself.
+ */
+@Component({
+    selector: 'app-room-shell',
+    imports: [
+        FormsModule,
+        IdentityGrimoireCard,
+        PhaseBanner,
+        PlayerGrid,
+        RoomActionPanel,
+        SettingsModal
+    ],
+    templateUrl: './room-shell.html',
+    styleUrl: './room-shell.scss'
+})
+export class RoomShell {
+    private readonly gameApi = inject(GameApiService);
+    private readonly gameState = inject(GameStateService);
+    private readonly lobbyApi = inject(LobbyApiService);
+    private readonly playerIdentity = inject(PlayerIdentityService);
+    private readonly rulesApi = inject(RulesApiService);
+    private readonly toast = inject(ToastService);
+    private readonly hub = inject(WerewolfHubService);
+    private readonly router = inject(Router);
+
+    readonly roomCode = this.gameState.roomCode;
+    readonly view = this.gameState.currentView;
+    readonly lobby = this.gameState.lobby;
+    readonly state = this.gameState.gameState;
+    readonly myPlayerId = this.playerIdentity.playerId;
+
+    readonly showSettings = signal(false);
+    readonly chatTab = signal<ChatTab>('town');
+    readonly townMessages = signal<ChatMessage[]>([]);
+    readonly draftMessage = signal('');
+
+    readonly roleDescription = signal('');
+    readonly lastDeathText = signal<string | null>(null);
+    readonly nowMs = signal(Date.now());
+    readonly logEntries = signal<string[] | null>(null);
+
+    // Night-phase local state (mirrors former NightActionPanel)
+    private readonly actionsTaken = signal<Set<NightAction>>(new Set());
+    private readonly lastDoctorTarget = signal<string | null>(null);
+    private readonly cupidFirstPick = signal<string | null>(null);
+    readonly wolfVotes = signal<Map<string, string | null>>(new Map());
+    readonly wolfLockedTarget = signal<string | null | undefined>(undefined);
+    readonly seerResult = signal<{ targetPlayerId: string; isWerewolf: boolean } | null>(null);
+    readonly witchTarget = signal<string | null | undefined>(undefined);
+    readonly witchHealUsed = signal(false);
+    readonly witchPoisonUsed = signal(false);
+
+    // Voting-phase local state (mirrors former VotingScreen)
+    readonly selectedVoteTarget = signal<string | null | undefined>(undefined);
+    private readonly votesByVoter = signal<Map<string, string | null>>(new Map());
+
+    readonly isHost = computed(() => this.lobby()?.hostPlayerId === this.myPlayerId());
+    readonly myPlayer = computed<LocalLobbyPlayer | undefined>(() =>
+        this.lobby()?.players.find((p) => p.playerId === this.myPlayerId())
+    );
+    readonly settings = computed(() => this.lobby()?.settings ?? DEFAULT_GAME_SETTINGS);
+
+    readonly myRole = computed<Role | null>(
+        () => this.state()?.players.find((p) => p.playerId === this.myPlayerId())?.role ?? null
+    );
+    readonly ownObjective = computed(() => {
+        const role = this.myRole();
+        return role ? ROLE_OBJECTIVE[role] : '';
+    });
+
+    readonly isNight = computed(() => this.state()?.phase === 'Night');
+    readonly aliveCount = computed(
+        () => (this.state()?.players ?? []).filter((p) => p.isAlive).length
+    );
+    readonly deadCount = computed(() => (this.state()?.players ?? []).length - this.aliveCount());
+
+    readonly canSeePackChat = computed(
+        () => this.myRole() === 'Werewolf' && this.myPlayer() !== undefined
+    );
+
+    readonly canStartGame = computed(() => {
+        const lobby = this.lobby();
+        if (!lobby) {
+            return false;
+        }
+        const allReady = lobby.players.every((p) => p.isReady);
+        if (lobby.players.length < lobby.settings.minPlayers) {
+            return false;
+        }
+        return allReady || lobby.settings.allowForceStart;
+    });
+    readonly needsForceStart = computed(
+        () =>
+            !(this.lobby()?.players.every((p) => p.isReady) ?? true) &&
+            (this.lobby()?.settings.allowForceStart ?? false)
+    );
+
+    readonly myTurnRole = computed(() => {
+        const role = this.state()?.currentNightRole ?? null;
+        return role !== null && role === this.myRole() ? role : null;
+    });
+    readonly showCupid = computed(
+        () =>
+            this.myRole() === 'Cupid' &&
+            this.myTurnRole() === 'Cupid' &&
+            this.state()?.nightNumber === 1 &&
+            this.state()?.lovers === null &&
+            !this.actionsTaken().has('cupid')
+    );
+    readonly showSeer = computed(
+        () =>
+            this.myRole() === 'Seer' &&
+            this.myTurnRole() === 'Seer' &&
+            !this.actionsTaken().has('seer')
+    );
+    readonly showWerewolf = computed(
+        () =>
+            this.myRole() === 'Werewolf' &&
+            this.myTurnRole() === 'Werewolf' &&
+            !this.actionsTaken().has('werewolf')
+    );
+    readonly showDoctor = computed(
+        () =>
+            this.myRole() === 'Doctor' &&
+            this.myTurnRole() === 'Doctor' &&
+            !this.actionsTaken().has('doctor')
+    );
+    readonly showWitch = computed(
+        () =>
+            this.myRole() === 'Witch' &&
+            this.myTurnRole() === 'Witch' &&
+            !this.actionsTaken().has('witch')
+    );
+
+    readonly secondsRemaining = computed(() => {
+        const deadline = this.state()?.discussionDeadlineUtc;
+        if (!deadline) {
+            return null;
+        }
+        return Math.max(0, Math.floor((new Date(deadline).getTime() - this.nowMs()) / 1000));
+    });
+    readonly countdownDisplay = computed(() => {
+        const seconds = this.secondsRemaining();
+        if (seconds === null) {
+            return null;
+        }
+        const mins = Math.floor(seconds / 60)
+            .toString()
+            .padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+    });
+
+    /** Phase banner content, keyed off GameStateService.currentView(). */
+    readonly bannerIcon = computed(() => {
+        switch (this.view()) {
+            case 'lobby':
+                return '🐺';
+            case 'role-reveal':
+            case 'night':
+                return '🌙';
+            case 'day-discussion':
+                return '☀️';
+            case 'voting':
+                return '⚖️';
+            case 'hunter-revenge':
+                return '🏹';
+            case 'game-over':
+                return '🏆';
+        }
+    });
+    readonly bannerStatus = computed(() => {
+        switch (this.view()) {
+            case 'lobby':
+                return 'LOBBY';
+            case 'role-reveal':
+            case 'night':
+                return `NIGHT ${this.state()?.nightNumber ?? ''}`;
+            case 'day-discussion':
+                return 'DAY DISCUSSION';
+            case 'voting':
+                return 'DAY VOTING';
+            case 'hunter-revenge':
+                return "HUNTER'S REVENGE";
+            case 'game-over':
+                return 'GAME OVER';
+        }
+    });
+    readonly bannerInstruction = computed(() => {
+        switch (this.view()) {
+            case 'lobby':
+                return 'Waiting for everyone to ready up.';
+            case 'role-reveal':
+            case 'night':
+                return this.state()?.nightPrompt ?? 'Everyone else is asleep...';
+            case 'day-discussion':
+                return 'Cast your votes of suspicion!';
+            case 'voting':
+                return 'Choose who to send to the gallows.';
+            case 'hunter-revenge':
+                return 'The Hunter may take one soul down with them.';
+            case 'game-over':
+                return `${this.state()?.result?.winningFaction ?? ''} win!`;
+        }
+    });
+
+    /** Header contextual action button -- replaces the mockup's fake "Switch to Night/Day" toggle
+     * with whatever real host action applies to the current phase (null hides the button). */
+    readonly headerAction = computed<{ label: string; disabled?: boolean } | null>(() => {
+        if (!this.isHost()) {
+            return this.view() === 'game-over' ? null : null;
+        }
+        switch (this.view()) {
+            case 'lobby':
+                return {
+                    label: this.needsForceStart() ? 'Force Start' : 'Start Game',
+                    disabled: !this.canStartGame()
+                };
+            case 'day-discussion':
+                return { label: 'Advance to Voting' };
+            case 'voting':
+                return { label: 'Close Voting Early' };
+            case 'game-over':
+                return { label: 'Rematch in this room' };
+            default:
+                return null;
+        }
+    });
+
+    readonly entries = computed<PlayerGridEntry[]>(() => {
+        const lobby = this.lobby();
+        const state = this.state();
+        const myId = this.myPlayerId();
+        const view = this.view();
+
+        if (view === 'lobby') {
+            return (lobby?.players ?? []).map((p) => ({
+                playerId: p.playerId,
+                displayName: p.displayName,
+                isAlive: true,
+                isMe: p.playerId === myId,
+                isHost: p.playerId === lobby?.hostPlayerId,
+                isReady: p.isReady,
+                actionLabel: this.isHost() && p.playerId !== myId ? 'Kick' : undefined,
+                actionVariant: 'danger' as const
+            }));
+        }
+
+        if (!state) {
+            return [];
+        }
+
+        const displayName = (playerId: string) => this.playerName(playerId);
+
+        if (view === 'game-over') {
+            const roles = state.result?.finalRoles ?? {};
+            return state.players.map((p) => ({
+                playerId: p.playerId,
+                displayName: displayName(p.playerId),
+                isAlive: p.isAlive,
+                isMe: p.playerId === myId,
+                isHost: p.playerId === lobby?.hostPlayerId,
+                revealedRole: roles[p.playerId]
+            }));
+        }
+
+        if (view === 'voting') {
+            const alive = state.players.filter((p) => p.isAlive);
+            return [
+                ...alive.map((p) => ({
+                    playerId: p.playerId,
+                    displayName: displayName(p.playerId),
+                    isAlive: true,
+                    isMe: p.playerId === myId,
+                    isHost: p.playerId === lobby?.hostPlayerId,
+                    voteCount: this.voteCountFor(p.playerId),
+                    selected: this.selectedVoteTarget() === p.playerId,
+                    actionLabel: 'Vote',
+                    actionVariant: 'accent' as const
+                })),
+                {
+                    playerId: '__abstain__',
+                    displayName: 'Abstain',
+                    isAlive: true,
+                    isMe: false,
+                    isHost: false,
+                    voteCount: this.abstainCount(),
+                    selected: this.selectedVoteTarget() === null,
+                    actionLabel: 'Vote',
+                    actionVariant: 'accent' as const
+                }
+            ];
+        }
+
+        if (view === 'hunter-revenge') {
+            const isMyTurn = state.pendingHunterRevenge[0] === myId;
+            return state.players
+                .filter((p) => p.isAlive)
+                .map((p) => ({
+                    playerId: p.playerId,
+                    displayName: displayName(p.playerId),
+                    isAlive: true,
+                    isMe: p.playerId === myId,
+                    isHost: p.playerId === lobby?.hostPlayerId,
+                    actionLabel: isMyTurn && p.playerId !== myId ? 'Shoot' : undefined,
+                    actionVariant: 'danger' as const
+                }));
+        }
+
+        // 'role-reveal' and 'night' render identically -- the identity card handles the reveal moment.
+        return state.players.map((p) => {
+            const isTarget = p.playerId !== myId;
+            let actionLabel: string | undefined;
+            if (isTarget && p.isAlive) {
+                if (this.showSeer()) {
+                    actionLabel = 'Inspect';
+                } else if (this.showWerewolf()) {
+                    const excluded =
+                        p.role === 'Werewolf' && !this.settings().werewolfCanTargetWerewolf;
+                    actionLabel = excluded ? undefined : 'Attack';
+                } else if (this.showDoctor()) {
+                    const excluded =
+                        p.playerId === this.lastDoctorTarget() ||
+                        (p.playerId === myId && !this.settings().doctorCanSelfProtect);
+                    actionLabel = excluded ? undefined : 'Protect';
+                } else if (this.showWitch() && !this.witchPoisonUsed()) {
+                    actionLabel = 'Poison';
+                } else if (this.showCupid()) {
+                    actionLabel = this.cupidFirstPick() === p.playerId ? 'Chosen' : 'Pick lover';
+                }
+            } else if (this.showDoctor() && this.settings().doctorCanSelfProtect) {
+                actionLabel = this.lastDoctorTarget() === myId ? undefined : 'Protect';
+            }
+            return {
+                playerId: p.playerId,
+                displayName: displayName(p.playerId),
+                isAlive: p.isAlive,
+                isMe: p.playerId === myId,
+                isHost: p.playerId === lobby?.hostPlayerId,
+                actionLabel,
+                actionVariant: 'accent' as const,
+                actionDisabled: this.showCupid() && this.cupidFirstPick() === p.playerId
+            };
+        });
+    });
+
+    constructor() {
+        effect(() => {
+            const nightNumber = this.state()?.nightNumber;
+            void nightNumber;
+            this.actionsTaken.set(new Set());
+            this.wolfVotes.set(new Map());
+            this.wolfLockedTarget.set(undefined);
+            this.seerResult.set(null);
+            this.witchTarget.set(undefined);
+            this.witchHealUsed.set(false);
+            this.witchPoisonUsed.set(false);
+            this.cupidFirstPick.set(null);
+        });
+
+        effect(() => {
+            const role = this.myRole();
+            if (!role) {
+                this.roleDescription.set('');
+                return;
+            }
+            void this.rulesApi.getRoles().then((roles) => {
+                this.roleDescription.set(roles.find((r) => r.role === role)?.description ?? '');
+            });
+        });
+
+        const roomCode = this.roomCode();
+        if (roomCode) {
+            this.gameApi.getRoomChat(roomCode).subscribe((response) => {
+                this.townMessages.set(
+                    response.messages.map((m) => ({
+                        senderId: m.senderId,
+                        senderName: m.senderDisplayName,
+                        text: m.text,
+                        sentAtUtc: m.sentAtUtc
+                    }))
+                );
+            });
+        }
+
+        this.hub.notifications$.pipe(takeUntilDestroyed()).subscribe((notification) => {
+            if (notification.kind === 'chat.room') {
+                this.townMessages.update((messages) => [
+                    ...messages,
+                    {
+                        senderId: notification.senderId,
+                        senderName: this.playerName(notification.senderId),
+                        text: notification.text,
+                        sentAtUtc: notification.sentAtUtc
+                    }
+                ]);
+            }
+            if (notification.kind === 'seer.result') {
+                this.seerResult.set({
+                    targetPlayerId: notification.targetPlayerId,
+                    isWerewolf: notification.isWerewolf
+                });
+            }
+            if (notification.kind === 'player.died') {
+                this.lastDeathText.set(
+                    `${this.playerName(notification.playerId)} died (${notification.cause}).`
+                );
+            }
+            if (notification.kind === 'vote.cast') {
+                const next = new Map(this.votesByVoter());
+                next.set(notification.voterPlayerId, notification.targetPlayerId);
+                this.votesByVoter.set(next);
+            }
+        });
+
+        const tickId = setInterval(() => this.nowMs.set(Date.now()), 1000);
+        inject(DestroyRef).onDestroy(() => clearInterval(tickId));
+
+        interval(WOLF_VOTE_POLL_MS)
+            .pipe(
+                switchMap(() => {
+                    const code = this.roomCode();
+                    if (!this.showWerewolf() || !code) {
+                        return [];
+                    }
+                    return this.gameApi.getWerewolfVotes(code, this.myPlayerId());
+                }),
+                takeUntilDestroyed()
+            )
+            .subscribe((result) => {
+                this.wolfVotes.set(new Map(Object.entries(result.votes)));
+                this.wolfLockedTarget.set(result.lockedTarget);
+            });
+
+        effect(() => {
+            const code = this.roomCode();
+            if (!this.showWitch() || !code || this.witchTarget() !== undefined) {
+                return;
+            }
+            this.gameApi
+                .getWitchTarget(code, this.myPlayerId())
+                .subscribe((result) => this.witchTarget.set(result.targetPlayerId));
+        });
+    }
+
+    playerName(playerId: string): string {
+        return this.lobby()?.players.find((p) => p.playerId === playerId)?.displayName ?? playerId;
+    }
+
+    voteCountFor(playerId: string): number {
+        let count = 0;
+        for (const target of this.votesByVoter().values()) {
+            if (target === playerId) {
+                count += 1;
+            }
+        }
+        return count;
+    }
+
+    abstainCount(): number {
+        let count = 0;
+        for (const target of this.votesByVoter().values()) {
+            if (target === null) {
+                count += 1;
+            }
+        }
+        return count;
+    }
+
+    selectChatTab(tab: ChatTab): void {
+        this.chatTab.set(tab);
+    }
+
+    sendTownMessage(): void {
+        const roomCode = this.roomCode();
+        const text = this.draftMessage().trim();
+        if (!roomCode || !text) {
+            return;
+        }
+        this.gameApi
+            .sendRoomChatMessage({ roomCode, playerId: this.myPlayerId(), text })
+            .subscribe();
+        this.draftMessage.set('');
+    }
+
+    /** Single entry point for every PlayerGrid `(action)` click -- dispatches by current view +
+     * (for night) whichever role's turn it is, since the grid itself doesn't know game rules. */
+    onGridAction(playerId: string): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        switch (this.view()) {
+            case 'lobby':
+                this.kick(playerId);
+                return;
+            case 'voting':
+                this.selectedVoteTarget.set(playerId === '__abstain__' ? null : playerId);
+                return;
+            case 'hunter-revenge':
+                this.gameApi
+                    .submitHunterRevengeShot({
+                        roomCode,
+                        playerId: this.myPlayerId(),
+                        targetPlayerId: playerId
+                    })
+                    .subscribe();
+                return;
+            case 'game-over':
+                return;
+            default:
+                this.onNightGridAction(roomCode, playerId);
+        }
+    }
+
+    private onNightGridAction(roomCode: string, playerId: string): void {
+        if (this.showSeer()) {
+            this.gameApi
+                .submitSeerInspection({
+                    roomCode,
+                    playerId: this.myPlayerId(),
+                    targetPlayerId: playerId
+                })
+                .subscribe(() => this.markDone('seer'));
+        } else if (this.showWerewolf()) {
+            this.gameApi
+                .submitWerewolfVote({
+                    roomCode,
+                    playerId: this.myPlayerId(),
+                    targetPlayerId: playerId
+                })
+                .subscribe(() => this.markDone('werewolf'));
+        } else if (this.showDoctor()) {
+            this.gameApi
+                .submitDoctorProtection({
+                    roomCode,
+                    playerId: this.myPlayerId(),
+                    targetPlayerId: playerId
+                })
+                .subscribe(() => {
+                    this.lastDoctorTarget.set(playerId);
+                    this.markDone('doctor');
+                });
+        } else if (this.showWitch() && !this.witchPoisonUsed()) {
+            this.gameApi
+                .useWitchPoisonPotion({
+                    roomCode,
+                    playerId: this.myPlayerId(),
+                    targetPlayerId: playerId
+                })
+                .subscribe(() => {
+                    this.witchPoisonUsed.set(true);
+                    this.finalizeWitchIfBothPotionsResolved();
+                });
+        } else if (this.showCupid()) {
+            const first = this.cupidFirstPick();
+            if (!first) {
+                this.cupidFirstPick.set(playerId);
+            } else if (first !== playerId) {
+                this.gameApi
+                    .submitCupidPairing({
+                        roomCode,
+                        playerId: this.myPlayerId(),
+                        firstPlayerId: first,
+                        secondPlayerId: playerId
+                    })
+                    .subscribe(() => this.markDone('cupid'));
+            }
+        }
+    }
+
+    private finalizeWitchIfBothPotionsResolved(): void {
+        if (
+            this.settings().witchSinglePotionPerNight ||
+            (this.witchHealUsed() && this.witchPoisonUsed())
+        ) {
+            this.markDone('witch');
+        }
+    }
+
+    private markDone(action: NightAction): void {
+        const next = new Set(this.actionsTaken());
+        next.add(action);
+        this.actionsTaken.set(next);
+    }
+
+    witchHealAction(): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        this.gameApi.useWitchHealPotion({ roomCode, playerId: this.myPlayerId() }).subscribe(() => {
+            this.witchHealUsed.set(true);
+            this.finalizeWitchIfBothPotionsResolved();
+        });
+    }
+
+    witchPassAction(): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        this.gameApi
+            .passWitch({ roomCode, playerId: this.myPlayerId() })
+            .subscribe(() => this.markDone('witch'));
+    }
+
+    werewolfPassAction(): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        this.gameApi
+            .submitWerewolfVote({
+                roomCode,
+                playerId: this.myPlayerId(),
+                targetPlayerId: undefined
+            })
+            .subscribe(() => this.markDone('werewolf'));
+    }
+
+    hunterPassAction(): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        this.gameApi.passHunterRevenge({ roomCode, playerId: this.myPlayerId() }).subscribe();
+    }
+
+    submitVoteAction(): void {
+        const roomCode = this.roomCode();
+        const selected = this.selectedVoteTarget();
+        if (!roomCode || selected === undefined) {
+            return;
+        }
+        this.gameApi
+            .castVote({
+                roomCode,
+                voterPlayerId: this.myPlayerId(),
+                targetPlayerId: selected ?? undefined
+            })
+            .subscribe();
+    }
+
+    votedCount(): number {
+        return this.votesByVoter().size;
+    }
+
+    private kick(playerId: string): void {
+        const lobby = this.lobby();
+        if (!lobby) {
+            return;
+        }
+        const kicked = lobby.players.find((p) => p.playerId === playerId);
+        this.lobbyApi
+            .kickPlayer({ roomCode: lobby.roomCode, requestedBy: this.myPlayerId(), playerId })
+            .subscribe({
+                next: () => {
+                    this.gameState.lobby.set({
+                        ...lobby,
+                        players: lobby.players.filter((p) => p.playerId !== playerId)
+                    });
+                    if (kicked) {
+                        this.toast.show(`${kicked.displayName} was kicked from the lobby.`, 'info');
+                    }
+                },
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not kick that player.'),
+                        'error'
+                    )
+            });
+    }
+
+    readyToggleAction(): void {
+        const lobby = this.lobby();
+        const me = this.myPlayer();
+        if (!lobby || !me) {
+            return;
+        }
+        const nextReady = !me.isReady;
+        this.lobbyApi
+            .setReady({ roomCode: lobby.roomCode, playerId: this.myPlayerId(), isReady: nextReady })
+            .subscribe({
+                next: () =>
+                    this.gameState.lobby.set({
+                        ...lobby,
+                        players: lobby.players.map((p) =>
+                            p.playerId === me.playerId ? { ...p, isReady: nextReady } : p
+                        )
+                    }),
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not update ready state.'),
+                        'error'
+                    )
+            });
+    }
+
+    cancelLobbyAction(): void {
+        const lobby = this.lobby();
+        if (!lobby) {
+            return;
+        }
+        this.lobbyApi
+            .cancelLobby({ roomCode: lobby.roomCode, requestedBy: this.myPlayerId() })
+            .subscribe({
+                next: () => {
+                    this.playerIdentity.clearActiveRoom();
+                    void this.router.navigate(['/']);
+                },
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not cancel the lobby.'),
+                        'error'
+                    )
+            });
+    }
+
+    leaveLobbyAction(): void {
+        const lobby = this.lobby();
+        if (!lobby) {
+            return;
+        }
+        this.lobbyApi
+            .leaveLobby({ roomCode: lobby.roomCode, playerId: this.myPlayerId() })
+            .subscribe({
+                next: () => {
+                    this.playerIdentity.clearActiveRoom();
+                    void this.router.navigate(['/']);
+                },
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(error, 'Could not leave the lobby.'),
+                        'error'
+                    )
+            });
+    }
+
+    advanceToVotingAction(): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        this.gameApi.advanceToVoting({ roomCode, requestedBy: this.myPlayerId() }).subscribe();
+    }
+
+    closeVotingAction(): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        this.gameApi.closeVoting({ roomCode, requestedBy: this.myPlayerId() }).subscribe();
+    }
+
+    viewLogAction(): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        this.gameApi.getLog(roomCode).subscribe((log) => this.logEntries.set(log.entries));
+    }
+
+    leaveRoomAction(): void {
+        this.playerIdentity.clearActiveRoom();
+        void this.router.navigate(['/']);
+    }
+
+    startRematchAction(): void {
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        this.lobbyApi.rematch({ roomCode, requestedBy: this.myPlayerId() }).subscribe({
+            next: () => {
+                this.gameState.resetForRematch();
+                void this.gameState.refreshLobby(roomCode);
+            },
+            error: (error: unknown) =>
+                this.toast.show(extractErrorMessage(error, 'Could not start a rematch.'), 'error')
+        });
+    }
+
+    /** Header contextual button click -- dispatches to whichever action `headerAction()` is
+     * currently describing. */
+    onHeaderAction(): void {
+        const lobby = this.lobby();
+        if (!lobby) {
+            return;
+        }
+        switch (this.view()) {
+            case 'lobby':
+                this.lobbyApi
+                    .startGame({
+                        roomCode: lobby.roomCode,
+                        requestedBy: this.myPlayerId(),
+                        forceStart: this.needsForceStart()
+                    })
+                    .subscribe({
+                        next: () => void this.gameState.refreshGameState(lobby.roomCode),
+                        error: (error: unknown) =>
+                            this.toast.show(
+                                extractErrorMessage(error, 'Could not start the game.'),
+                                'error'
+                            )
+                    });
+                return;
+            case 'day-discussion':
+                this.advanceToVotingAction();
+                return;
+            case 'voting':
+                this.closeVotingAction();
+                return;
+            case 'game-over':
+                this.startRematchAction();
+                return;
+        }
+    }
+
+    cupidFirstPickHint(): string {
+        const first = this.cupidFirstPick();
+        return first
+            ? `First love chosen: ${this.playerName(first)}. Pick the second.`
+            : 'Pick your first love.';
+    }
+}

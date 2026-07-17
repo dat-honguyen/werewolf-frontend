@@ -1,0 +1,171 @@
+<!-- src/app/shared/components/room-shell/room-shell.html -->
+<div class="room-shell" [attr.data-phase]="isNight() ? 'night' : 'day'">
+    <header class="room-shell__header">
+        <div class="room-shell__logo">🔮 LUNARIS</div>
+        <div class="room-shell__header-actions">
+            <button type="button" class="room-shell__ghost-button" (click)="showSettings.set(true)">
+                ⚙️ Rules & Setup
+            </button>
+            @if (headerAction(); as action) {
+            <button
+                type="button"
+                class="room-shell__cta"
+                [disabled]="action.disabled"
+                (click)="onHeaderAction()"
+            >
+                {{ action.label }}
+            </button>
+            }
+        </div>
+    </header>
+
+    <div class="room-shell__viewport">
+        <aside class="room-shell__left">
+            <app-identity-grimoire-card
+                [role]="myRole()"
+                [description]="roleDescription()"
+            ></app-identity-grimoire-card>
+
+            <div class="room-shell__stats">
+                <h3>Coven Live Overview</h3>
+                <div class="room-shell__stats-grid">
+                    <div class="room-shell__stat room-shell__stat--alive">
+                        <span>Living Souls</span>
+                        <strong>{{ aliveCount() }}</strong>
+                    </div>
+                    <div class="room-shell__stat room-shell__stat--dead">
+                        <span>Spectral Ghosts</span>
+                        <strong>{{ deadCount() }}</strong>
+                    </div>
+                </div>
+                @if (ownObjective()) {
+                <p class="room-shell__objective">{{ ownObjective() }}</p>
+                }
+            </div>
+        </aside>
+
+        <section class="room-shell__center">
+            <app-phase-banner
+                [icon]="bannerIcon()"
+                [status]="bannerStatus()"
+                [instruction]="bannerInstruction()"
+                [countdown]="countdownDisplay()"
+                countdownLabel="Discussion ends in"
+                [countdownExpired]="secondsRemaining() === 0"
+            ></app-phase-banner>
+
+            @if (lastDeathText(); as death) {
+            <p class="room-shell__death">{{ death }}</p>
+            }
+
+            <app-player-grid
+                [entries]="entries()"
+                (action)="onGridAction($event)"
+            ></app-player-grid>
+
+            <app-room-action-panel
+                [showReadyToggle]="view() === 'lobby' && !isHost()"
+                [isReady]="myPlayer()?.isReady ?? false"
+                (readyToggle)="readyToggleAction()"
+                [showCancelLobby]="view() === 'lobby' && isHost()"
+                (cancelLobby)="cancelLobbyAction()"
+                [showLeaveLobby]="view() === 'lobby' && !isHost()"
+                (leaveLobby)="leaveLobbyAction()"
+                [werewolfTally]="showWerewolf() ? null : null"
+                [showWerewolfPass]="showWerewolf() && settings().werewolfCanVoteNoKill"
+                (werewolfPass)="werewolfPassAction()"
+                [seerResult]="
+                    seerResult()
+                        ? playerName(seerResult()!.targetPlayerId) + ' is ' + (seerResult()!.isWerewolf ? 'a werewolf' : 'NOT a werewolf')
+                        : null
+                "
+                [witchTargetInfo]="
+                    showWitch() && witchTarget() !== undefined
+                        ? witchTarget()
+                            ? 'The werewolves are coming for ' + playerName(witchTarget()!) + ' tonight.'
+                            : &quot;You don't know who the werewolves targeted tonight.&quot;
+                        : null
+                "
+                [showWitchHeal]="showWitch() && !witchHealUsed()"
+                (witchHeal)="witchHealAction()"
+                [showWitchPass]="showWitch()"
+                [witchPassLabel]="witchHealUsed() || witchPoisonUsed() ? 'End turn' : 'Pass (use neither potion)'"
+                (witchPass)="witchPassAction()"
+                [cupidHint]="showCupid() ? (cupidFirstPickHint()) : null"
+                [waitingText]="
+                    (view() === 'night' || view() === 'role-reveal') &&
+                    !showCupid() && !showSeer() && !showWerewolf() && !showDoctor() && !showWitch()
+                        ? bannerInstruction()
+                        : null
+                "
+                [showSubmitVote]="view() === 'voting' && selectedVoteTarget() !== undefined"
+                (submitVote)="submitVoteAction()"
+                [voteTally]="view() === 'voting' ? votedCount() + ' / ' + (state()?.players?.length ?? 0) + ' voted' : null"
+                [showHunterPass]="view() === 'hunter-revenge' && state()?.pendingHunterRevenge?.[0] === myPlayerId()"
+                (hunterPass)="hunterPassAction()"
+                [showViewLog]="view() === 'game-over'"
+                (viewLog)="viewLogAction()"
+                [logEntries]="logEntries()"
+                [showLeaveRoom]="view() === 'game-over'"
+                (leaveRoom)="leaveRoomAction()"
+            ></app-room-action-panel>
+        </section>
+
+        <aside class="room-shell__chat">
+            <div class="room-shell__chat-tabs">
+                <button
+                    type="button"
+                    class="room-shell__chat-tab"
+                    [class.room-shell__chat-tab--active]="chatTab() === 'town'"
+                    (click)="selectChatTab('town')"
+                >
+                    Public Square
+                </button>
+                @if (canSeePackChat()) {
+                <button
+                    type="button"
+                    class="room-shell__chat-tab room-shell__chat-tab--danger"
+                    [class.room-shell__chat-tab--active]="chatTab() === 'pack'"
+                    (click)="selectChatTab('pack')"
+                >
+                    Private Grimoires
+                </button>
+                }
+            </div>
+
+            @if (chatTab() === 'town') {
+            <div class="room-shell__chat-history">
+                @for (message of townMessages(); track message.sentAtUtc + message.senderId) {
+                <p class="room-shell__chat-message">
+                    <span class="room-shell__chat-sender">{{ message.senderName }}:</span> {{
+                    message.text }}
+                </p>
+                }
+            </div>
+            <form class="room-shell__chat-input-area" (ngSubmit)="sendTownMessage()">
+                <input
+                    type="text"
+                    placeholder="Cast suspicion or whisper secret info..."
+                    [ngModel]="draftMessage()"
+                    (ngModelChange)="draftMessage.set($event)"
+                    name="townMessage"
+                />
+            </form>
+            } @else {
+            <div class="room-shell__chat-history">
+                <p class="room-shell__chat-disabled">
+                    Private Grimoires isn't wired up yet. Coordinate over voice or a group chat
+                    outside the app.
+                </p>
+            </div>
+            }
+        </aside>
+    </div>
+
+    @if (showSettings()) {
+    <app-settings-modal
+        [readOnly]="view() !== 'lobby'"
+        (closed)="showSettings.set(false)"
+    ></app-settings-modal>
+    }
+</div>
