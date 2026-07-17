@@ -26,16 +26,24 @@
             <app-role-reveal-screen></app-role-reveal-screen>
         }
         @case ('night') {
-            <app-night-action-panel></app-night-action-panel>
+            <app-game-shell>
+                <app-night-action-panel></app-night-action-panel>
+            </app-game-shell>
         }
         @case ('day-discussion') {
-            <app-day-discussion-screen></app-day-discussion-screen>
+            <app-game-shell>
+                <app-day-discussion-screen></app-day-discussion-screen>
+            </app-game-shell>
         }
         @case ('voting') {
-            <app-voting-screen></app-voting-screen>
+            <app-game-shell>
+                <app-voting-screen></app-voting-screen>
+            </app-game-shell>
         }
         @case ('hunter-revenge') {
-            <app-hunter-revenge-modal></app-hunter-revenge-modal>
+            <app-game-shell>
+                <app-hunter-revenge-modal></app-hunter-revenge-modal>
+            </app-game-shell>
         }
         @case ('game-over') {
             <app-game-over-screen></app-game-over-screen>

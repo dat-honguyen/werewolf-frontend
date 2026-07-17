@@ -19,6 +19,7 @@ import { DayDiscussionScreen } from './day-discussion-screen/day-discussion-scre
 import { VotingScreen } from './voting-screen/voting-screen';
 import { HunterRevengeModal } from './hunter-revenge-modal/hunter-revenge-modal';
 import { GameOverScreen } from './game-over-screen/game-over-screen';
+import { GameShell } from '../../shared/components/game-shell/game-shell';
 
 @Component({
     selector: 'app-room',
@@ -32,7 +33,8 @@ import { GameOverScreen } from './game-over-screen/game-over-screen';
         DayDiscussionScreen,
         VotingScreen,
         HunterRevengeModal,
-        GameOverScreen
+        GameOverScreen,
+        GameShell
     ],
     templateUrl: './room.component.html',
     styleUrl: './room.component.scss'
