@@ -9,6 +9,11 @@ export interface Toast {
 }
 
 const AUTO_DISMISS_MS = 4500;
+/** A burst of near-simultaneous events (e.g. several players joining a lobby within the same
+ * second) fires one toast each -- without a cap, that stack can grow tall enough to cover the
+ * header and sidebar content behind it. Dropping the oldest once the cap is hit keeps the stack
+ * from ever blocking the rest of the page. */
+const MAX_VISIBLE_TOASTS = 3;
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
@@ -17,7 +22,9 @@ export class ToastService {
 
     show(message: string, kind: ToastKind = 'info'): void {
         const id = this.nextId++;
-        this.toasts.update((toasts) => [...toasts, { id, message, kind }]);
+        this.toasts.update((toasts) =>
+            [...toasts, { id, message, kind }].slice(-MAX_VISIBLE_TOASTS)
+        );
         setTimeout(() => this.dismiss(id), AUTO_DISMISS_MS);
     }
 
