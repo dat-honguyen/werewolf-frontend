@@ -1,12 +1,12 @@
 <div class="settings-modal">
     <div class="settings-modal__card">
         <header class="settings-modal__header">
-            <h2>Rules & Setup</h2>
+            <h2>{{ 'settings.title' | translate }}</h2>
             <button type="button" class="settings-modal__close" (click)="closed.emit()">✕</button>
         </header>
 
         <section class="settings-modal__section">
-            <h3>Role Distribution</h3>
+            <h3>{{ 'settings.roleDistribution' | translate }}</h3>
 
             @for (role of allRoles; track role) {
             <div class="settings-modal__role-row">
@@ -14,7 +14,7 @@
                     <span class="settings-modal__role-icon" [style.color]="roleColor(role)"
                         >{{ roleEmoji(role) }}</span
                     >
-                    <span class="settings-modal__role-name">{{ role }}</span>
+                    <span class="settings-modal__role-name">{{ 'roles.' + role | translate }}</span>
                 </span>
                 <input
                     type="number"
@@ -30,71 +30,59 @@
                 class="settings-modal__button settings-modal__button--primary settings-modal__button--block"
                 (click)="applyRoleDistribution()"
             >
-                Apply Role Distribution
+                {{ 'settings.applyRoleDistribution' | translate }}
             </button>
             }
         </section>
 
         <section class="settings-modal__section">
-            <h3>Advanced Gameplay Logic</h3>
+            <h3>{{ 'settings.advancedLogic' | translate }}</h3>
 
-            <label class="settings-modal__check-row">
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().revealRoleOnDeath"
-                    (ngModelChange)="setDraftSetting('revealRoleOnDeath', $event)"
-                    [disabled]="readOnly()"
-                />
-                <span>Reveal role on death</span>
-            </label>
-            <label class="settings-modal__check-row">
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().doctorCanSelfProtect"
-                    (ngModelChange)="setDraftSetting('doctorCanSelfProtect', $event)"
-                    [disabled]="readOnly()"
-                />
-                <span>Doctor can self-protect</span>
-            </label>
-            <label class="settings-modal__check-row">
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().werewolfCanTargetWerewolf"
-                    (ngModelChange)="setDraftSetting('werewolfCanTargetWerewolf', $event)"
-                    [disabled]="readOnly()"
-                />
-                <span>Werewolves can target werewolves</span>
-            </label>
-            <label class="settings-modal__check-row">
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().werewolfCanVoteNoKill"
-                    (ngModelChange)="setDraftSetting('werewolfCanVoteNoKill', $event)"
-                    [disabled]="readOnly()"
-                />
-                <span>Werewolves can vote no-kill (pass)</span>
-            </label>
-            <label class="settings-modal__check-row">
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().witchSinglePotionPerNight"
-                    (ngModelChange)="setDraftSetting('witchSinglePotionPerNight', $event)"
-                    [disabled]="readOnly()"
-                />
-                <span>Witch: single potion per night</span>
-            </label>
-            <label class="settings-modal__check-row">
-                <input
-                    type="checkbox"
-                    [ngModel]="gameSettingsDraft().allowForceStart"
-                    (ngModelChange)="setDraftSetting('allowForceStart', $event)"
-                    [disabled]="readOnly()"
-                />
-                <span>Allow force start</span>
-            </label>
+            <app-toggle-switch
+                class="settings-modal__toggle-row"
+                [label]="'settings.revealRoleOnDeath' | translate"
+                [checked]="gameSettingsDraft().revealRoleOnDeath"
+                [disabled]="readOnly()"
+                (checkedChange)="setDraftSetting('revealRoleOnDeath', $event)"
+            ></app-toggle-switch>
+            <app-toggle-switch
+                class="settings-modal__toggle-row"
+                [label]="'settings.doctorCanSelfProtect' | translate"
+                [checked]="gameSettingsDraft().doctorCanSelfProtect"
+                [disabled]="readOnly()"
+                (checkedChange)="setDraftSetting('doctorCanSelfProtect', $event)"
+            ></app-toggle-switch>
+            <app-toggle-switch
+                class="settings-modal__toggle-row"
+                [label]="'settings.werewolfCanTargetWerewolf' | translate"
+                [checked]="gameSettingsDraft().werewolfCanTargetWerewolf"
+                [disabled]="readOnly()"
+                (checkedChange)="setDraftSetting('werewolfCanTargetWerewolf', $event)"
+            ></app-toggle-switch>
+            <app-toggle-switch
+                class="settings-modal__toggle-row"
+                [label]="'settings.werewolfCanVoteNoKill' | translate"
+                [checked]="gameSettingsDraft().werewolfCanVoteNoKill"
+                [disabled]="readOnly()"
+                (checkedChange)="setDraftSetting('werewolfCanVoteNoKill', $event)"
+            ></app-toggle-switch>
+            <app-toggle-switch
+                class="settings-modal__toggle-row"
+                [label]="'settings.witchSinglePotionPerNight' | translate"
+                [checked]="gameSettingsDraft().witchSinglePotionPerNight"
+                [disabled]="readOnly()"
+                (checkedChange)="setDraftSetting('witchSinglePotionPerNight', $event)"
+            ></app-toggle-switch>
+            <app-toggle-switch
+                class="settings-modal__toggle-row"
+                [label]="'settings.allowForceStart' | translate"
+                [checked]="gameSettingsDraft().allowForceStart"
+                [disabled]="readOnly()"
+                (checkedChange)="setDraftSetting('allowForceStart', $event)"
+            ></app-toggle-switch>
 
             <div class="settings-modal__number-row">
-                <span>Minimum Players Required</span>
+                <span>{{ 'settings.minPlayers' | translate }}</span>
                 <input
                     type="number"
                     min="1"
@@ -104,7 +92,7 @@
                 />
             </div>
             <div class="settings-modal__number-row">
-                <span>Discussion Duration (seconds)</span>
+                <span>{{ 'settings.discussionDuration' | translate }}</span>
                 <input
                     type="number"
                     min="30"
@@ -121,7 +109,7 @@
                 class="settings-modal__button settings-modal__button--primary settings-modal__button--block"
                 (click)="applyGameSettings()"
             >
-                Apply Session Rules
+                {{ 'settings.applySessionRules' | translate }}
             </button>
             }
         </section>
@@ -131,9 +119,11 @@
             class="settings-modal__button settings-modal__button--outline settings-modal__button--block"
             (click)="closed.emit()"
         >
-            Confirm & Close
+            {{ 'settings.close' | translate }}
         </button>
 
-        <p class="settings-modal__version">FE {{ feVersion }} · BE {{ beVersion() }}</p>
+        <p class="settings-modal__version">
+            {{ 'settings.version' | translate: { fe: feVersion, be: beVersion() } }}
+        </p>
     </div>
 </div>

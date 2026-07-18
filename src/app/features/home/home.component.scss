@@ -1,18 +1,18 @@
-// Palette taken verbatim from the provided mockup (gemini-code-1784210780147.html) rather than
-// the shared Moonlight/Bloody theme tokens -- scoped locally so it doesn't leak into the rest of
-// the app, which keeps using var(--color-*) from _design-tokens.scss.
+// Local aliases onto the shared Moonlight/Bloody theme tokens (_design-tokens.scss) so the home
+// screen reads as the front door of the same app as the room screen, not a separate mockup.
 .home {
-    --bg-dark: #0f111a;
-    --bg-card: #161925;
-    --bg-input: #1f2336;
-    --primary: #8a2be2;
-    --primary-hover: #a04ef6;
-    --accent: #00ffcc;
-    --text-main: #f1f3f9;
-    --text-muted: #8b9bb4;
-    --border: #2d334a;
-    --danger: #ff4a5a;
+    --bg-dark: var(--color-bg-void);
+    --bg-card: var(--color-bg-table);
+    --bg-input: rgb(184 198 232 / 6%);
+    --primary: var(--color-gold);
+    --primary-hover: color-mix(in srgb, var(--color-gold) 82%, white);
+    --accent: var(--color-moonlight);
+    --text-main: #f1f0ec;
+    --text-muted: rgb(241 228 200 / 55%);
+    --border: rgb(217 164 65 / 22%);
+    --danger: var(--color-blood);
 
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -22,8 +22,11 @@
     padding: 2rem;
     background-color: var(--bg-dark);
     color: var(--text-main);
+    overflow: hidden;
 
     &__rejoin {
+        position: relative;
+        z-index: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -42,6 +45,52 @@
     &__error {
         color: var(--danger);
     }
+
+    &__backdrop {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    &__backdrop-moon {
+        position: absolute;
+        top: -4%;
+        right: 4%;
+        width: 22rem;
+        height: 22rem;
+        color: var(--primary);
+        opacity: 0.14;
+        filter: blur(1px);
+    }
+
+    &__backdrop-wolf {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 42rem;
+        max-width: 70vw;
+        transform: translateX(-50%);
+        color: var(--color-blood);
+        opacity: 0.16;
+    }
+
+    &__backdrop-village {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 7rem;
+        color: var(--bg-card);
+        opacity: 0.9;
+    }
+}
+
+.home-dashboard,
+.home__error {
+    position: relative;
+    z-index: 1;
 }
 
 .home-dashboard {
@@ -65,15 +114,22 @@
     }
 
     &__logo {
+        font-family: var(--font-display);
         font-size: 1.8rem;
         font-weight: 800;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        text-shadow: 0 0 10px rgb(138 43 226 / 50%);
+        text-shadow: 0 0 10px var(--color-gold-glow);
 
         span {
-            color: var(--accent);
+            color: var(--primary);
         }
+    }
+
+    &__header-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
 
     &__tabs {
@@ -333,7 +389,8 @@
     }
 }
 
-.home-btn {
+.home__button {
+    position: relative;
     padding: 0.65rem 1.3rem;
     border-radius: 0.5rem;
     border: 1px solid var(--border);
@@ -342,11 +399,20 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    clip-path: polygon(
+        0.6rem 0,
+        100% 0,
+        100% calc(100% - 0.6rem),
+        calc(100% - 0.6rem) 100%,
+        0 100%,
+        0 0.6rem
+    );
 
     &--primary {
         border-color: var(--primary);
         background: var(--primary);
-        box-shadow: 0 4px 15px rgb(138 43 226 / 40%);
+        color: var(--color-parchment-ink);
+        box-shadow: 0 4px 15px var(--color-gold-glow);
 
         &:hover {
             background: var(--primary-hover);
@@ -365,6 +431,7 @@
         font-size: 0.8rem;
         border-color: var(--accent);
         color: var(--accent);
+        clip-path: none;
 
         &:hover {
             background: var(--accent);

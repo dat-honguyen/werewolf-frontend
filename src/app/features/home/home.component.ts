@@ -1,12 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { LobbyApiService } from '../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../core/services/player-identity.service';
 import { GameStateService } from '../../core/services/game-state.service';
 import { resolveUniqueDisplayName } from '../../core/utils/display-name.util';
 import { OpenLobbySummary } from '../../core/models/lobby.model';
+import { LanguageSwitch } from '../../shared/components/language-switch/language-switch';
 
 type HomeTab = 'create' | 'join';
 
@@ -17,16 +19,16 @@ const ROOM_CODE_LENGTH = 6;
  * creation actually accepts a role selection (see CreateLobbyEndpoint: it only takes a host id
  * and display name today).
  */
-const DEFAULT_SPECIAL_ROLES: { label: string; included: boolean }[] = [
-    { label: 'Seer', included: true },
-    { label: 'Witch', included: true },
-    { label: 'Hunter', included: true },
-    { label: 'Cupid', included: false }
+const DEFAULT_SPECIAL_ROLES: { roleKey: string; included: boolean }[] = [
+    { roleKey: 'Seer', included: true },
+    { roleKey: 'Witch', included: true },
+    { roleKey: 'Hunter', included: true },
+    { roleKey: 'Cupid', included: false }
 ];
 
 @Component({
     selector: 'app-home',
-    imports: [FormsModule],
+    imports: [FormsModule, TranslatePipe, LanguageSwitch],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
@@ -35,6 +37,7 @@ export class HomeComponent {
     private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly gameState = inject(GameStateService);
     private readonly router = inject(Router);
+    private readonly translate = inject(TranslateService);
 
     readonly displayName = signal(this.playerIdentity.displayName());
     readonly errorMessage = signal<string | null>(null);
@@ -111,7 +114,7 @@ export class HomeComponent {
     createRoom(): void {
         const displayName = this.displayName().trim();
         if (!displayName) {
-            this.errorMessage.set('Enter a display name first.');
+            this.errorMessage.set(this.translate.instant('home.errors.needName'));
             return;
         }
         this.playerIdentity.setDisplayName(displayName);
@@ -123,7 +126,7 @@ export class HomeComponent {
                 void this.router.navigate(['/room', response.roomCode]);
             },
             error: () => {
-                this.errorMessage.set('Could not create the room. Try again.');
+                this.errorMessage.set(this.translate.instant('home.errors.createFailed'));
             }
         });
     }
@@ -140,7 +143,7 @@ export class HomeComponent {
         const displayName = this.displayName().trim();
         roomCode = roomCode.trim().toUpperCase();
         if (!displayName || roomCode.length < ROOM_CODE_LENGTH) {
-            this.errorMessage.set('Enter your display name and a room code.');
+            this.errorMessage.set(this.translate.instant('home.errors.needNameAndCode'));
             return;
         }
         this.playerIdentity.setDisplayName(displayName);
@@ -160,7 +163,7 @@ export class HomeComponent {
                 void this.router.navigate(['/room', roomCode]);
             },
             error: () => {
-                this.errorMessage.set('Could not join that room. Check the code and try again.');
+                this.errorMessage.set(this.translate.instant('home.errors.joinFailed'));
             }
         });
     }

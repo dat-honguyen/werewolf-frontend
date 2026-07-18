@@ -133,18 +133,10 @@
         color: var(--text-main);
     }
 
-    &__check-row {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
+    &__toggle-row {
+        display: block;
         font-size: 0.8rem;
-        cursor: pointer;
-
-        input {
-            width: 1rem;
-            height: 1rem;
-            accent-color: var(--primary);
-        }
+        padding: 0.15rem 0;
     }
 
     &__number-row {

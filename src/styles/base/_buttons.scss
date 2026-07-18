@@ -38,8 +38,19 @@
     transform: translateY(0);
 }
 
+// Beveled/clipped corners on primary CTAs -- an inexpensive way to make the main action on each
+// screen read as forged game hardware rather than a stock web button, echoing the notched-corner
+// treatment already used on player-card/role-card.
 [class*='__button--primary'] {
     box-shadow: 0 2px 10px rgb(217 164 65 / 35%);
+    clip-path: polygon(
+        0.5rem 0,
+        100% 0,
+        100% calc(100% - 0.5rem),
+        calc(100% - 0.5rem) 100%,
+        0 100%,
+        0 0.5rem
+    );
 }
 
 [class*='__button--primary']:hover:not(:disabled) {

@@ -1,5 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Role } from '../../../core/models/role.model';
 import { ROLE_ICON } from '../../../core/utils/role-icon.util';
 import { AnimatedCard } from '../animated-card/animated-card';
@@ -17,7 +18,7 @@ const FACTION_GLOW: Record<Role, string> = {
 
 @Component({
     selector: 'app-role-card',
-    imports: [AnimatedCard],
+    imports: [AnimatedCard, TranslatePipe],
     templateUrl: './role-card.html',
     styleUrl: './role-card.scss'
 })

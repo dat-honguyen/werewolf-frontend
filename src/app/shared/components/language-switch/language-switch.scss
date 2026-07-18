@@ -1,0 +1,25 @@
+.language-switch {
+    display: flex;
+    gap: 0.15rem;
+    padding: 0.2rem;
+    border: 1px solid rgb(217 164 65 / 22%);
+    border-radius: 999px;
+}
+
+.language-switch__option {
+    padding: 0.3rem 0.6rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-moonlight, #b8c6e8);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &--active {
+        background: var(--color-gold, #d9a441);
+        color: var(--color-parchment-ink, #2a2118);
+    }
+}

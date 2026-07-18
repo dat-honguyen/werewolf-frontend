@@ -1,22 +1,53 @@
 <div class="home">
+    <div class="home__backdrop" aria-hidden="true">
+        <svg class="home__backdrop-moon" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="70" fill="currentColor" />
+        </svg>
+        <svg class="home__backdrop-wolf" viewBox="0 0 400 260" preserveAspectRatio="xMidYMax slice">
+            <path
+                d="M40 260 L40 150 Q40 120 65 105 L80 60 L95 100 Q110 85 125 100 L145 55 L155 100 Q170 90 180 110 L180 260 Z"
+                fill="currentColor"
+            />
+            <path
+                d="M180 260 L180 140 Q180 118 198 108 L210 75 L222 105 Q232 95 244 108 L258 70 L266 108 Q280 100 292 118 L292 260 Z"
+                fill="currentColor"
+            />
+        </svg>
+        <svg class="home__backdrop-village" viewBox="0 0 800 120" preserveAspectRatio="none">
+            <path
+                d="M0 120 L0 70 L30 70 L30 45 L55 20 L80 45 L80 70 L120 70 L120 50 L150 50 L150 70
+                   L200 70 L200 30 L230 10 L260 30 L260 70 L310 70 L310 55 L335 55 L335 70 L400 70
+                   L400 40 L425 15 L450 40 L450 70 L500 70 L500 50 L525 50 L525 70 L580 70 L580 25
+                   L610 5 L640 25 L640 70 L690 70 L690 55 L715 55 L715 70 L760 70 L760 45 L785 20
+                   L800 45 L800 120 Z"
+                fill="currentColor"
+            />
+        </svg>
+    </div>
+
     @if (activeRoomCode(); as roomCode) {
         <div class="home__rejoin">
-            <p>
-                You were still in room <strong>{{ roomCode }}</strong
-                >.
-            </p>
+            <p [innerHTML]="'home.rejoin.message' | translate: { roomCode }"></p>
             <div class="home__rejoin-actions">
-                <button type="button" class="home-btn home-btn--primary" (click)="rejoinRoom()">
-                    Rejoin
+                <button
+                    type="button"
+                    class="home__button home__button--primary"
+                    (click)="rejoinRoom()"
+                >
+                    {{ 'home.rejoin.rejoinButton' | translate }}
                 </button>
-                <button type="button" class="home-btn" (click)="dismissRejoin()">Dismiss</button>
+                <button type="button" class="home__button" (click)="dismissRejoin()">
+                    {{ 'home.rejoin.dismissButton' | translate }}
+                </button>
             </div>
         </div>
     }
 
     <div class="home-dashboard">
         <header class="home-dashboard__header">
-            <div class="home-dashboard__logo">Wolf<span>were</span></div>
+            <div class="home-dashboard__logo">
+                {{ 'home.logo.were' | translate }}<span>{{ 'home.logo.wolf' | translate }}</span>
+            </div>
             <nav class="home-dashboard__tabs">
                 <button
                     type="button"
@@ -24,7 +55,7 @@
                     [class.home-dashboard__tab--active]="activeTab() === 'create'"
                     (click)="selectTab('create')"
                 >
-                    Create Room
+                    {{ 'home.tabs.create' | translate }}
                 </button>
                 <button
                     type="button"
@@ -32,19 +63,22 @@
                     [class.home-dashboard__tab--active]="activeTab() === 'join'"
                     (click)="selectTab('join')"
                 >
-                    Join Room
+                    {{ 'home.tabs.join' | translate }}
                 </button>
             </nav>
+            <div class="home-dashboard__header-actions">
+                <app-language-switch></app-language-switch>
+            </div>
         </header>
 
         <div class="home-dashboard__body">
             <label class="home-field">
-                <span class="home-field__label">Display name</span>
+                <span class="home-field__label">{{ 'home.displayName.label' | translate }}</span>
                 <input
                     type="text"
                     [ngModel]="displayName()"
                     (ngModelChange)="displayName.set($event)"
-                    placeholder="Your name"
+                    [placeholder]="'home.displayName.placeholder' | translate"
                 />
             </label>
 
@@ -52,55 +86,66 @@
                 <div class="home-panel">
                     <div class="home-form-grid">
                         <div class="home-field">
-                            <span class="home-field__label">Room privacy</span>
+                            <span class="home-field__label">{{
+                                'home.privacy.label' | translate
+                            }}</span>
                             <div class="home-segmented">
                                 <label
                                     class="home-segmented__option home-segmented__option--active"
                                 >
                                     <input type="radio" name="privacy" checked disabled />
-                                    <span>Public</span>
+                                    <span>{{ 'home.privacy.public' | translate }}</span>
                                 </label>
                                 <label
                                     class="home-segmented__option"
-                                    title="Private rooms aren't supported yet"
+                                    [title]="'home.privacy.privateHint' | translate"
                                 >
                                     <input type="radio" name="privacy" disabled />
-                                    <span>Private</span>
+                                    <span>{{ 'home.privacy.private' | translate }}</span>
                                 </label>
                             </div>
-                            <p class="home-field__note">
-                                Every room is public for now &mdash; anyone can find it in Join
-                                Room.
-                            </p>
+                            <p class="home-field__note">{{ 'home.privacy.note' | translate }}</p>
                         </div>
 
-                        <div class="home-field home-field--disabled" title="Not supported yet">
-                            <span class="home-field__label">Player limit</span>
+                        <div
+                            class="home-field home-field--disabled"
+                            [title]="'home.notSupported' | translate"
+                        >
+                            <span class="home-field__label">{{
+                                'home.playerLimit' | translate
+                            }}</span>
                             <div class="home-slider">
                                 <input type="range" min="6" max="18" value="10" disabled />
                                 <span class="home-slider__value">10</span>
                             </div>
                         </div>
 
-                        <div class="home-field home-field--disabled" title="Not supported yet">
-                            <span class="home-field__label">Day discussion phase</span>
+                        <div
+                            class="home-field home-field--disabled"
+                            [title]="'home.notSupported' | translate"
+                        >
+                            <span class="home-field__label">{{
+                                'home.discussionPhase' | translate
+                            }}</span>
                             <select disabled>
-                                <option selected>120 Seconds (Classic)</option>
+                                <option selected>{{ 'home.discussionOption' | translate }}</option>
                             </select>
                         </div>
 
                         <div
                             class="home-field home-field--disabled"
-                            title="Configurable in-lobby after creation"
+                            [title]="'home.specialRolesHint' | translate"
                         >
-                            <span class="home-field__label">Special roles</span>
+                            <span class="home-field__label">{{
+                                'home.specialRoles' | translate
+                            }}</span>
                             <div class="home-chips">
-                                @for (role of defaultSpecialRoles; track role.label) {
+                                @for (role of defaultSpecialRoles; track role.roleKey) {
                                     <span
                                         class="home-chip"
                                         [class.home-chip--active]="role.included"
                                     >
-                                        {{ role.label }}
+                                        {{ 'roles.' + role.roleKey | translate }}
                                     </span>
                                 }
                             </div>
@@ -109,16 +154,18 @@
 
                     <button
                         type="button"
-                        class="home-btn home-btn--primary home-btn--block"
+                        class="home__button home__button--primary home__button--block"
                         (click)="createRoom()"
                     >
-                        Gather a New Village
+                        {{ 'home.createButton' | translate }}
                     </button>
                 </div>
             } @else {
                 <div class="home-panel">
                     <div class="home-code-entry">
-                        <span class="home-field__label">Enter village code</span>
+                        <span class="home-field__label">{{
+                            'home.codeEntryLabel' | translate
+                        }}</span>
                         <div class="home-code-boxes">
                             @for (char of codeChars(); track $index) {
                                 <input
@@ -133,31 +180,31 @@
                         </div>
                         <button
                             type="button"
-                            class="home-btn home-btn--primary"
+                            class="home__button home__button--primary"
                             (click)="joinRoom()"
                         >
-                            Enter Village
+                            {{ 'home.enterButton' | translate }}
                         </button>
                     </div>
 
                     <div class="home-browser">
-                        <span class="home-field__label">Or browse open villages</span>
+                        <span class="home-field__label">{{ 'home.browseLabel' | translate }}</span>
 
                         @if (isBrowsingLobbies()) {
-                            <p class="home-browser__status">Scouting the woods&hellip;</p>
+                            <p class="home-browser__status">{{ 'home.scouting' | translate }}</p>
                         } @else if (openLobbies() === null || openLobbies()?.length === 0) {
                             <p class="home-browser__status">
-                                No open villages right now. Create one.
+                                {{ 'home.noOpenVillages' | translate }}
                             </p>
                         } @else {
                             <div class="home-browser__table-wrapper">
                                 <table class="home-browser__table">
                                     <thead>
                                         <tr>
-                                            <th>Code</th>
-                                            <th>Host</th>
-                                            <th>Players</th>
-                                            <th>Special roles</th>
+                                            <th>{{ 'home.table.code' | translate }}</th>
+                                            <th>{{ 'home.table.host' | translate }}</th>
+                                            <th>{{ 'home.table.players' | translate }}</th>
+                                            <th>{{ 'home.table.specialRoles' | translate }}</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -169,7 +216,9 @@
                                                 </td>
                                                 <td>{{ lobby.hostDisplayName }}</td>
                                                 <td>
-                                                    {{ lobby.playerCount }} joined &middot; min
+                                                    {{ lobby.playerCount }}
+                                                    {{ 'home.table.joined' | translate }} ·
+                                                    {{ 'home.table.min' | translate }}
                                                     {{ lobby.minPlayers }}
                                                 </td>
                                                 <td>
@@ -188,10 +237,10 @@
                                                 <td>
                                                     <button
                                                         type="button"
-                                                        class="home-btn home-btn--sm"
+                                                        class="home__button home__button--sm"
                                                         (click)="joinBrowsedLobby(lobby.roomCode)"
                                                     >
-                                                        Join
+                                                        {{ 'home.table.join' | translate }}
                                                     </button>
                                                 </td>
                                             </tr>

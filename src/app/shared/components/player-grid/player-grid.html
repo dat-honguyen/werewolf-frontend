@@ -17,19 +17,27 @@
             <div>
                 <div class="player-grid__name">
                     {{ entry.displayName }} @if (entry.isMe) {
-                    <span class="player-grid__tag">YOU</span>
+                    <span class="player-grid__tag">{{ 'playerGrid.you' | translate }}</span>
                     } @if (entry.isHost) {
-                    <span class="player-grid__tag player-grid__tag--host">HOST</span>
+                    <span class="player-grid__tag player-grid__tag--host"
+                        >{{ 'playerGrid.host' | translate }}</span
+                    >
                     }
                 </div>
                 <div class="player-grid__meta">
-                    <span>{{ entry.isAlive ? 'Active' : 'Deceased' }}</span>
+                    <span
+                        >{{ (entry.isAlive ? 'playerGrid.active' : 'playerGrid.deceased') |
+                        translate }}</span
+                    >
                     @if (entry.isReady !== undefined) {
                     <span [class.player-grid__ready--yes]="entry.isReady"
-                        >{{ entry.isReady ? '• Ready' : '• Not ready' }}</span
+                        >• {{ (entry.isReady ? 'playerGrid.ready' : 'playerGrid.notReady') |
+                        translate }}</span
                     >
                     } @if (entry.voteCount) {
-                    <span class="player-grid__votes">• {{ entry.voteCount }} votes</span>
+                    <span class="player-grid__votes"
+                        >• {{ 'playerGrid.votes' | translate: { count: entry.voteCount } }}</span
+                    >
                     }
                 </div>
             </div>

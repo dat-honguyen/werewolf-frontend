@@ -1,5 +1,6 @@
 import { Injectable, Signal, WritableSignal, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { GameStateResponse } from '../models/game.model';
 import { LocalLobbyState } from '../models/lobby.model';
@@ -33,6 +34,7 @@ export class GameStateService {
     private readonly hub = inject(WerewolfHubService);
     private readonly toast = inject(ToastService);
     private readonly router = inject(Router);
+    private readonly translate = inject(TranslateService);
 
     readonly roomCode: WritableSignal<string | null> = signal(null);
     readonly lobby: WritableSignal<LocalLobbyState | null> = signal(null);
@@ -102,7 +104,7 @@ export class GameStateService {
     playerDisplayName(playerId: string): string {
         return (
             this.lobby()?.players.find((player) => player.playerId === playerId)?.displayName ??
-            'A player'
+            this.translate.instant('gameState.aPlayer')
         );
     }
 
@@ -112,7 +114,7 @@ export class GameStateService {
                 this.gameApi.quitGame({ roomCode, playerId: this.playerIdentity.playerId() })
             );
         } catch {
-            this.toast.show('Could not quit the game. Try again.', 'error');
+            this.toast.show(this.translate.instant('gameState.quitFailed'), 'error');
         }
     }
 
@@ -246,19 +248,23 @@ export class GameStateService {
         const nextIds = new Set(next.players.map((player) => player.playerId));
 
         if (prevIds.has(myPlayerId) && !nextIds.has(myPlayerId)) {
-            this.toast.show('You were removed from the lobby.', 'error');
+            this.toast.show(this.translate.instant('gameState.removedFromLobby'), 'error');
             this.leaveToHome();
             return;
         }
 
         for (const player of next.players) {
             if (!prevIds.has(player.playerId)) {
-                this.announceSystem(`${player.displayName} joined the lobby.`);
+                this.announceSystem(
+                    this.translate.instant('gameState.playerJoined', { name: player.displayName })
+                );
             }
         }
         for (const player of prev.players) {
             if (!nextIds.has(player.playerId) && player.playerId !== myPlayerId) {
-                this.announceSystem(`${player.displayName} left the lobby.`);
+                this.announceSystem(
+                    this.translate.instant('gameState.playerLeft', { name: player.displayName })
+                );
             }
         }
         for (const player of next.players) {
@@ -268,12 +274,17 @@ export class GameStateService {
             const before = prev.players.find((p) => p.playerId === player.playerId);
             if (before && before.isReady !== player.isReady) {
                 this.announceSystem(
-                    `${player.displayName} is ${player.isReady ? 'ready' : 'not ready'}.`
+                    this.translate.instant('gameState.playerReadyChanged', {
+                        name: player.displayName,
+                        status: this.translate.instant(
+                            player.isReady ? 'gameState.ready' : 'gameState.notReady'
+                        )
+                    })
                 );
             }
         }
         if (prev.status !== 'Cancelled' && next.status === 'Cancelled') {
-            this.toast.show('The host cancelled the lobby.', 'error');
+            this.toast.show(this.translate.instant('gameState.lobbyCancelled'), 'error');
             this.leaveToHome();
         }
     }

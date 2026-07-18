@@ -1,15 +1,17 @@
 <app-toast-list></app-toast-list>
 
 @if (canQuit()) {
-    <button type="button" class="room__quit-button" (click)="quitGame()">Quit game</button>
+    <button type="button" class="room__quit-button" (click)="quitGame()">
+        {{ 'room.quitButton' | translate }}
+    </button>
 }
 
 @if (showQuitConfirm()) {
     <app-confirm-dialog
-        title="Quit this game?"
-        message="You will be marked dead and cannot rejoin."
-        confirmLabel="Quit"
-        cancelLabel="Stay"
+        [title]="'room.quitConfirm.title' | translate"
+        [message]="'room.quitConfirm.message' | translate"
+        [confirmLabel]="'room.quitConfirm.confirmLabel' | translate"
+        [cancelLabel]="'room.quitConfirm.cancelLabel' | translate"
         (confirmed)="confirmQuit()"
         (cancelled)="cancelQuit()"
     ></app-confirm-dialog>

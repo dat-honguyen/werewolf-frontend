@@ -5,7 +5,7 @@
         class="room-action-panel__button room-action-panel__button--primary"
         (click)="readyToggle.emit()"
     >
-        {{ isReady() ? 'Un-ready' : 'Ready Up' }}
+        {{ (isReady() ? 'actionPanel.unready' : 'actionPanel.readyUp') | translate }}
     </button>
     } @if (showCancelLobby()) {
     <button
@@ -13,7 +13,7 @@
         class="room-action-panel__button room-action-panel__button--danger"
         (click)="cancelLobby.emit()"
     >
-        Cancel Lobby
+        {{ 'actionPanel.cancelLobby' | translate }}
     </button>
     } @if (showLeaveLobby()) {
     <button
@@ -21,19 +21,19 @@
         class="room-action-panel__button room-action-panel__button--danger"
         (click)="leaveLobby.emit()"
     >
-        Leave Lobby
+        {{ 'actionPanel.leaveLobby' | translate }}
     </button>
     } @if (werewolfTally(); as tally) {
     <div class="room-action-panel__info">
         @for (entry of tally; track entry.voterName) {
         <span>{{ entry.voterName }} → {{ entry.targetName }}</span>
         } @if (werewolfLockedLabel(); as locked) {
-        <strong>Locked: {{ locked }}</strong>
+        <strong>{{ 'actionPanel.locked' | translate: { name: locked } }}</strong>
         }
     </div>
     } @if (showWerewolfPass()) {
     <button type="button" class="room-action-panel__button" (click)="werewolfPass.emit()">
-        Pass (no kill)
+        {{ 'actionPanel.werewolfPass' | translate }}
     </button>
     } @if (seerResult(); as result) {
     <p class="room-action-panel__result">{{ result }}</p>
@@ -45,7 +45,7 @@
         class="room-action-panel__button room-action-panel__button--accent"
         (click)="witchHeal.emit()"
     >
-        Heal target
+        {{ 'actionPanel.healTarget' | translate }}
     </button>
     } @if (showWitchPass()) {
     <button type="button" class="room-action-panel__button" (click)="witchPass.emit()">
@@ -61,17 +61,17 @@
         class="room-action-panel__button room-action-panel__button--primary"
         (click)="submitVote.emit()"
     >
-        Submit Vote
+        {{ 'actionPanel.submitVote' | translate }}
     </button>
     } @if (voteTally(); as tally) {
     <p class="room-action-panel__result">{{ tally }}</p>
     } @if (showHunterPass()) {
     <button type="button" class="room-action-panel__button" (click)="hunterPass.emit()">
-        Pass
+        {{ 'actionPanel.hunterPass' | translate }}
     </button>
     } @if (showViewLog()) {
     <button type="button" class="room-action-panel__button" (click)="viewLog.emit()">
-        View full game log
+        {{ 'actionPanel.viewLog' | translate }}
     </button>
     } @if (logEntries(); as entries) {
     <ul class="room-action-panel__log" #logList>
@@ -81,7 +81,7 @@
     </ul>
     } @if (showLeaveRoom()) {
     <button type="button" class="room-action-panel__button" (click)="leaveRoom.emit()">
-        Leave room
+        {{ 'actionPanel.leaveRoom' | translate }}
     </button>
     }
 </div>

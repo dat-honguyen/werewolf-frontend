@@ -2,22 +2,25 @@
 <div class="room-shell" [attr.data-phase]="isNight() ? 'night' : 'day'">
     <header class="room-shell__header">
         <div class="room-shell__logo">
-            🔮 LUNARIS @if (state(); as s) {
+            🔮 {{ 'roomShell.logo' | translate }} @if (state(); as s) {
             <span class="room-shell__mode-badge" [class.room-shell__mode-badge--night]="isNight()">
-                {{ isNight() ? '🌙 Night Mode' : '☀️ Day Mode' }}
+                {{ (isNight() ? 'roomShell.nightMode' : 'roomShell.dayMode') | translate }}
             </span>
             } @if (roomCode(); as code) {
-            <span class="room-shell__room-code">Room #{{ code }}</span>
+            <span class="room-shell__room-code"
+                >{{ 'roomShell.roomCode' | translate: { code } }}</span
+            >
             }
         </div>
         <div class="room-shell__header-actions">
+            <app-language-switch></app-language-switch>
             @if (roomCode()) {
             <button type="button" class="room-shell__ghost-button" (click)="copyInviteLink()">
-                🔗 Copy invite link
+                {{ 'roomShell.copyInviteLink' | translate }}
             </button>
             }
             <button type="button" class="room-shell__ghost-button" (click)="showSettings.set(true)">
-                ⚙️ Rules & Setup
+                {{ 'roomShell.rulesAndSetup' | translate }}
             </button>
             @if (headerAction(); as action) {
             <button
@@ -40,14 +43,14 @@
             ></app-identity-grimoire-card>
 
             <div class="room-shell__stats">
-                <h3>Coven Live Overview</h3>
+                <h3>{{ 'roomShell.covenOverview' | translate }}</h3>
                 <div class="room-shell__stats-grid">
                     <div class="room-shell__stat room-shell__stat--alive">
-                        <span>Living Souls</span>
+                        <span>{{ 'roomShell.livingSouls' | translate }}</span>
                         <strong>{{ aliveCount() }}</strong>
                     </div>
                     <div class="room-shell__stat room-shell__stat--dead">
-                        <span>Spectral Ghosts</span>
+                        <span>{{ 'roomShell.fallen' | translate }}</span>
                         <strong>{{ deadCount() }}</strong>
                     </div>
                 </div>
@@ -63,7 +66,7 @@
                 [status]="bannerStatus()"
                 [instruction]="bannerInstruction()"
                 [countdown]="countdownDisplay()"
-                countdownLabel="Discussion ends in"
+                [countdownLabel]="'roomShell.discussionEndsIn' | translate"
                 [countdownExpired]="secondsRemaining() === 0"
             ></app-phase-banner>
 
@@ -90,20 +93,20 @@
                 (werewolfPass)="werewolfPassAction()"
                 [seerResult]="
                     seerResult()
-                        ? playerName(seerResult()!.targetPlayerId) + ' is ' + (seerResult()!.isWerewolf ? 'a werewolf' : 'NOT a werewolf')
+                        ? ('roomShell.seerResult.' + (seerResult()!.isWerewolf ? 'isWerewolf' : 'notWerewolf') | translate: { name: playerName(seerResult()!.targetPlayerId) })
                         : null
                 "
                 [witchTargetInfo]="
                     showWitch() && witchTarget() !== undefined
                         ? witchTarget()
-                            ? 'The werewolves are coming for ' + playerName(witchTarget()!) + ' tonight.'
-                            : &quot;You don't know who the werewolves targeted tonight.&quot;
+                            ? ('roomShell.witchInfo.targeted' | translate: { name: playerName(witchTarget()!) })
+                            : ('roomShell.witchInfo.unknown' | translate)
                         : null
                 "
                 [showWitchHeal]="showWitch() && !witchHealUsed()"
                 (witchHeal)="witchHealAction()"
                 [showWitchPass]="showWitch()"
-                [witchPassLabel]="witchHealUsed() || witchPoisonUsed() ? 'End turn' : 'Pass (use neither potion)'"
+                [witchPassLabel]="(witchHealUsed() || witchPoisonUsed() ? 'actionPanel.witchEndTurn' : 'actionPanel.witchPassAll') | translate"
                 (witchPass)="witchPassAction()"
                 [cupidHint]="showCupid() ? (cupidFirstPickHint()) : null"
                 [waitingText]="
@@ -114,7 +117,7 @@
                 "
                 [showSubmitVote]="view() === 'voting' && selectedVoteTarget() !== undefined"
                 (submitVote)="submitVoteAction()"
-                [voteTally]="view() === 'voting' ? votedCount() + ' / ' + (state()?.players?.length ?? 0) + ' voted' : null"
+                [voteTally]="view() === 'voting' ? ('actionPanel.votesOf' | translate: { voted: votedCount(), total: (state()?.players?.length ?? 0) }) : null"
                 [showHunterPass]="view() === 'hunter-revenge' && state()?.pendingHunterRevenge?.[0] === myPlayerId()"
                 (hunterPass)="hunterPassAction()"
                 [showViewLog]="view() === 'game-over'"
@@ -133,7 +136,7 @@
                     [class.room-shell__chat-tab--active]="chatTab() === 'town'"
                     (click)="selectChatTab('town')"
                 >
-                    Public Square
+                    {{ 'roomShell.publicSquare' | translate }}
                 </button>
                 @if (canSeePackChat()) {
                 <button
@@ -142,7 +145,7 @@
                     [class.room-shell__chat-tab--active]="chatTab() === 'pack'"
                     (click)="selectChatTab('pack')"
                 >
-                    Private Grimoires
+                    {{ 'roomShell.privateGrimoires' | translate }}
                 </button>
                 }
             </div>
@@ -162,7 +165,7 @@
             <form class="room-shell__chat-input-area" (ngSubmit)="sendTownMessage()">
                 <input
                     type="text"
-                    placeholder="Cast suspicion or whisper secret info..."
+                    [placeholder]="'roomShell.chatPlaceholder' | translate"
                     [ngModel]="draftMessage()"
                     (ngModelChange)="draftMessage.set($event)"
                     name="townMessage"
@@ -170,10 +173,7 @@
             </form>
             } @else {
             <div class="room-shell__chat-history">
-                <p class="room-shell__chat-disabled">
-                    Private Grimoires isn't wired up yet. Coordinate over voice or a group chat
-                    outside the app.
-                </p>
+                <p class="room-shell__chat-disabled">{{ 'roomShell.chatDisabled' | translate }}</p>
             </div>
             }
         </aside>

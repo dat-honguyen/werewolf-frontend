@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GameStateService } from '../../../core/services/game-state.service';
 import { LobbyApiService } from '../../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../../core/services/player-identity.service';
@@ -9,6 +10,7 @@ import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { DEFAULT_GAME_SETTINGS, GameSettings } from '../../../core/models/lobby.model';
 import { Role } from '../../../core/models/role.model';
 import { APP_VERSION } from '../../../../environments/version';
+import { ToggleSwitch } from '../toggle-switch/toggle-switch';
 
 const ALL_ROLES: Role[] = [
     'Villager',
@@ -49,7 +51,7 @@ const ROLE_COLOR: Record<Role, string> = {
 
 @Component({
     selector: 'app-settings-modal',
-    imports: [FormsModule],
+    imports: [FormsModule, TranslatePipe, ToggleSwitch],
     templateUrl: './settings-modal.html',
     styleUrl: './settings-modal.scss'
 })
@@ -59,6 +61,7 @@ export class SettingsModal {
     private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly toast = inject(ToastService);
     private readonly versionApi = inject(VersionApiService);
+    private readonly translate = inject(TranslateService);
 
     readonly closed = output<void>();
     /** True while a game is in progress -- rules are locked in once assigned, so this shows
@@ -119,11 +122,17 @@ export class SettingsModal {
             .subscribe({
                 next: () => {
                     this.gameState.lobby.set({ ...lobby, roleDistribution: distribution });
-                    this.toast.show('Role distribution updated.', 'success');
+                    this.toast.show(
+                        this.translate.instant('toasts.roleDistributionUpdated'),
+                        'success'
+                    );
                 },
                 error: (error: unknown) =>
                     this.toast.show(
-                        extractErrorMessage(error, 'Could not update role distribution.'),
+                        extractErrorMessage(
+                            error,
+                            this.translate.instant('toasts.roleDistributionFailed')
+                        ),
                         'error'
                     )
             });
@@ -148,11 +157,17 @@ export class SettingsModal {
             .subscribe({
                 next: () => {
                     this.gameState.lobby.set({ ...lobby, settings });
-                    this.toast.show('Game settings updated.', 'success');
+                    this.toast.show(
+                        this.translate.instant('toasts.gameSettingsUpdated'),
+                        'success'
+                    );
                 },
                 error: (error: unknown) =>
                     this.toast.show(
-                        extractErrorMessage(error, 'Could not update game settings.'),
+                        extractErrorMessage(
+                            error,
+                            this.translate.instant('toasts.gameSettingsFailed')
+                        ),
                         'error'
                     )
             });

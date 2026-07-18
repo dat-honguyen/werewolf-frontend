@@ -1,5 +1,5 @@
 <div class="identity-grimoire">
-    <h3 class="identity-grimoire__title">Identity Grimoire</h3>
+    <h3 class="identity-grimoire__title">{{ 'identityGrimoire.title' | translate }}</h3>
 
     <div
         class="identity-grimoire__card"
@@ -12,17 +12,20 @@
                 <span class="identity-grimoire__eyebrow">LUNARIS</span>
                 <div class="identity-grimoire__glyph">✨</div>
                 <span class="identity-grimoire__hint">
-                    {{ role() ? 'Tap card to inspect' : 'Awaiting the game to start' }}
+                    {{ (role() ? 'identityGrimoire.tapToInspect' : 'identityGrimoire.awaitingStart')
+                    | translate }}
                 </span>
             </div>
 
             <div class="identity-grimoire__face identity-grimoire__face--back">
-                <span class="identity-grimoire__eyebrow">Your Role</span>
+                <span class="identity-grimoire__eyebrow"
+                    >{{ 'identityGrimoire.yourRole' | translate }}</span
+                >
                 @if (icon(); as icon) {
                 <div class="identity-grimoire__role-icon" [innerHTML]="icon"></div>
                 }
                 <div class="identity-grimoire__role-text">
-                    <h4>{{ role() }}</h4>
+                    <h4>{{ role() ? ('roles.' + role() | translate) : '' }}</h4>
                     <p>{{ description() }}</p>
                 </div>
             </div>

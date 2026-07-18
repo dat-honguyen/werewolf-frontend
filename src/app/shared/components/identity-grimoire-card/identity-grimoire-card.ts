@@ -1,5 +1,6 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { TranslatePipe } from '@ngx-translate/core';
 import { GameStateService } from '../../../core/services/game-state.service';
 import { Role } from '../../../core/models/role.model';
 import { ROLE_ICON } from '../../../core/utils/role-icon.util';
@@ -12,7 +13,7 @@ import { ROLE_ICON } from '../../../core/utils/role-icon.util';
  */
 @Component({
     selector: 'app-identity-grimoire-card',
-    imports: [],
+    imports: [TranslatePipe],
     templateUrl: './identity-grimoire-card.html',
     styleUrl: './identity-grimoire-card.scss'
 })

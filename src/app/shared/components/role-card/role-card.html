@@ -28,7 +28,7 @@
         <div class="role-card__medallion">
             <svg class="role-card__icon" viewBox="0 0 24 24" [innerHTML]="icon()"></svg>
         </div>
-        <h3 class="card-title role-card__title">{{ role() }}</h3>
+        <h3 class="card-title role-card__title">{{ 'roles.' + role() | translate }}</h3>
         @if (description()) {
         <p class="card-body role-card__description">{{ description() }}</p>
         }

@@ -1,4 +1,5 @@
 import { Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Avatar } from '../avatar/avatar';
 import { RoleCard } from '../role-card/role-card';
 import { Role } from '../../../core/models/role.model';
@@ -26,7 +27,7 @@ export interface PlayerGridEntry {
 
 @Component({
     selector: 'app-player-grid',
-    imports: [Avatar, RoleCard],
+    imports: [Avatar, RoleCard, TranslatePipe],
     templateUrl: './player-grid.html',
     styleUrl: './player-grid.scss'
 })

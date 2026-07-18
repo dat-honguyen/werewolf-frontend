@@ -2,6 +2,7 @@
 import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval, switchMap } from 'rxjs';
 import { GameApiService } from '../../../core/services/game-api.service';
@@ -19,6 +20,7 @@ import { PhaseBanner } from '../phase-banner/phase-banner';
 import { PlayerGrid, PlayerGridEntry } from '../player-grid/player-grid';
 import { RoomActionPanel } from '../room-action-panel/room-action-panel';
 import { SettingsModal } from '../settings-modal/settings-modal';
+import { LanguageSwitch } from '../language-switch/language-switch';
 
 interface ChatMessage {
     senderId: string;
@@ -28,10 +30,10 @@ interface ChatMessage {
     isSystem?: boolean;
 }
 
-const PHASE_ANNOUNCEMENT: Partial<Record<GameView, string>> = {
-    'day-discussion': '☀️ Day discussion is open. Chat is visible to everyone.',
-    night: '🌙 Night has fallen. The village sleeps.',
-    voting: '⚖️ Voting is open — cast your suspicion.'
+const PHASE_ANNOUNCEMENT_KEY: Partial<Record<GameView, string>> = {
+    'day-discussion': 'roomShell.phaseAnnouncement.dayDiscussion',
+    night: 'roomShell.phaseAnnouncement.night',
+    voting: 'roomShell.phaseAnnouncement.voting'
 };
 
 type ChatTab = 'town' | 'pack';
@@ -39,15 +41,15 @@ type NightAction = 'cupid' | 'seer' | 'werewolf' | 'doctor' | 'witch';
 
 const WOLF_VOTE_POLL_MS = 2000;
 
-const ROLE_OBJECTIVE: Record<Role, string> = {
-    Villager: 'Find and eliminate every werewolf.',
-    Werewolf: 'Eliminate all villagers.',
-    Seer: 'Find and eliminate every werewolf.',
-    Doctor: 'Find and eliminate every werewolf.',
-    Hunter: 'Find and eliminate every werewolf.',
-    Witch: 'Find and eliminate every werewolf.',
-    Cupid: 'Find and eliminate every werewolf.',
-    Tanner: 'Get yourself lynched by the village.'
+const ROLE_OBJECTIVE_KEY: Record<Role, string> = {
+    Villager: 'roomShell.objectives.villager',
+    Werewolf: 'roomShell.objectives.werewolf',
+    Seer: 'roomShell.objectives.villager',
+    Doctor: 'roomShell.objectives.villager',
+    Hunter: 'roomShell.objectives.villager',
+    Witch: 'roomShell.objectives.villager',
+    Cupid: 'roomShell.objectives.villager',
+    Tanner: 'roomShell.objectives.tanner'
 };
 
 /**
@@ -62,11 +64,13 @@ const ROLE_OBJECTIVE: Record<Role, string> = {
     selector: 'app-room-shell',
     imports: [
         FormsModule,
+        TranslatePipe,
         IdentityGrimoireCard,
         PhaseBanner,
         PlayerGrid,
         RoomActionPanel,
-        SettingsModal
+        SettingsModal,
+        LanguageSwitch
     ],
     templateUrl: './room-shell.html',
     styleUrl: './room-shell.scss'
@@ -78,6 +82,7 @@ export class RoomShell {
     private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly rulesApi = inject(RulesApiService);
     private readonly toast = inject(ToastService);
+    private readonly translate = inject(TranslateService);
     private readonly hub = inject(WerewolfHubService);
     private readonly router = inject(Router);
 
@@ -122,8 +127,9 @@ export class RoomShell {
         () => this.state()?.players.find((p) => p.playerId === this.myPlayerId())?.role ?? null
     );
     readonly ownObjective = computed(() => {
+        this.translate.currentLang();
         const role = this.myRole();
-        return role ? ROLE_OBJECTIVE[role] : '';
+        return role ? this.translate.instant(ROLE_OBJECTIVE_KEY[role]) : '';
     });
 
     readonly isNight = computed(() => this.state()?.phase === 'Night');
@@ -204,22 +210,26 @@ export class RoomShell {
     );
 
     readonly werewolfTallyDisplay = computed(() => {
+        this.translate.currentLang();
         if (!this.showWerewolf()) {
             return null;
         }
         const entries = Array.from(this.wolfVotes().entries()).map(([voterId, targetId]) => ({
             voterName: this.playerName(voterId),
-            targetName: targetId ? this.playerName(targetId) : 'no kill'
+            targetName: targetId
+                ? this.playerName(targetId)
+                : this.translate.instant('roomShell.noKill')
         }));
         return entries.length > 0 ? entries : null;
     });
 
     readonly werewolfLockedLabel = computed(() => {
+        this.translate.currentLang();
         const locked = this.wolfLockedTarget();
         if (locked === undefined) {
             return null;
         }
-        return locked ? this.playerName(locked) : 'no kill';
+        return locked ? this.playerName(locked) : this.translate.instant('roomShell.noKill');
     });
 
     readonly secondsRemaining = computed(() => {
@@ -260,64 +270,81 @@ export class RoomShell {
         }
     });
     readonly bannerStatus = computed(() => {
+        this.translate.currentLang();
         switch (this.view()) {
             case 'lobby':
-                return 'LOBBY';
+                return this.translate.instant('roomShell.statusLabels.lobby');
             case 'role-reveal':
             case 'night':
-                return `NIGHT ${this.state()?.nightNumber ?? ''}`;
+                return this.translate.instant('roomShell.statusLabels.night', {
+                    n: this.state()?.nightNumber ?? ''
+                });
             case 'day-discussion':
-                return 'DAY DISCUSSION';
+                return this.translate.instant('roomShell.statusLabels.dayDiscussion');
             case 'voting':
-                return 'DAY VOTING';
+                return this.translate.instant('roomShell.statusLabels.dayVoting');
             case 'hunter-revenge':
-                return "HUNTER'S REVENGE";
+                return this.translate.instant('roomShell.statusLabels.hunterRevenge');
             case 'game-over':
-                return 'GAME OVER';
+                return this.translate.instant('roomShell.statusLabels.gameOver');
         }
     });
     readonly bannerInstruction = computed(() => {
+        this.translate.currentLang();
         switch (this.view()) {
             case 'lobby':
-                return 'Waiting for everyone to ready up.';
+                return this.translate.instant('roomShell.banner.lobbyStatus');
             case 'role-reveal':
             case 'night':
-                return this.state()?.nightPrompt ?? 'Everyone else is asleep...';
+                return (
+                    this.state()?.nightPrompt ??
+                    this.translate.instant('roomShell.banner.nightStatus')
+                );
             case 'day-discussion':
-                return 'Cast your votes of suspicion!';
+                return this.translate.instant('roomShell.banner.dayStatus');
             case 'voting':
-                return 'Choose who to send to the gallows.';
+                return this.translate.instant('roomShell.banner.votingStatus');
             case 'hunter-revenge':
-                return 'The Hunter may take one soul down with them.';
+                return this.translate.instant('roomShell.banner.hunterStatus');
             case 'game-over':
-                return `${this.state()?.result?.winningFaction ?? ''} win!`;
+                return this.translate.instant('roomShell.banner.gameOverStatus', {
+                    faction: this.state()?.result?.winningFaction ?? ''
+                });
         }
     });
 
     /** Header contextual action button -- replaces the mockup's fake "Switch to Night/Day" toggle
      * with whatever real host action applies to the current phase (null hides the button). */
     readonly headerAction = computed<{ label: string; disabled?: boolean } | null>(() => {
+        this.translate.currentLang();
         if (!this.isHost()) {
             return null;
         }
         switch (this.view()) {
             case 'lobby':
                 return {
-                    label: this.needsForceStart() ? 'Force Start' : 'Start Game',
+                    label: this.translate.instant(
+                        this.needsForceStart()
+                            ? 'roomShell.headerActions.forceStart'
+                            : 'roomShell.headerActions.startGame'
+                    ),
                     disabled: !this.canStartGame()
                 };
             case 'day-discussion':
-                return { label: 'Advance to Voting' };
+                return { label: this.translate.instant('roomShell.headerActions.advanceToVoting') };
             case 'voting':
-                return { label: 'Close Voting Early' };
+                return {
+                    label: this.translate.instant('roomShell.headerActions.closeVotingEarly')
+                };
             case 'game-over':
-                return { label: 'Rematch in this room' };
+                return { label: this.translate.instant('roomShell.headerActions.rematch') };
             default:
                 return null;
         }
     });
 
     readonly entries = computed<PlayerGridEntry[]>(() => {
+        this.translate.currentLang();
         const lobby = this.lobby();
         const state = this.state();
         const myId = this.myPlayerId();
@@ -331,7 +358,10 @@ export class RoomShell {
                 isMe: p.playerId === myId,
                 isHost: p.playerId === lobby?.hostPlayerId,
                 isReady: p.isReady,
-                actionLabel: this.isHost() && p.playerId !== myId ? 'Kick' : undefined,
+                actionLabel:
+                    this.isHost() && p.playerId !== myId
+                        ? this.translate.instant('roomShell.gridActions.kick')
+                        : undefined,
                 actionVariant: 'danger' as const
             }));
         }
@@ -365,18 +395,18 @@ export class RoomShell {
                     isHost: p.playerId === lobby?.hostPlayerId,
                     voteCount: this.voteCountFor(p.playerId),
                     selected: this.selectedVoteTarget() === p.playerId,
-                    actionLabel: 'Vote',
+                    actionLabel: this.translate.instant('roomShell.gridActions.vote'),
                     actionVariant: 'accent' as const
                 })),
                 {
                     playerId: '__abstain__',
-                    displayName: 'Abstain',
+                    displayName: this.translate.instant('actionPanel.abstain'),
                     isAlive: true,
                     isMe: false,
                     isHost: false,
                     voteCount: this.abstainCount(),
                     selected: this.selectedVoteTarget() === null,
-                    actionLabel: 'Vote',
+                    actionLabel: this.translate.instant('roomShell.gridActions.vote'),
                     actionVariant: 'accent' as const
                 }
             ];
@@ -392,7 +422,10 @@ export class RoomShell {
                     isAlive: true,
                     isMe: p.playerId === myId,
                     isHost: p.playerId === lobby?.hostPlayerId,
-                    actionLabel: isMyTurn && p.playerId !== myId ? 'Shoot' : undefined,
+                    actionLabel:
+                        isMyTurn && p.playerId !== myId
+                            ? this.translate.instant('roomShell.gridActions.shoot')
+                            : undefined,
                     actionVariant: 'danger' as const
                 }));
         }
@@ -403,23 +436,33 @@ export class RoomShell {
             let actionLabel: string | undefined;
             if (isTarget && p.isAlive) {
                 if (this.showSeer()) {
-                    actionLabel = 'Inspect';
+                    actionLabel = this.translate.instant('roleActions.inspect');
                 } else if (this.showWerewolf()) {
                     const excluded =
                         p.role === 'Werewolf' && !this.settings().werewolfCanTargetWerewolf;
-                    actionLabel = excluded ? undefined : 'Attack';
+                    actionLabel = excluded
+                        ? undefined
+                        : this.translate.instant('roleActions.attack');
                 } else if (this.showDoctor()) {
                     const excluded =
                         p.playerId === this.lastDoctorTarget() ||
                         (p.playerId === myId && !this.settings().doctorCanSelfProtect);
-                    actionLabel = excluded ? undefined : 'Protect';
+                    actionLabel = excluded
+                        ? undefined
+                        : this.translate.instant('roleActions.protect');
                 } else if (this.showWitch() && !this.witchPoisonUsed()) {
-                    actionLabel = 'Poison';
+                    actionLabel = this.translate.instant('roleActions.poison');
                 } else if (this.showCupid()) {
-                    actionLabel = this.cupidFirstPick() === p.playerId ? 'Chosen' : 'Pick lover';
+                    actionLabel =
+                        this.cupidFirstPick() === p.playerId
+                            ? this.translate.instant('roleActions.chosen')
+                            : this.translate.instant('roleActions.pickLover');
                 }
             } else if (this.showDoctor() && this.settings().doctorCanSelfProtect) {
-                actionLabel = this.lastDoctorTarget() === myId ? undefined : 'Protect';
+                actionLabel =
+                    this.lastDoctorTarget() === myId
+                        ? undefined
+                        : this.translate.instant('roleActions.protect');
             }
             return {
                 playerId: p.playerId,
@@ -438,9 +481,9 @@ export class RoomShell {
         let lastAnnouncedView: GameView | null = null;
         effect(() => {
             const view = this.view();
-            const text = PHASE_ANNOUNCEMENT[view];
-            if (text && view !== lastAnnouncedView) {
-                this.appendSystemMessage(text);
+            const key = PHASE_ANNOUNCEMENT_KEY[view];
+            if (key && view !== lastAnnouncedView) {
+                this.appendSystemMessage(this.translate.instant(key));
             }
             lastAnnouncedView = view;
         });
@@ -526,7 +569,10 @@ export class RoomShell {
             }
             if (notification.kind === 'player.died') {
                 this.lastDeathText.set(
-                    `${this.playerName(notification.playerId)} died (${notification.cause}).`
+                    this.translate.instant('roomShell.playerDied', {
+                        name: this.playerName(notification.playerId),
+                        cause: notification.cause
+                    })
                 );
             }
             if (notification.kind === 'vote.cast') {
@@ -605,7 +651,13 @@ export class RoomShell {
     private appendSystemMessage(text: string, sentAtUtc = new Date().toISOString()): void {
         this.townMessages.update((messages) => [
             ...messages,
-            { senderId: 'system', senderName: 'System', text, sentAtUtc, isSystem: true }
+            {
+                senderId: 'system',
+                senderName: this.translate.instant('roomShell.systemSenderName'),
+                text,
+                sentAtUtc,
+                isSystem: true
+            }
         ]);
     }
 
@@ -800,13 +852,15 @@ export class RoomShell {
                     });
                     if (kicked) {
                         this.appendSystemMessage(
-                            `${kicked.displayName} was kicked from the lobby.`
+                            this.translate.instant('roomShell.playerKicked', {
+                                name: kicked.displayName
+                            })
                         );
                     }
                 },
                 error: (error: unknown) =>
                     this.toast.show(
-                        extractErrorMessage(error, 'Could not kick that player.'),
+                        extractErrorMessage(error, this.translate.instant('toasts.kickFailed')),
                         'error'
                     )
             });
@@ -831,7 +885,7 @@ export class RoomShell {
                     }),
                 error: (error: unknown) =>
                     this.toast.show(
-                        extractErrorMessage(error, 'Could not update ready state.'),
+                        extractErrorMessage(error, this.translate.instant('toasts.readyFailed')),
                         'error'
                     )
             });
@@ -851,7 +905,10 @@ export class RoomShell {
                 },
                 error: (error: unknown) =>
                     this.toast.show(
-                        extractErrorMessage(error, 'Could not cancel the lobby.'),
+                        extractErrorMessage(
+                            error,
+                            this.translate.instant('toasts.cancelLobbyFailed')
+                        ),
                         'error'
                     )
             });
@@ -871,7 +928,10 @@ export class RoomShell {
                 },
                 error: (error: unknown) =>
                     this.toast.show(
-                        extractErrorMessage(error, 'Could not leave the lobby.'),
+                        extractErrorMessage(
+                            error,
+                            this.translate.instant('toasts.leaveLobbyFailed')
+                        ),
                         'error'
                     )
             });
@@ -917,7 +977,10 @@ export class RoomShell {
                 void this.gameState.refreshLobby(roomCode);
             },
             error: (error: unknown) =>
-                this.toast.show(extractErrorMessage(error, 'Could not start a rematch.'), 'error')
+                this.toast.show(
+                    extractErrorMessage(error, this.translate.instant('toasts.rematchFailed')),
+                    'error'
+                )
         });
     }
 
@@ -940,7 +1003,10 @@ export class RoomShell {
                         next: () => void this.gameState.refreshGameState(lobby.roomCode),
                         error: (error: unknown) =>
                             this.toast.show(
-                                extractErrorMessage(error, 'Could not start the game.'),
+                                extractErrorMessage(
+                                    error,
+                                    this.translate.instant('toasts.startGameFailed')
+                                ),
                                 'error'
                             )
                     });
@@ -957,10 +1023,13 @@ export class RoomShell {
         }
     }
 
-    cupidFirstPickHint(): string {
+    readonly cupidFirstPickHint = computed(() => {
+        this.translate.currentLang();
         const first = this.cupidFirstPick();
         return first
-            ? `First love chosen: ${this.playerName(first)}. Pick the second.`
-            : 'Pick your first love.';
-    }
+            ? this.translate.instant('roomShell.cupidHint.pickSecond', {
+                  name: this.playerName(first)
+              })
+            : this.translate.instant('roomShell.cupidHint.pickFirst');
+    });
 }

@@ -10,14 +10,14 @@
                 class="confirm-dialog__button confirm-dialog__button--cancel"
                 (click)="cancelled.emit()"
             >
-                {{ cancelLabel() }}
+                {{ resolvedCancelLabel() }}
             </button>
             <button
                 type="button"
                 class="confirm-dialog__button confirm-dialog__button--confirm"
                 (click)="confirmed.emit()"
             >
-                {{ confirmLabel() }}
+                {{ resolvedConfirmLabel() }}
             </button>
         </div>
     </div>

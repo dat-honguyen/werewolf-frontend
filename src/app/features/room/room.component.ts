@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { GameApiService } from '../../core/services/game-api.service';
 import { GameStateService } from '../../core/services/game-state.service';
@@ -16,7 +17,7 @@ import { RoomShell } from '../../shared/components/room-shell/room-shell';
 
 @Component({
     selector: 'app-room',
-    imports: [ToastList, ConfirmDialog, JoinNamePrompt, RoomShell],
+    imports: [ToastList, ConfirmDialog, JoinNamePrompt, RoomShell, TranslatePipe],
     templateUrl: './room.component.html',
     styleUrl: './room.component.scss'
 })
@@ -28,6 +29,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     private readonly gameApi = inject(GameApiService);
     private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly toast = inject(ToastService);
+    private readonly translate = inject(TranslateService);
     readonly gameStateService = inject(GameStateService);
 
     private roomCode = '';
@@ -84,7 +86,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         }
 
         if (!existingLobby) {
-            this.toast.show('Could not join that room. Check the code and try again.', 'error');
+            this.toast.show(this.translate.instant('home.errors.joinFailed'), 'error');
             void this.router.navigate(['/']);
             return;
         }
@@ -100,7 +102,7 @@ export class RoomComponent implements OnInit, OnDestroy {
                     this.toast.show(
                         extractErrorMessage(
                             error,
-                            'Could not join that room. Check the code and try again.'
+                            this.translate.instant('home.errors.joinFailed')
                         ),
                         'error'
                     );

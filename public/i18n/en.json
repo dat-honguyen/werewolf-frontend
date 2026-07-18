@@ -1,0 +1,240 @@
+{
+    "common": {
+        "close": "Close",
+        "cancel": "Cancel",
+        "dismiss": "Dismiss"
+    },
+    "roles": {
+        "Villager": "Villager",
+        "Werewolf": "Werewolf",
+        "Seer": "Seer",
+        "Doctor": "Doctor",
+        "Hunter": "Hunter",
+        "Witch": "Witch",
+        "Cupid": "Cupid",
+        "Tanner": "Tanner"
+    },
+    "home": {
+        "rejoin": {
+            "message": "You were still in room {{roomCode}}.",
+            "rejoinButton": "Rejoin",
+            "dismissButton": "Dismiss"
+        },
+        "logo": {
+            "were": "Were",
+            "wolf": "wolf"
+        },
+        "tabs": {
+            "create": "Create Room",
+            "join": "Join Room"
+        },
+        "displayName": {
+            "label": "Display name",
+            "placeholder": "Your name"
+        },
+        "privacy": {
+            "label": "Room privacy",
+            "public": "Public",
+            "private": "Private",
+            "privateHint": "Private rooms aren't supported yet",
+            "note": "Every room is public for now — anyone can find it in Join Room."
+        },
+        "playerLimit": "Player limit",
+        "notSupported": "Not supported yet",
+        "discussionPhase": "Day discussion phase",
+        "discussionOption": "120 Seconds (Classic)",
+        "specialRoles": "Special roles",
+        "specialRolesHint": "Configurable in-lobby after creation",
+        "createButton": "Gather a New Village",
+        "codeEntryLabel": "Enter village code",
+        "enterButton": "Enter Village",
+        "browseLabel": "Or browse open villages",
+        "scouting": "Scouting the woods…",
+        "noOpenVillages": "No open villages right now. Create one.",
+        "table": {
+            "code": "Code",
+            "host": "Host",
+            "players": "Players",
+            "specialRoles": "Special roles",
+            "joined": "joined",
+            "min": "min",
+            "join": "Join"
+        },
+        "errors": {
+            "needName": "Enter a display name first.",
+            "createFailed": "Could not create the room. Try again.",
+            "needNameAndCode": "Enter your display name and a room code.",
+            "joinFailed": "Could not join that room. Check the code and try again."
+        }
+    },
+    "joinPrompt": {
+        "title": "Join the Room",
+        "instruction": "Enter a display name to join this lobby.",
+        "placeholder": "Your name",
+        "joinButton": "Join",
+        "errorNeedName": "Enter a display name to join."
+    },
+    "room": {
+        "quitButton": "Quit game",
+        "quitConfirm": {
+            "title": "Quit this game?",
+            "message": "You will be marked dead and cannot rejoin.",
+            "confirmLabel": "Quit",
+            "cancelLabel": "Stay"
+        }
+    },
+    "roomShell": {
+        "logo": "LUNARIS",
+        "nightMode": "🌙 Night Mode",
+        "dayMode": "☀️ Day Mode",
+        "roomCode": "Room #{{code}}",
+        "copyInviteLink": "🔗 Copy invite link",
+        "rulesAndSetup": "⚙️ Rules & Setup",
+        "livingSouls": "Living Souls",
+        "fallen": "Fallen",
+        "covenOverview": "Coven Live Overview",
+        "discussionEndsIn": "Discussion ends in",
+        "publicSquare": "Public Square",
+        "privateGrimoires": "Private Grimoires",
+        "chatPlaceholder": "Cast suspicion or whisper secret info...",
+        "chatDisabled": "Private Grimoires isn't wired up yet. Coordinate over voice or a group chat outside the app.",
+        "headerActions": {
+            "forceStart": "Force Start",
+            "startGame": "Start Game",
+            "advanceToVoting": "Advance to Voting",
+            "closeVotingEarly": "Close Voting Early",
+            "rematch": "Rematch in this room"
+        },
+        "objectives": {
+            "villager": "Find and eliminate every werewolf.",
+            "werewolf": "Eliminate all villagers.",
+            "tanner": "Get yourself lynched by the village."
+        },
+        "statusLabels": {
+            "lobby": "LOBBY",
+            "night": "NIGHT {{n}}",
+            "dayDiscussion": "DAY DISCUSSION",
+            "dayVoting": "DAY VOTING",
+            "hunterRevenge": "HUNTER'S REVENGE",
+            "gameOver": "GAME OVER"
+        },
+        "banner": {
+            "lobbyStatus": "Waiting for everyone to ready up.",
+            "nightStatus": "Everyone else is asleep...",
+            "dayStatus": "Cast your votes of suspicion!",
+            "votingStatus": "Choose who to send to the gallows.",
+            "hunterStatus": "The Hunter may take one soul down with them.",
+            "gameOverStatus": "{{faction}} win!"
+        },
+        "seerResult": {
+            "isWerewolf": "{{name}} is a werewolf",
+            "notWerewolf": "{{name}} is NOT a werewolf"
+        },
+        "witchInfo": {
+            "targeted": "The werewolves are coming for {{name}} tonight.",
+            "unknown": "You don't know who the werewolves targeted tonight."
+        },
+        "cupidHint": {
+            "pickFirst": "Pick your first love.",
+            "pickSecond": "First love chosen: {{name}}. Pick the second."
+        },
+        "phaseAnnouncement": {
+            "dayDiscussion": "☀️ Day discussion is open. Chat is visible to everyone.",
+            "night": "🌙 Night has fallen. The village sleeps.",
+            "voting": "⚖️ Voting is open — cast your suspicion."
+        },
+        "systemSenderName": "System",
+        "noKill": "no kill",
+        "playerKicked": "{{name}} was kicked from the lobby.",
+        "playerDied": "{{name}} died ({{cause}}).",
+        "gridActions": {
+            "kick": "Kick",
+            "vote": "Vote",
+            "shoot": "Shoot"
+        }
+    },
+    "actionPanel": {
+        "readyUp": "Ready Up",
+        "unready": "UnReady",
+        "cancelLobby": "Cancel Lobby",
+        "leaveLobby": "Leave Lobby",
+        "locked": "Locked: {{name}}",
+        "werewolfPass": "Pass (no kill)",
+        "healTarget": "Heal target",
+        "witchPassAll": "Pass (use neither potion)",
+        "witchEndTurn": "End turn",
+        "submitVote": "Submit Vote",
+        "hunterPass": "Pass",
+        "viewLog": "View full game log",
+        "leaveRoom": "Leave room",
+        "abstain": "Abstain",
+        "votesOf": "{{voted}} / {{total}} voted"
+    },
+    "roleActions": {
+        "inspect": "Inspect",
+        "attack": "Attack",
+        "protect": "Protect",
+        "poison": "Poison",
+        "pickLover": "Pick lover",
+        "chosen": "Chosen"
+    },
+    "playerGrid": {
+        "you": "YOU",
+        "host": "HOST",
+        "active": "Active",
+        "deceased": "Deceased",
+        "ready": "Ready",
+        "notReady": "Not ready",
+        "votes": "{{count}} votes"
+    },
+    "settings": {
+        "title": "Rules & Setup",
+        "roleDistribution": "Role Distribution",
+        "applyRoleDistribution": "Apply Role Distribution",
+        "advancedLogic": "Advanced Gameplay Logic",
+        "revealRoleOnDeath": "Reveal role on death",
+        "doctorCanSelfProtect": "Doctor can self-protect",
+        "werewolfCanTargetWerewolf": "Werewolves can target werewolves",
+        "werewolfCanVoteNoKill": "Werewolves can vote no-kill (pass)",
+        "witchSinglePotionPerNight": "Witch: single potion per night",
+        "allowForceStart": "Allow force start",
+        "minPlayers": "Minimum Players Required",
+        "discussionDuration": "Discussion Duration (seconds)",
+        "applySessionRules": "Apply Session Rules",
+        "close": "Close",
+        "version": "FE {{fe}} · BE {{be}}"
+    },
+    "identityGrimoire": {
+        "title": "Identity Grimoire",
+        "tapToInspect": "Tap card to inspect",
+        "awaitingStart": "Awaiting the game to start",
+        "yourRole": "Your Role"
+    },
+    "confirmDialog": {
+        "defaultConfirm": "Confirm",
+        "defaultCancel": "Cancel"
+    },
+    "gameState": {
+        "aPlayer": "A player",
+        "quitFailed": "Could not quit the game. Try again.",
+        "removedFromLobby": "You were removed from the lobby.",
+        "playerJoined": "{{name}} joined the lobby.",
+        "playerLeft": "{{name}} left the lobby.",
+        "playerReadyChanged": "{{name}} is {{status}}.",
+        "ready": "ready",
+        "notReady": "not ready",
+        "lobbyCancelled": "The host cancelled the lobby."
+    },
+    "toasts": {
+        "kickFailed": "Could not kick that player.",
+        "readyFailed": "Could not update ready state.",
+        "cancelLobbyFailed": "Could not cancel the lobby.",
+        "leaveLobbyFailed": "Could not leave the lobby.",
+        "rematchFailed": "Could not start a rematch.",
+        "startGameFailed": "Could not start the game.",
+        "roleDistributionUpdated": "Role distribution updated.",
+        "roleDistributionFailed": "Could not update role distribution.",
+        "gameSettingsUpdated": "Game settings updated.",
+        "gameSettingsFailed": "Could not update game settings."
+    }
+}

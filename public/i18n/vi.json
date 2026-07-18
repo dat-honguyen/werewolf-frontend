@@ -1,0 +1,240 @@
+{
+    "common": {
+        "close": "Đóng",
+        "cancel": "Hủy",
+        "dismiss": "Bỏ qua"
+    },
+    "roles": {
+        "Villager": "Dân làng",
+        "Werewolf": "Ma sói",
+        "Seer": "Tiên tri",
+        "Doctor": "Bác sĩ",
+        "Hunter": "Thợ săn",
+        "Witch": "Phù thủy",
+        "Cupid": "Thần Tình Yêu",
+        "Tanner": "Thợ thuộc da"
+    },
+    "home": {
+        "rejoin": {
+            "message": "Bạn vẫn còn trong phòng {{roomCode}}.",
+            "rejoinButton": "Vào lại",
+            "dismissButton": "Bỏ qua"
+        },
+        "logo": {
+            "were": "Người",
+            "wolf": "sói"
+        },
+        "tabs": {
+            "create": "Tạo phòng",
+            "join": "Vào phòng"
+        },
+        "displayName": {
+            "label": "Tên hiển thị",
+            "placeholder": "Tên của bạn"
+        },
+        "privacy": {
+            "label": "Chế độ phòng",
+            "public": "Công khai",
+            "private": "Riêng tư",
+            "privateHint": "Phòng riêng tư chưa được hỗ trợ",
+            "note": "Hiện tại mọi phòng đều công khai — ai cũng có thể tìm thấy trong mục Vào phòng."
+        },
+        "playerLimit": "Giới hạn người chơi",
+        "notSupported": "Chưa được hỗ trợ",
+        "discussionPhase": "Thời gian thảo luận ban ngày",
+        "discussionOption": "120 giây (Cổ điển)",
+        "specialRoles": "Vai trò đặc biệt",
+        "specialRolesHint": "Có thể tùy chỉnh trong phòng chờ sau khi tạo",
+        "createButton": "Lập một Ngôi Làng Mới",
+        "codeEntryLabel": "Nhập mã làng",
+        "enterButton": "Vào Làng",
+        "browseLabel": "Hoặc duyệt các làng đang mở",
+        "scouting": "Đang dò xét khu rừng…",
+        "noOpenVillages": "Hiện chưa có làng nào mở. Hãy tạo một cái.",
+        "table": {
+            "code": "Mã",
+            "host": "Chủ phòng",
+            "players": "Người chơi",
+            "specialRoles": "Vai trò đặc biệt",
+            "joined": "đã vào",
+            "min": "tối thiểu",
+            "join": "Vào"
+        },
+        "errors": {
+            "needName": "Hãy nhập tên hiển thị trước đã.",
+            "createFailed": "Không thể tạo phòng. Vui lòng thử lại.",
+            "needNameAndCode": "Hãy nhập tên hiển thị và mã phòng.",
+            "joinFailed": "Không thể vào phòng đó. Kiểm tra lại mã và thử lại."
+        }
+    },
+    "joinPrompt": {
+        "title": "Vào Phòng",
+        "instruction": "Nhập tên hiển thị để vào phòng chờ này.",
+        "placeholder": "Tên của bạn",
+        "joinButton": "Vào",
+        "errorNeedName": "Hãy nhập tên hiển thị để vào phòng."
+    },
+    "room": {
+        "quitButton": "Rời trận",
+        "quitConfirm": {
+            "title": "Rời trận đấu này?",
+            "message": "Bạn sẽ được đánh dấu là đã chết và không thể vào lại.",
+            "confirmLabel": "Rời trận",
+            "cancelLabel": "Ở lại"
+        }
+    },
+    "roomShell": {
+        "logo": "LUNARIS",
+        "nightMode": "🌙 Chế Độ Đêm",
+        "dayMode": "☀️ Chế Độ Ngày",
+        "roomCode": "Phòng #{{code}}",
+        "copyInviteLink": "🔗 Sao chép liên kết mời",
+        "rulesAndSetup": "⚙️ Luật Chơi & Thiết Lập",
+        "livingSouls": "Linh Hồn Còn Sống",
+        "fallen": "Đã Ngã Xuống",
+        "covenOverview": "Tổng Quan Hội Đồng",
+        "discussionEndsIn": "Thảo luận kết thúc sau",
+        "publicSquare": "Quảng Trường Làng",
+        "privateGrimoires": "Sách Phép Riêng",
+        "chatPlaceholder": "Gieo nghi ngờ hoặc thì thầm bí mật...",
+        "chatDisabled": "Sách Phép Riêng chưa được kết nối. Hãy trao đổi qua giọng nói hoặc nhóm chat bên ngoài ứng dụng.",
+        "headerActions": {
+            "forceStart": "Bắt Đầu Ngay",
+            "startGame": "Bắt Đầu Trò Chơi",
+            "advanceToVoting": "Chuyển Sang Bỏ Phiếu",
+            "closeVotingEarly": "Kết Thúc Bỏ Phiếu Sớm",
+            "rematch": "Chơi Lại Trong Phòng Này"
+        },
+        "objectives": {
+            "villager": "Tìm và loại bỏ mọi con ma sói.",
+            "werewolf": "Loại bỏ tất cả dân làng.",
+            "tanner": "Khiến bản thân bị dân làng treo cổ."
+        },
+        "statusLabels": {
+            "lobby": "PHÒNG CHỜ",
+            "night": "ĐÊM {{n}}",
+            "dayDiscussion": "THẢO LUẬN NGÀY",
+            "dayVoting": "BỎ PHIẾU NGÀY",
+            "hunterRevenge": "BÁO THÙ CỦA THỢ SĂN",
+            "gameOver": "KẾT THÚC TRÒ CHƠI"
+        },
+        "banner": {
+            "lobbyStatus": "Đang chờ mọi người sẵn sàng.",
+            "nightStatus": "Mọi người khác đang ngủ...",
+            "dayStatus": "Hãy bỏ phiếu nghi ngờ!",
+            "votingStatus": "Chọn người sẽ bị đưa lên giá treo cổ.",
+            "hunterStatus": "Thợ săn có thể kéo theo một người khi ngã xuống.",
+            "gameOverStatus": "{{faction}} thắng!"
+        },
+        "seerResult": {
+            "isWerewolf": "{{name}} là ma sói",
+            "notWerewolf": "{{name}} KHÔNG phải ma sói"
+        },
+        "witchInfo": {
+            "targeted": "Bầy sói đang nhắm vào {{name}} đêm nay.",
+            "unknown": "Bạn không biết bầy sói đã nhắm vào ai đêm nay."
+        },
+        "cupidHint": {
+            "pickFirst": "Chọn người yêu đầu tiên của bạn.",
+            "pickSecond": "Đã chọn người yêu đầu: {{name}}. Hãy chọn người thứ hai."
+        },
+        "phaseAnnouncement": {
+            "dayDiscussion": "☀️ Đã mở thảo luận ban ngày. Mọi người đều thấy được nội dung trò chuyện.",
+            "night": "🌙 Màn đêm buông xuống. Ngôi làng chìm vào giấc ngủ.",
+            "voting": "⚖️ Đã mở bỏ phiếu — hãy nêu nghi ngờ của bạn."
+        },
+        "systemSenderName": "Hệ thống",
+        "noKill": "không giết",
+        "playerKicked": "{{name}} đã bị đuổi khỏi phòng chờ.",
+        "playerDied": "{{name}} đã chết ({{cause}}).",
+        "gridActions": {
+            "kick": "Đuổi",
+            "vote": "Bầu",
+            "shoot": "Bắn"
+        }
+    },
+    "actionPanel": {
+        "readyUp": "Sẵn Sàng",
+        "unready": "Hủy Sẵn Sàng",
+        "cancelLobby": "Hủy Phòng Chờ",
+        "leaveLobby": "Rời Phòng Chờ",
+        "locked": "Đã chốt: {{name}}",
+        "werewolfPass": "Bỏ qua (không giết)",
+        "healTarget": "Cứu chữa mục tiêu",
+        "witchPassAll": "Bỏ qua (không dùng thuốc nào)",
+        "witchEndTurn": "Kết thúc lượt",
+        "submitVote": "Gửi Phiếu Bầu",
+        "hunterPass": "Bỏ qua",
+        "viewLog": "Xem Toàn Bộ Nhật Ký Trận Đấu",
+        "leaveRoom": "Rời Phòng",
+        "abstain": "Phiếu Trắng",
+        "votesOf": "{{voted}} / {{total}} đã bỏ phiếu"
+    },
+    "roleActions": {
+        "inspect": "Dò Xét",
+        "attack": "Tấn Công",
+        "protect": "Bảo Vệ",
+        "poison": "Đầu Độc",
+        "pickLover": "Chọn Người Yêu",
+        "chosen": "Đã Chọn"
+    },
+    "playerGrid": {
+        "you": "BẠN",
+        "host": "CHỦ PHÒNG",
+        "active": "Còn sống",
+        "deceased": "Đã chết",
+        "ready": "Sẵn sàng",
+        "notReady": "Chưa sẵn sàng",
+        "votes": "{{count}} phiếu"
+    },
+    "settings": {
+        "title": "Luật Chơi & Thiết Lập",
+        "roleDistribution": "Phân Bổ Vai Trò",
+        "applyRoleDistribution": "Áp Dụng Phân Bổ Vai Trò",
+        "advancedLogic": "Luật Chơi Nâng Cao",
+        "revealRoleOnDeath": "Tiết lộ vai trò khi chết",
+        "doctorCanSelfProtect": "Bác sĩ có thể tự bảo vệ",
+        "werewolfCanTargetWerewolf": "Ma sói có thể nhắm vào ma sói khác",
+        "werewolfCanVoteNoKill": "Ma sói có thể bỏ phiếu không giết (bỏ qua)",
+        "witchSinglePotionPerNight": "Phù thủy: chỉ một loại thuốc mỗi đêm",
+        "allowForceStart": "Cho phép bắt đầu ngay",
+        "minPlayers": "Số Người Chơi Tối Thiểu",
+        "discussionDuration": "Thời Lượng Thảo Luận (giây)",
+        "applySessionRules": "Áp Dụng Luật Cho Phiên Chơi",
+        "close": "Đóng",
+        "version": "FE {{fe}} · BE {{be}}"
+    },
+    "identityGrimoire": {
+        "title": "Sách Phép Danh Tính",
+        "tapToInspect": "Chạm để xem",
+        "awaitingStart": "Đang chờ trò chơi bắt đầu",
+        "yourRole": "Vai Trò Của Bạn"
+    },
+    "confirmDialog": {
+        "defaultConfirm": "Xác nhận",
+        "defaultCancel": "Hủy"
+    },
+    "gameState": {
+        "aPlayer": "Một người chơi",
+        "quitFailed": "Không thể rời trò chơi. Vui lòng thử lại.",
+        "removedFromLobby": "Bạn đã bị đưa ra khỏi phòng chờ.",
+        "playerJoined": "{{name}} đã vào phòng chờ.",
+        "playerLeft": "{{name}} đã rời phòng chờ.",
+        "playerReadyChanged": "{{name}} {{status}}.",
+        "ready": "đã sẵn sàng",
+        "notReady": "chưa sẵn sàng",
+        "lobbyCancelled": "Chủ phòng đã hủy phòng chờ."
+    },
+    "toasts": {
+        "kickFailed": "Không thể đuổi người chơi đó.",
+        "readyFailed": "Không thể cập nhật trạng thái sẵn sàng.",
+        "cancelLobbyFailed": "Không thể hủy phòng chờ.",
+        "leaveLobbyFailed": "Không thể rời phòng chờ.",
+        "rematchFailed": "Không thể bắt đầu trận đấu lại.",
+        "startGameFailed": "Không thể bắt đầu trò chơi.",
+        "roleDistributionUpdated": "Đã cập nhật phân bổ vai trò.",
+        "roleDistributionFailed": "Không thể cập nhật phân bổ vai trò.",
+        "gameSettingsUpdated": "Đã cập nhật luật chơi.",
+        "gameSettingsFailed": "Không thể cập nhật luật chơi."
+    }
+}

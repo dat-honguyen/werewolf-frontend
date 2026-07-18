@@ -1,4 +1,5 @@
 import { Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 /**
  * Auxiliary phase controls that don't belong on a specific opponent's PlayerGrid card: self-only
@@ -8,7 +9,7 @@ import { Component, ElementRef, effect, input, output, viewChild } from '@angula
  */
 @Component({
     selector: 'app-room-action-panel',
-    imports: [],
+    imports: [TranslatePipe],
     templateUrl: './room-action-panel.html',
     styleUrl: './room-action-panel.scss'
 })
