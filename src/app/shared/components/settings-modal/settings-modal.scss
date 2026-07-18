@@ -96,6 +96,15 @@
             color: var(--text-main);
             font-weight: 700;
             font-size: 0.75rem;
+            appearance: textfield;
+            appearance: textfield;
+
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+                appearance: none;
+                appearance: none;
+                margin: 0;
+            }
 
             &:focus {
                 outline: none;
@@ -157,6 +166,15 @@
             padding: 0.35rem;
             color: var(--text-main);
             font-weight: 700;
+            appearance: textfield;
+            appearance: textfield;
+
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+                appearance: none;
+                appearance: none;
+                margin: 0;
+            }
 
             &:focus {
                 outline: none;
