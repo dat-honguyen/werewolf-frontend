@@ -1,12 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
-import path from 'node:path';
 
 // werewolf-frontend and werewolf (the backend) are checked out as sibling directories -- see
-// werewolf's .claude/skills/run-werewolf/driver.sh, the same script the run-werewolf agent skill
-// uses. `up` is idempotent (checks its own PID file / port before doing anything, and `podman
-// compose up -d` no-ops on an already-running Postgres container), so it's safe to invoke on
-// every `npm run e2e` regardless of whether the backend was already running.
-const WEREWOLF_BACKEND_ROOT = path.resolve(__dirname, '../werewolf');
+// e2e/start-backend.cjs, which locates the backend repo via that sibling-directory assumption.
+// Its startup steps are idempotent (checks health before doing anything, `podman compose up -d`
+// and `podman machine start` both no-op if already running), so it's safe to invoke on every
+// `npm run e2e` regardless of whether the backend was already up.
 
 export default defineConfig({
     testDir: './e2e',
@@ -31,13 +29,17 @@ export default defineConfig({
     // the CORS entry in appsettings.Development.json.
     webServer: [
         {
-            // Starts Postgres (via podman compose) and the backend if either isn't already up --
-            // see the comment on WEREWOLF_BACKEND_ROOT above. `reuseExistingServer: true`
-            // unconditionally: driver.sh's own idempotency already handles "already running", and
-            // this backend isn't something Playwright should ever kill after the run (unlike the
-            // frontend dev server below, other things may depend on it staying up).
-            command: '.claude/skills/run-werewolf/driver.sh up',
-            cwd: WEREWOLF_BACKEND_ROOT,
+            // Starts Postgres and the backend if either isn't already up -- see the module
+            // comment above. `reuseExistingServer: true` unconditionally: the startup script's
+            // own idempotency already handles "already running", and this backend isn't something
+            // Playwright should ever kill after the run (unlike the frontend dev server below,
+            // other things may depend on it staying up). e2e/start-backend.cjs delegates straight
+            // to driver.sh on Linux/CI; on Windows (no shell can exec a `.sh` file, and driver.sh's
+            // CRLF line endings break it even under WSL) it runs the equivalent steps directly,
+            // starting with `podman machine start` since podman's Postgres runs inside a VM that
+            // isn't already up like it is in CI. Runs with the frontend repo as cwd (this file's
+            // directory) -- start-backend.cjs locates the werewolf repo itself.
+            command: 'node e2e/start-backend.cjs',
             url: 'http://localhost:5080/health/ready',
             reuseExistingServer: true,
             timeout: 180_000
