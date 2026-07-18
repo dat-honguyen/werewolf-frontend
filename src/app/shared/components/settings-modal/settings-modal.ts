@@ -4,9 +4,11 @@ import { GameStateService } from '../../../core/services/game-state.service';
 import { LobbyApiService } from '../../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../../core/services/player-identity.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { VersionApiService } from '../../../core/services/version-api.service';
 import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { DEFAULT_GAME_SETTINGS, GameSettings } from '../../../core/models/lobby.model';
 import { Role } from '../../../core/models/role.model';
+import { APP_VERSION } from '../../../../environments/version';
 
 const ALL_ROLES: Role[] = [
     'Villager',
@@ -56,11 +58,22 @@ export class SettingsModal {
     private readonly lobbyApi = inject(LobbyApiService);
     private readonly playerIdentity = inject(PlayerIdentityService);
     private readonly toast = inject(ToastService);
+    private readonly versionApi = inject(VersionApiService);
 
     readonly closed = output<void>();
     /** True while a game is in progress -- rules are locked in once assigned, so this shows
      * everyone the configured settings without letting anyone edit them. */
     readonly readOnly = input(false);
+
+    readonly feVersion = APP_VERSION;
+    readonly beVersion = signal<string>('…');
+
+    constructor() {
+        this.versionApi
+            .getVersion()
+            .then((version) => this.beVersion.set(version))
+            .catch(() => this.beVersion.set('unknown'));
+    }
 
     readonly allRoles = ALL_ROLES;
     readonly roleDistributionDraft = signal<Partial<Record<Role, number>>>({

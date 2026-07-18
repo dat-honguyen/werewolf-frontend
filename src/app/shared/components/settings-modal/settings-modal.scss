@@ -97,11 +97,9 @@
             font-weight: 700;
             font-size: 0.75rem;
             appearance: textfield;
-            appearance: textfield;
 
             &::-webkit-outer-spin-button,
             &::-webkit-inner-spin-button {
-                appearance: none;
                 appearance: none;
                 margin: 0;
             }
@@ -167,11 +165,9 @@
             color: var(--text-main);
             font-weight: 700;
             appearance: textfield;
-            appearance: textfield;
 
             &::-webkit-outer-spin-button,
             &::-webkit-inner-spin-button {
-                appearance: none;
                 appearance: none;
                 margin: 0;
             }
@@ -214,5 +210,13 @@
             border-color: var(--primary);
             color: var(--primary);
         }
+    }
+
+    &__version {
+        margin: 0.5rem 0 0;
+        text-align: center;
+        font-size: 0.7rem;
+        color: var(--text-muted, var(--text-main));
+        opacity: 0.6;
     }
 }
