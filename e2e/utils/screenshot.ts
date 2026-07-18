@@ -26,7 +26,16 @@ export function createStepper(page: Page, testName: string): (label: string) => 
 
     return async (label: string) => {
         step += 1;
-        const fileName = `${String(step).padStart(2, '0')}-${label.replace(/\s+/g, '-').toLowerCase()}.png`;
+        // Strips characters Windows/NTFS treats specially in filenames -- a literal `:` in
+        // particular doesn't just get rejected, it silently splits the name into an NTFS
+        // alternate data stream (`06-night-1` + a hidden `:...png` stream), leaving a visible
+        // 0-byte file with no extension and the actual screenshot bytes stashed somewhere no
+        // image viewer will find them.
+        const safeLabel = label
+            .replace(/[:*?"<>|]/g, '')
+            .replace(/\s+/g, '-')
+            .toLowerCase();
+        const fileName = `${String(step).padStart(2, '0')}-${safeLabel}.png`;
         await page.screenshot({ path: path.join(dir, fileName), fullPage: false });
     };
 }

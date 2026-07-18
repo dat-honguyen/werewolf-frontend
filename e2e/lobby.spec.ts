@@ -21,4 +21,14 @@ test('create a room and verify the settings modal has no consensus toggle', asyn
     // Regression check: this toggle was removed once the backend started always
     // resolving the werewolf vote by majority instead of requiring consensus.
     await expect(page.getByText('Werewolves require consensus')).toHaveCount(0);
+
+    // Regression check: role-count and min-players/discussion-duration number inputs used to show
+    // the browser's native up/down spinner arrows -- now suppressed via `appearance: textfield`.
+    await expect(page.locator('.settings-modal__role-row input[type="number"]').first()).toHaveCSS(
+        'appearance',
+        'textfield'
+    );
+    await expect(
+        page.locator('.settings-modal__number-row input[type="number"]').first()
+    ).toHaveCSS('appearance', 'textfield');
 });
