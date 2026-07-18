@@ -113,9 +113,12 @@
     }
 
     &__role-icon {
-        width: 2.75rem;
-        height: 2.75rem;
+        // Enlarged from 2.75rem so the role portraits (small illustrated scenes, not flat
+        // glyphs) read clearly instead of being cramped into a tiny badge.
+        width: 4rem;
+        height: 4rem;
         color: var(--primary);
+        flex-shrink: 0;
     }
 
     &__role-text {

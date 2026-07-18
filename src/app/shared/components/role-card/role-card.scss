@@ -48,8 +48,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 4.5rem;
-        height: 4.5rem;
+
+        // Enlarged from the original 4.5rem so the role portraits (small illustrated scenes, not
+        // flat glyphs) actually read at a legible size instead of being cramped into a tiny badge.
+        width: 6.25rem;
+        height: 6.25rem;
         border-radius: 50%;
         border: 1.5px solid var(--color-gold);
         background: radial-gradient(
@@ -63,8 +66,8 @@
     }
 
     &__medallion--back {
-        width: 5.5rem;
-        height: 5.5rem;
+        width: 7rem;
+        height: 7rem;
         background: radial-gradient(circle, rgb(217 164 65 / 8%), var(--color-bg-void) 75%);
     }
 
@@ -72,8 +75,8 @@
         position: absolute;
         top: 50%;
         left: 42%;
-        width: 2.4rem;
-        height: 2.4rem;
+        width: 3rem;
+        height: 3rem;
         color: var(--color-gold);
         filter: drop-shadow(0 0 4px rgb(217 164 65 / 60%));
         transform: translate(-50%, -50%);
@@ -83,15 +86,15 @@
         position: absolute;
         top: 30%;
         left: 62%;
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 1.9rem;
+        height: 1.9rem;
         color: var(--color-gold);
         transform: translate(-50%, -50%);
     }
 
     &__icon {
-        width: 2.4rem;
-        height: 2.4rem;
+        width: 3.6rem;
+        height: 3.6rem;
         color: var(--color-gold);
         filter: drop-shadow(0 0 4px rgb(217 164 65 / 50%));
     }
