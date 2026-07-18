@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 
 let cachedRunTimestamp: string | null = null;
 
-function runTimestamp(): string {
+export function runTimestamp(): string {
     cachedRunTimestamp ??= readFileSync(
         path.join(__dirname, '..', '.run-timestamp'),
         'utf-8'

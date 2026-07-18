@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
 
 /**
  * Auxiliary phase controls that don't belong on a specific opponent's PlayerGrid card: self-only
@@ -60,4 +60,20 @@ export class RoomActionPanel {
     readonly logEntries = input<string[] | null>(null);
     readonly showLeaveRoom = input(false);
     readonly leaveRoom = output<void>();
+
+    private readonly logListEl = viewChild<ElementRef<HTMLUListElement>>('logList');
+
+    constructor() {
+        // The log reads oldest-to-newest (role assignments first, "X wins!" last), but the list
+        // renders inside a fixed-height scroll box that opens scrolled to the top -- without this,
+        // the one line players actually opened the log for (how the game just ended) is hidden
+        // below a wall of role-assignment history they have to scroll past manually to find.
+        effect(() => {
+            this.logEntries();
+            const el = this.logListEl()?.nativeElement;
+            if (el) {
+                queueMicrotask(() => el.scrollTo({ top: el.scrollHeight }));
+            }
+        });
+    }
 }

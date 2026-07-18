@@ -74,7 +74,7 @@
         View full game log
     </button>
     } @if (logEntries(); as entries) {
-    <ul class="room-action-panel__log">
+    <ul class="room-action-panel__log" #logList>
         @for (entry of entries; track $index) {
         <li>{{ entry }}</li>
         }

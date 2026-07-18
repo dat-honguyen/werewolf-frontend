@@ -440,18 +440,28 @@ export class RoomShell {
             const view = this.view();
             const text = PHASE_ANNOUNCEMENT[view];
             if (text && view !== lastAnnouncedView) {
-                this.townMessages.update((messages) => [
-                    ...messages,
-                    {
-                        senderId: 'system',
-                        senderName: 'System',
-                        text,
-                        sentAtUtc: new Date().toISOString(),
-                        isSystem: true
-                    }
-                ]);
+                this.appendSystemMessage(text);
             }
             lastAnnouncedView = view;
+        });
+
+        // GameStateService.systemMessages carries room-wide status updates (join/leave/ready/
+        // game-ended) that used to be ToastService popups -- folded into Town Square here instead
+        // so a burst of them (several players joining at once) reads as chat history rather than
+        // a stack of toasts covering the header and sidebar. `mergedSystemMessageCount` (a plain
+        // closure variable, not a signal) tracks how many entries this effect has already copied
+        // over, so re-running it on every new arrival only appends the delta instead of
+        // re-appending the whole array each time.
+        let mergedSystemMessageCount = 0;
+        effect(() => {
+            const systemMessages = this.gameState.systemMessages();
+            if (systemMessages.length > mergedSystemMessageCount) {
+                const newOnes = systemMessages.slice(mergedSystemMessageCount);
+                mergedSystemMessageCount = systemMessages.length;
+                for (const message of newOnes) {
+                    this.appendSystemMessage(message.text, message.sentAtUtc);
+                }
+            }
         });
 
         effect(() => {
@@ -590,6 +600,13 @@ export class RoomShell {
 
     selectChatTab(tab: ChatTab): void {
         this.chatTab.set(tab);
+    }
+
+    private appendSystemMessage(text: string, sentAtUtc = new Date().toISOString()): void {
+        this.townMessages.update((messages) => [
+            ...messages,
+            { senderId: 'system', senderName: 'System', text, sentAtUtc, isSystem: true }
+        ]);
     }
 
     sendTownMessage(): void {
@@ -782,7 +799,9 @@ export class RoomShell {
                         players: lobby.players.filter((p) => p.playerId !== playerId)
                     });
                     if (kicked) {
-                        this.toast.show(`${kicked.displayName} was kicked from the lobby.`, 'info');
+                        this.appendSystemMessage(
+                            `${kicked.displayName} was kicked from the lobby.`
+                        );
                     }
                 },
                 error: (error: unknown) =>

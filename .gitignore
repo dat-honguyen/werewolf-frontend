@@ -43,6 +43,7 @@ __screenshots__/
 /test-results
 /playwright-report
 /e2e/screenshots
+/e2e/videos
 /e2e/.run-timestamp
 /blob-report
 /playwright/.cache

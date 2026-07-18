@@ -18,6 +18,11 @@ export type GameView =
     | 'hunter-revenge'
     | 'game-over';
 
+export interface SystemMessage {
+    text: string;
+    sentAtUtc: string;
+}
+
 const LOBBY_RELEVANT_NOTIFICATION_KINDS = new Set(['lobby.updated']);
 
 @Injectable({ providedIn: 'root' })
@@ -33,6 +38,14 @@ export class GameStateService {
     readonly lobby: WritableSignal<LocalLobbyState | null> = signal(null);
     readonly gameState: WritableSignal<GameStateResponse | null> = signal(null);
     readonly hasSeenRoleReveal = signal(false);
+
+    /** Room-wide status updates (join/leave/ready/kicked/game-ended) that RoomShell folds into the
+     * Town Square as system chat lines instead of ToastService popups -- a burst of these (several
+     * players joining/readying within the same second) used to stack toasts tall enough to cover
+     * the header and sidebar. Actual failures from the *current* user's own action (couldn't quit,
+     * removed from lobby, host cancelled) stay as toasts: those need to interrupt, not scroll by in
+     * a chat log the user might not be looking at. */
+    readonly systemMessages: WritableSignal<SystemMessage[]> = signal([]);
 
     /** The last GameState.Version / LobbyState.Version this client knows about -- see the
      * version-gap resync in startSync() below. These are two unrelated counters (different
@@ -167,7 +180,7 @@ export class GameStateService {
                 );
             }
             if (notification.kind === 'game.ended') {
-                this.toast.show('The game has ended.', 'info');
+                this.announceSystem('🏆 The game has ended.');
             }
         });
 
@@ -240,12 +253,12 @@ export class GameStateService {
 
         for (const player of next.players) {
             if (!prevIds.has(player.playerId)) {
-                this.toast.show(`${player.displayName} joined the lobby.`, 'info');
+                this.announceSystem(`${player.displayName} joined the lobby.`);
             }
         }
         for (const player of prev.players) {
             if (!nextIds.has(player.playerId) && player.playerId !== myPlayerId) {
-                this.toast.show(`${player.displayName} left the lobby.`, 'info');
+                this.announceSystem(`${player.displayName} left the lobby.`);
             }
         }
         for (const player of next.players) {
@@ -254,9 +267,8 @@ export class GameStateService {
             }
             const before = prev.players.find((p) => p.playerId === player.playerId);
             if (before && before.isReady !== player.isReady) {
-                this.toast.show(
-                    `${player.displayName} is ${player.isReady ? 'ready' : 'not ready'}.`,
-                    'info'
+                this.announceSystem(
+                    `${player.displayName} is ${player.isReady ? 'ready' : 'not ready'}.`
                 );
             }
         }
@@ -266,12 +278,26 @@ export class GameStateService {
         }
     }
 
+    /** Appends a system chat line for RoomShell's Town Square to pick up. Guards against an
+     * identical line landing twice in a row -- both `announceLobbyChanges` and the SignalR
+     * `game.ended` handler above call this from a resync/notification path that can occasionally
+     * re-fire for the same underlying change. */
+    private announceSystem(text: string): void {
+        this.systemMessages.update((messages) => {
+            if (messages[messages.length - 1]?.text === text) {
+                return messages;
+            }
+            return [...messages, { text, sentAtUtc: new Date().toISOString() }];
+        });
+    }
+
     private leaveToHome(): void {
         this.stopSync();
         this.playerIdentity.clearActiveRoom();
         this.lobby.set(null);
         this.gameState.set(null);
         this.roomCode.set(null);
+        this.systemMessages.set([]);
         this.lastKnownVersion = 0;
         this.lastKnownLobbyVersion = 0;
         void this.router.navigate(['/']);
