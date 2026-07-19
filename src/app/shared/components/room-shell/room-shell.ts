@@ -114,6 +114,10 @@ export class RoomShell {
     readonly showSettings = signal(false);
     readonly showRoleGuide = signal(false);
     readonly showPhaseTransition = signal(false);
+    /** Two-way bound to IdentityGrimoireCard's own flip state (not GameStateService's one-shot
+     * hasSeenRoleReveal) so the redundant objective hint below can hide once the card's back face
+     * -- which already states the win condition -- is showing. */
+    readonly isRoleCardFlipped = signal(false);
     readonly chatTab = signal<ChatTab>('town');
     readonly townMessages = signal<ChatMessage[]>([]);
     readonly draftMessage = signal('');

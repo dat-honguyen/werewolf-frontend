@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, model } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GameStateService } from '../../../core/services/game-state.service';
@@ -34,7 +34,11 @@ export class IdentityGrimoireCard {
         return role ? this.translate.instant('roleDescriptions.' + role) : '';
     });
 
-    readonly flipped = signal(this.gameState.hasSeenRoleReveal());
+    /** A model (not a plain signal) so RoomShell can read the *current* flip state -- unlike
+     * GameStateService.hasSeenRoleReveal, which only ever flips true once and stays true even
+     * after flipping back to the front, this reflects whichever face is showing right now, e.g.
+     * to hide the redundant objective hint once the back face's own description covers it. */
+    readonly flipped = model(this.gameState.hasSeenRoleReveal());
 
     readonly icon = () =>
         this.role() ? this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[this.role()!]) : null;

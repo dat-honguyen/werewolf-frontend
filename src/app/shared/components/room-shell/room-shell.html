@@ -56,7 +56,10 @@
 
     <div class="room-shell__viewport">
         <aside class="room-shell__left">
-            <app-identity-grimoire-card [role]="myRole()"></app-identity-grimoire-card>
+            <app-identity-grimoire-card
+                [role]="myRole()"
+                [(flipped)]="isRoleCardFlipped"
+            ></app-identity-grimoire-card>
 
             <div class="room-shell__stats">
                 <h3>{{ 'roomShell.covenOverview' | translate }}</h3>
@@ -70,7 +73,7 @@
                         <strong>{{ deadCount() }}</strong>
                     </div>
                 </div>
-                @if (ownObjective()) {
+                @if (ownObjective() && !isRoleCardFlipped()) {
                 <p class="room-shell__objective">{{ ownObjective() }}</p>
                 }
             </div>
