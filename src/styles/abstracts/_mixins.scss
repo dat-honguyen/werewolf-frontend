@@ -33,6 +33,27 @@
     box-shadow: 0 0 12px 3px var(--glow-color);
 }
 
+// Thin gold scrollbar replacing the browser default, for any scrollable panel (modals, chat,
+// logs, card descriptions). Covers WebKit (`::-webkit-scrollbar-*`) and Firefox
+// (`scrollbar-width`/`scrollbar-color`) since neither implements the other's API.
+@mixin themed-scrollbar($width: 6px, $thumb: rgb(217 164 65 / 45%)) {
+    scrollbar-width: thin;
+    scrollbar-color: #{$thumb} transparent;
+
+    &::-webkit-scrollbar {
+        width: $width;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #{$thumb};
+        border-radius: 999px;
+    }
+}
+
 // Small gold diamond markers at each corner of a card, echoing the ornate corner flourishes on
 // the tarot card-back reference art. Expects four `.<block>__corner--{tl,tr,bl,br}` elements.
 @mixin corner-flourish($inset: 0.4rem, $size: 0.3rem) {

@@ -120,13 +120,6 @@
         opacity: 0.85;
         mask-image: linear-gradient(to bottom, black calc(100% - 1rem), transparent 100%);
 
-        &::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: rgb(217 164 65 / 45%);
-            border-radius: 999px;
-        }
+        @include mixins.themed-scrollbar(4px);
     }
 }
