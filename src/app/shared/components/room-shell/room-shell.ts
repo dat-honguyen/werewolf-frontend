@@ -503,7 +503,12 @@ export class RoomShell {
                 isHost: p.playerId === lobby?.hostPlayerId,
                 actionLabel,
                 actionVariant: 'accent' as const,
-                actionDisabled: this.showCupid() && this.cupidFirstPick() === p.playerId
+                actionDisabled: this.showCupid() && this.cupidFirstPick() === p.playerId,
+                // Werewolf/Doctor/Seer/Witch all fire-and-forget on click (submit -> markDone ->
+                // showX() goes false before any poll/state update could render a "currently
+                // selected" glow) -- Cupid is the only night role with a real sustained pending
+                // selection (first pick persists on screen until the second pick confirms it).
+                selected: this.showCupid() && this.cupidFirstPick() === p.playerId
             };
         });
     });
