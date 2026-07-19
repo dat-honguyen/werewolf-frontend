@@ -13,10 +13,12 @@ import { RulesApiService } from '../../../core/services/rules-api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { WerewolfHubService } from '../../../core/services/werewolf-hub.service';
 import { extractErrorMessage } from '../../../core/utils/http-error.util';
+import { shouldShowPhaseTransition } from '../../../core/utils/phase-family.util';
 import { DEFAULT_GAME_SETTINGS, LocalLobbyPlayer } from '../../../core/models/lobby.model';
 import { Role } from '../../../core/models/role.model';
 import { IdentityGrimoireCard } from '../identity-grimoire-card/identity-grimoire-card';
 import { PhaseBanner } from '../phase-banner/phase-banner';
+import { PhaseTransition } from '../phase-transition/phase-transition';
 import { PlayerGrid, PlayerGridEntry } from '../player-grid/player-grid';
 import { RoomActionPanel } from '../room-action-panel/room-action-panel';
 import { SettingsModal } from '../settings-modal/settings-modal';
@@ -68,6 +70,7 @@ const ROLE_OBJECTIVE_KEY: Record<Role, string> = {
         TranslatePipe,
         IdentityGrimoireCard,
         PhaseBanner,
+        PhaseTransition,
         PlayerGrid,
         RoomActionPanel,
         SettingsModal,
@@ -95,6 +98,7 @@ export class RoomShell {
     readonly myPlayerId = this.playerIdentity.playerId;
 
     readonly showSettings = signal(false);
+    readonly showPhaseTransition = signal(false);
     readonly chatTab = signal<ChatTab>('town');
     readonly townMessages = signal<ChatMessage[]>([]);
     readonly draftMessage = signal('');
@@ -483,6 +487,9 @@ export class RoomShell {
         let lastAnnouncedView: GameView | null = null;
         effect(() => {
             const view = this.view();
+            if (shouldShowPhaseTransition(lastAnnouncedView, view)) {
+                this.showPhaseTransition.set(true);
+            }
             const key = PHASE_ANNOUNCEMENT_KEY[view];
             if (key && view !== lastAnnouncedView) {
                 this.appendSystemMessage(this.translate.instant(key));

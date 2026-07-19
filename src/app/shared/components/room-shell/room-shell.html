@@ -1,5 +1,12 @@
 <!-- src/app/shared/components/room-shell/room-shell.html -->
 <div class="room-shell" [attr.data-phase]="isNight() ? 'night' : 'day'">
+    @if (showPhaseTransition()) {
+    <app-phase-transition
+        [title]="bannerStatus()"
+        [nightNumber]="state()?.nightNumber ?? null"
+        (dismissed)="showPhaseTransition.set(false)"
+    ></app-phase-transition>
+    }
     <app-room-backdrop [isNight]="isNight()"></app-room-backdrop>
     <header class="room-shell__header">
         <div class="room-shell__logo">

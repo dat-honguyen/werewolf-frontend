@@ -3,13 +3,54 @@
     inset: 0;
     z-index: 100;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-bg-void);
+    background-color: var(--bg-main, #0a0d16);
     animation: phaseIris 1.4s ease-in-out forwards;
 
+    &__disc {
+        position: relative;
+        width: 8rem;
+        height: 8rem;
+        margin-bottom: 1.5rem;
+        border-radius: 999px;
+        background: var(--primary, #d9a441);
+        box-shadow: 0 0 60px 10px color-mix(in srgb, var(--primary, #d9a441) 55%, transparent);
+        overflow: hidden;
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            background: var(--bg-main, #0a0d16);
+            transform: translateX(var(--shadow-x, 130%));
+        }
+
+        &--crescent {
+            --shadow-x: 25%;
+        }
+
+        &--firstQuarter {
+            --shadow-x: 55%;
+        }
+
+        &--gibbous {
+            --shadow-x: 85%;
+        }
+
+        &--full {
+            --shadow-x: 130%;
+        }
+
+        &--waning {
+            --shadow-x: -10%;
+        }
+    }
+
     &__title {
-        color: var(--color-gold);
+        color: var(--primary, #d9a441);
         text-transform: uppercase;
         letter-spacing: 0.15em;
     }

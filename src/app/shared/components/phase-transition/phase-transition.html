@@ -1,3 +1,4 @@
 <div class="phase-transition" (animationend)="onAnimationEnd()">
+    <div class="phase-transition__disc" [class]="'phase-transition__disc--' + moonPhase()"></div>
     <h2 class="phase-title phase-transition__title">{{ title() }}</h2>
 </div>
