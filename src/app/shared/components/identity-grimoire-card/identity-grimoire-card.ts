@@ -1,9 +1,10 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GameStateService } from '../../../core/services/game-state.service';
 import { Role } from '../../../core/models/role.model';
 import { ROLE_ICON } from '../../../core/utils/role-icon.util';
+import { roleAccent } from '../../../core/utils/role-accent.util';
 
 /**
  * The mockup's "Identity Grimoire" flip card (werewolf_game_interface (2).html's #role-card).
@@ -28,6 +29,8 @@ export class IdentityGrimoireCard {
 
     readonly icon = () =>
         this.role() ? this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[this.role()!]) : null;
+
+    readonly accent = computed(() => roleAccent(this.role()));
 
     toggleFlip(): void {
         if (!this.role()) {

@@ -5,6 +5,7 @@
         class="identity-grimoire__card"
         [class.identity-grimoire__card--flipped]="flipped()"
         [class.identity-grimoire__card--inert]="!role()"
+        [style.--role-accent]="accent()"
         (click)="toggleFlip()"
     >
         <div class="identity-grimoire__card-inner">

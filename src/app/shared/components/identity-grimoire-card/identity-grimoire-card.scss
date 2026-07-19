@@ -79,7 +79,27 @@
         &--back {
             transform: rotateY(180deg);
             background: linear-gradient(180deg, #120f24 0%, #181a24 55%, var(--bg-main) 100%);
-            border-color: var(--primary);
+            border-color: var(--role-accent, var(--primary));
+
+            .identity-grimoire__eyebrow,
+            .identity-grimoire__hint {
+                color: var(--role-accent, var(--primary));
+            }
+
+            .identity-grimoire__glyph {
+                color: var(--role-accent, var(--primary));
+                background: color-mix(in srgb, var(--role-accent, var(--primary)) 15%, transparent);
+                box-shadow: 0 0 15px
+                    color-mix(in srgb, var(--role-accent, var(--primary)) 25%, transparent);
+            }
+
+            .identity-grimoire__role-icon {
+                color: var(--role-accent, var(--primary));
+            }
+
+            .identity-grimoire__role-text h4 {
+                color: var(--role-accent, var(--primary));
+            }
         }
     }
 
