@@ -1,18 +1,12 @@
-<div class="language-switch">
-    <button
-        type="button"
-        class="language-switch__option"
-        [class.language-switch__option--active]="currentLang() === 'en'"
-        (click)="select('en')"
-    >
-        EN
-    </button>
-    <button
-        type="button"
-        class="language-switch__option"
-        [class.language-switch__option--active]="currentLang() === 'vi'"
-        (click)="select('vi')"
-    >
-        VI
-    </button>
-</div>
+<button
+    type="button"
+    class="language-switch"
+    role="switch"
+    [attr.aria-checked]="currentLang() === 'vi'"
+    [class.language-switch--vi]="currentLang() === 'vi'"
+    (click)="toggle()"
+>
+    <span class="language-switch__thumb"></span>
+    <span class="language-switch__option">EN</span>
+    <span class="language-switch__option">VI</span>
+</button>

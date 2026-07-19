@@ -1,5 +1,5 @@
 {
     "permissions": {
-        "allow": ["Read(//c//**)", "Bash(awk -F: '{print}')"]
+        "allow": ["Read(//c//**)", "Bash(awk -F: '{print}')", "Skill(update-config)"]
     }
 }

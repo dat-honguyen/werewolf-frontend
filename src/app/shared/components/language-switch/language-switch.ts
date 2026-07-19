@@ -14,4 +14,8 @@ export class LanguageSwitch {
     select(lang: AppLanguage): void {
         this.language.setLanguage(lang);
     }
+
+    toggle(): void {
+        this.select(this.currentLang() === 'en' ? 'vi' : 'en');
+    }
 }
