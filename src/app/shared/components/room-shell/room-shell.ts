@@ -21,6 +21,7 @@ import { PlayerGrid, PlayerGridEntry } from '../player-grid/player-grid';
 import { RoomActionPanel } from '../room-action-panel/room-action-panel';
 import { SettingsModal } from '../settings-modal/settings-modal';
 import { LanguageSwitch } from '../language-switch/language-switch';
+import { RoomBackdrop } from '../room-backdrop/room-backdrop';
 
 interface ChatMessage {
     senderId: string;
@@ -70,7 +71,8 @@ const ROLE_OBJECTIVE_KEY: Record<Role, string> = {
         PlayerGrid,
         RoomActionPanel,
         SettingsModal,
-        LanguageSwitch
+        LanguageSwitch,
+        RoomBackdrop
     ],
     templateUrl: './room-shell.html',
     styleUrl: './room-shell.scss'

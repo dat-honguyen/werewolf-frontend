@@ -1,5 +1,6 @@
 <!-- src/app/shared/components/room-shell/room-shell.html -->
 <div class="room-shell" [attr.data-phase]="isNight() ? 'night' : 'day'">
+    <app-room-backdrop [isNight]="isNight()"></app-room-backdrop>
     <header class="room-shell__header">
         <div class="room-shell__logo">
             🔮 {{ 'roomShell.logo' | translate }} @if (state(); as s) {
