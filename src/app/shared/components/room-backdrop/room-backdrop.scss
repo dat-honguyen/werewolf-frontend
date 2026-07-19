@@ -13,7 +13,12 @@
 
     &__house {
         position: absolute;
-        bottom: 0;
+
+        // room.component.scss fixes a "Quit game" button to the same bottom-left viewport corner
+        // (z-index above this backdrop, so it's never unclickable, but at bottom: 0 the house
+        // silhouette's roofline visibly cut through the button's text). 3.5rem clears its footprint
+        // (bottom: 1rem plus its own height) while keeping the house flush with the floor visually.
+        bottom: 3.5rem;
         left: 2%;
         width: 14rem;
         max-width: 22vw;

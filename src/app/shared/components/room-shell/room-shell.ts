@@ -121,6 +121,11 @@ export class RoomShell {
     readonly witchHealUsed = signal(false);
     readonly witchPoisonUsed = signal(false);
     readonly dyingIds = signal<Set<string>>(new Set());
+    /** The target a fire-and-forget night action (werewolf/doctor/seer/witch) was just submitted
+     * against, held for a beat after showX() has already flipped false -- see nightActionAccent
+     * and entries() below. */
+    readonly justActedTarget = signal<{ role: Role; playerId: string } | null>(null);
+    private readonly justActedTimeouts: ReturnType<typeof setTimeout>[] = [];
 
     // Voting-phase local state (mirrors former VotingScreen)
     readonly selectedVoteTarget = signal<string | null | undefined>(undefined);
@@ -222,8 +227,17 @@ export class RoomShell {
      * night role instead of the generic day/night --primary -- werewolf glows blood-red, doctor
      * green, etc. Only affects the acting player's own screen during their own turn; other
      * players' grids never read this (their showX() computeds are all false), so it can't leak
-     * role information. */
+     * role information.
+     *
+     * Checked before showX(): Werewolf/Doctor/Seer/Witch submit-and-advance the instant their
+     * target is clicked, which flips showX() false in the same tick -- without justActedTarget
+     * carrying the accent for a beat past that, the border color would revert to --primary before
+     * a human ever sees the click register. */
     readonly nightActionAccent = computed<string | null>(() => {
+        const justActed = this.justActedTarget();
+        if (justActed) {
+            return roleAccent(justActed.role);
+        }
         if (this.showWerewolf()) {
             return roleAccent('Werewolf');
         }
@@ -241,6 +255,21 @@ export class RoomShell {
         }
         return null;
     });
+
+    /** Marks `targetPlayerId` as just-acted-upon for `role`, so its grid card keeps the
+     * role-accent `--selected` glow for a beat after a fire-and-forget night action (werewolf
+     * attack, doctor protect, seer inspect, witch poison) submits and showX() immediately flips
+     * false. Mirrors dyingIds' hold-then-clear pattern (Task 9) rather than introducing a new one. */
+    private flashActedTarget(role: Role, targetPlayerId: string): void {
+        this.justActedTarget.set({ role, playerId: targetPlayerId });
+        this.justActedTimeouts.push(
+            setTimeout(() => {
+                if (this.justActedTarget()?.playerId === targetPlayerId) {
+                    this.justActedTarget.set(null);
+                }
+            }, 700)
+        );
+    }
 
     readonly werewolfTallyDisplay = computed(() => {
         this.translate.currentLang();
@@ -509,11 +538,14 @@ export class RoomShell {
                 actionLabel,
                 actionVariant: 'accent' as const,
                 actionDisabled: this.showCupid() && this.cupidFirstPick() === p.playerId,
-                // Werewolf/Doctor/Seer/Witch all fire-and-forget on click (submit -> markDone ->
-                // showX() goes false before any poll/state update could render a "currently
-                // selected" glow) -- Cupid is the only night role with a real sustained pending
-                // selection (first pick persists on screen until the second pick confirms it).
-                selected: this.showCupid() && this.cupidFirstPick() === p.playerId,
+                // Cupid's first pick persists on screen until the second pick confirms it, so it
+                // reads its own selection state directly. Werewolf/Doctor/Seer/Witch instead
+                // submit-and-advance the instant a target is clicked -- justActedTarget (set in
+                // onNightGridAction/flashActedTarget) holds their target's glow for a beat past
+                // that, since showX() has already flipped false by the next render.
+                selected:
+                    (this.showCupid() && this.cupidFirstPick() === p.playerId) ||
+                    this.justActedTarget()?.playerId === p.playerId,
                 dying: this.dyingIds().has(p.playerId)
             };
         });
@@ -590,6 +622,7 @@ export class RoomShell {
             );
         });
         inject(DestroyRef).onDestroy(() => dyingTimeouts.forEach(clearTimeout));
+        inject(DestroyRef).onDestroy(() => this.justActedTimeouts.forEach(clearTimeout));
 
         effect(() => {
             const role = this.myRole();
@@ -783,7 +816,10 @@ export class RoomShell {
                     playerId: this.myPlayerId(),
                     targetPlayerId: playerId
                 })
-                .subscribe(() => this.markDone('seer'));
+                .subscribe(() => {
+                    this.flashActedTarget('Seer', playerId);
+                    this.markDone('seer');
+                });
         } else if (this.showWerewolf()) {
             this.gameApi
                 .submitWerewolfVote({
@@ -791,7 +827,10 @@ export class RoomShell {
                     playerId: this.myPlayerId(),
                     targetPlayerId: playerId
                 })
-                .subscribe(() => this.markDone('werewolf'));
+                .subscribe(() => {
+                    this.flashActedTarget('Werewolf', playerId);
+                    this.markDone('werewolf');
+                });
         } else if (this.showDoctor()) {
             this.gameApi
                 .submitDoctorProtection({
@@ -800,6 +839,7 @@ export class RoomShell {
                     targetPlayerId: playerId
                 })
                 .subscribe(() => {
+                    this.flashActedTarget('Doctor', playerId);
                     this.lastDoctorTarget.set(playerId);
                     this.markDone('doctor');
                 });
@@ -811,6 +851,7 @@ export class RoomShell {
                     targetPlayerId: playerId
                 })
                 .subscribe(() => {
+                    this.flashActedTarget('Witch', playerId);
                     this.witchPoisonUsed.set(true);
                     this.finalizeWitchIfBothPotionsResolved();
                 });
