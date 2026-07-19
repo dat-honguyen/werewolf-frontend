@@ -30,9 +30,9 @@
     font-family: Inter, system-ui, sans-serif;
 
     // Every heading/button this component renders explicitly opts back into Inter -- the global
-    // stylesheet (src/styles/base/_typography.scss, _buttons.scss) applies --font-display
-    // (Playfair Display, a medieval serif used by the classic/bloody theme) to every h1-h3 and <button> in
-    // the app, which clashes with the LUNARIS mockup's clean sans-serif look.
+    // stylesheet (src/styles/base/_typography.scss, _buttons.scss) applies --font-title/--font-ui
+    // (Grenze Gotisch / Alegreya, gothic serifs used by the classic/bloody theme) to every h1-h3
+    // and <button> in the app, which clashes with the LUNARIS mockup's clean sans-serif look.
     h1,
     h2,
     h3,
@@ -296,11 +296,12 @@
         flex: 1;
         padding: 1rem;
         overflow-y: auto;
+        font-family: var(--font-book);
     }
 
     &__chat-message {
         margin: 0 0 0.6rem;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         line-height: 1.4;
     }
 

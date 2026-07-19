@@ -92,7 +92,7 @@
         "discussionEndsIn": "Discussion ends in",
         "publicSquare": "Public Square",
         "privateGrimoires": "Private Grimoires",
-        "chatPlaceholder": "Cast suspicion or whisper secret info...",
+        "chatPlaceholder": "Type a message…",
         "chatDisabled": "Private Grimoires isn't wired up yet. Coordinate over voice or a group chat outside the app.",
         "headerActions": {
             "forceStart": "Force Start",

@@ -25,10 +25,24 @@
     --color-faction-cupid: #c2679a;
     --color-faction-hunter: #b06a2e;
     --color-faction-tanner: #9aa332;
-    --font-display: 'Playfair Display', 'Georgia', serif;
+
+    // Body copy and form controls -- always Inter, every locale including Vietnamese.
     --font-body: 'Inter', system-ui, sans-serif;
-    --font-creepy: 'Creepster', 'Playfair Display', cursive;
-    --font-blood: 'Nosifer', 'Playfair Display', cursive;
+
+    // Big dramatic titles / phase announcements (h1, h2, .phase-title) -- gothic, Vietnamese-safe.
+    --font-title: 'Grenze Gotisch', 'Georgia', serif;
+
+    // Subheadings, buttons, role names (h3, .card-title) -- calligraphic, Vietnamese-safe.
+    --font-ui: 'Alegreya', 'Georgia', serif;
+
+    // Chat messages and game log entries -- old-book warmth, Vietnamese-safe, stays legible in
+    // long blocks of text (unlike IM Fell DW Pica, which has no Vietnamese glyphs at all).
+    --font-book: 'Vollkorn', 'Georgia', serif;
+
+    // WereWolf/LUNARIS wordmarks only -- these strings are hardcoded English (never translated),
+    // so it's safe to use decorative fonts with no Vietnamese glyph coverage here.
+    --font-creepy: 'Creepster', 'Grenze Gotisch', cursive;
+    --font-blood: 'Nosifer', 'Grenze Gotisch', cursive;
 }
 
 // "Bloody" theme — a gorier alternate palette, toggled via ThemeService
