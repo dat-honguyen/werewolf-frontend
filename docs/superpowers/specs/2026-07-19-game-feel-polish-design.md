@@ -41,10 +41,19 @@ werewolf, pick a victim) — never to how another player's card renders on anyon
    the moon's phase (crescent → full → gibbous) advances with `nightNumber`, so it doubles as a
    subtle "which night are we on" cue rather than being pure decoration.
 
-3. **Ambient background texture.** A very low-opacity (≈6%) static SVG line-art layer (faint
-   circular ritual-mark, radiating from behind the player grid) added to `.room-shell`'s existing
-   `background-image` stack. Static, not animated — the one big motion beat stays the phase
-   transition.
+3. **Ambient background texture, sourced from real assets.** Three CC0/public-domain silhouette
+   SVGs from Openclipart (no attribution required), cleaned of Inkscape cruft and recolored to
+   `currentColor`/`var(--glow)` — the exact inline-SVG technique `home.component.html` already
+   uses for its moon/wolf/village backdrop:
+    - **Haunted house** (turret silhouette, gold-lit windows via `--glow: var(--color-gold)`-style
+      accent) — a constant low-opacity "the village" backdrop element, always present.
+    - **Graveyard** (leaning crosses, tombstones) — a constant low-opacity ground-line behind the
+      player grid, tying into the death/horror theme.
+    - **Howling wolf** — reserved for **night phase only**, fading in as `.room-shell`'s existing
+      `[data-phase='night']` toggles, so it reads as a phase differentiator (echoing the werewolf
+      threat) rather than static decoration.
+      Sources: openclipart.org/detail/287842 (haunted house), /detail/85309 (graveyard),
+      /detail/321275 (wolf howling) — all CC0.
 
 4. **Sequenced death reveal.** Track newly-dead player IDs in `RoomShell` (diff `state().players`
    alive-flags across updates, same pattern already used for lobby join/leave diffing in
