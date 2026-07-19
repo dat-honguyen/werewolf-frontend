@@ -1,0 +1,61 @@
+.room-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+
+    svg {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    &__house {
+        position: absolute;
+        bottom: 0;
+        left: 2%;
+        width: 14rem;
+        max-width: 22vw;
+        color: var(--bg-nested);
+
+        --glow: var(--accent-day);
+
+        opacity: 0.5;
+    }
+
+    &__graveyard {
+        position: absolute;
+        bottom: 0;
+        right: 4%;
+        width: 20rem;
+        max-width: 32vw;
+        color: var(--bg-nested);
+
+        --glow: var(--accent-night);
+
+        opacity: 0.35;
+    }
+
+    &__wolf {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 26rem;
+        max-width: 40vw;
+        transform: translateX(-50%);
+        color: var(--accent-night);
+        opacity: 0;
+        transition: opacity 1.2s ease;
+
+        &--visible {
+            opacity: 0.22;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .room-backdrop__wolf {
+        transition: none;
+    }
+}
