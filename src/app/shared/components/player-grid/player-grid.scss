@@ -18,17 +18,21 @@
         background: color-mix(in srgb, var(--bg-surface) 60%, transparent);
         transition: border-color 0.2s ease;
 
+        // var(--action-accent, var(--primary)) falls back to the generic day/night --primary
+        // outside a night role's turn (voting, hunter-revenge, lobby kick) since RoomShell only
+        // sets --action-accent while a night sub-phase is showing.
         &--selected {
-            border-color: var(--primary);
-            background: color-mix(in srgb, var(--primary) 8%, transparent);
+            border-color: var(--action-accent, var(--primary));
+            background: color-mix(in srgb, var(--action-accent, var(--primary)) 8%, transparent);
         }
 
         // Flags a player who already has at least one accusation against them, independent of
         // who *I've* selected to vote for (that's &--selected above) -- matches the mockup's
         // highlighted border on already-suspected players during Day Voting.
         &--suspected {
-            border-color: color-mix(in srgb, var(--primary) 60%, transparent);
-            box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent);
+            border-color: color-mix(in srgb, var(--action-accent, var(--primary)) 60%, transparent);
+            box-shadow: 0 0 0 1px
+                color-mix(in srgb, var(--action-accent, var(--primary)) 30%, transparent);
         }
 
         &--dead {

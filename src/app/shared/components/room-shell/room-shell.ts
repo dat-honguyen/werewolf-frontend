@@ -14,6 +14,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { WerewolfHubService } from '../../../core/services/werewolf-hub.service';
 import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { shouldShowPhaseTransition } from '../../../core/utils/phase-family.util';
+import { roleAccent } from '../../../core/utils/role-accent.util';
 import { DEFAULT_GAME_SETTINGS, LocalLobbyPlayer } from '../../../core/models/lobby.model';
 import { Role } from '../../../core/models/role.model';
 import { IdentityGrimoireCard } from '../identity-grimoire-card/identity-grimoire-card';
@@ -214,6 +215,30 @@ export class RoomShell {
             this.myTurnRole() === 'Witch' &&
             !this.actionsTaken().has('witch')
     );
+
+    /** Colors the acting player's own selectable/selected grid cards to match their current
+     * night role instead of the generic day/night --primary -- werewolf glows blood-red, doctor
+     * green, etc. Only affects the acting player's own screen during their own turn; other
+     * players' grids never read this (their showX() computeds are all false), so it can't leak
+     * role information. */
+    readonly nightActionAccent = computed<string | null>(() => {
+        if (this.showWerewolf()) {
+            return roleAccent('Werewolf');
+        }
+        if (this.showDoctor()) {
+            return roleAccent('Doctor');
+        }
+        if (this.showSeer()) {
+            return roleAccent('Seer');
+        }
+        if (this.showCupid()) {
+            return roleAccent('Cupid');
+        }
+        if (this.showWitch()) {
+            return roleAccent('Witch');
+        }
+        return null;
+    });
 
     readonly werewolfTallyDisplay = computed(() => {
         this.translate.currentLang();
