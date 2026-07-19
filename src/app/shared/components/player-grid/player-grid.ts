@@ -23,6 +23,7 @@ export interface PlayerGridEntry {
     actionVariant?: 'default' | 'danger' | 'accent';
     actionDisabled?: boolean;
     revealedRole?: Role;
+    dying?: boolean;
 }
 
 @Component({

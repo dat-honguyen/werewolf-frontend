@@ -35,6 +35,14 @@
                 color-mix(in srgb, var(--action-accent, var(--primary)) 30%, transparent);
         }
 
+        // Resurrects the cardDeath keyframe (src/styles/abstracts/_animations.scss) -- it's been
+        // sitting unused since the player-card component it was written for was replaced by this
+        // grid. Plays once when a player flips alive -> dead (see RoomShell's dyingIds signal),
+        // then --dead's static grayscale/opacity takes over for the rest of the game.
+        &--dying {
+            animation: cardDeath 0.9s ease-out forwards;
+        }
+
         &--dead {
             opacity: 0.45;
             background: color-mix(in srgb, var(--bg-main) 30%, transparent);

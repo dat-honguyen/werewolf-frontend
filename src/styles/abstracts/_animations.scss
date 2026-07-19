@@ -95,6 +95,7 @@
 @media (prefers-reduced-motion: reduce) {
     .animated-card,
     .player-card,
+    .player-grid__card,
     .phase-transition {
         animation: none !important;
         transition: opacity 0.01ms !important;

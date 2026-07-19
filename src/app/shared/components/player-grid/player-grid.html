@@ -3,6 +3,7 @@
     <div
         class="player-grid__card"
         [class.player-grid__card--dead]="!entry.isAlive"
+        [class.player-grid__card--dying]="entry.dying"
         [class.player-grid__card--selected]="entry.selected"
         [class.player-grid__card--suspected]="!entry.selected && (entry.voteCount ?? 0) > 0"
     >

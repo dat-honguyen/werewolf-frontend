@@ -12,6 +12,7 @@ import { PlayerIdentityService } from '../../../core/services/player-identity.se
 import { RulesApiService } from '../../../core/services/rules-api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { WerewolfHubService } from '../../../core/services/werewolf-hub.service';
+import { AliveFlag, diffNewlyDead } from '../../../core/utils/death-diff.util';
 import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { shouldShowPhaseTransition } from '../../../core/utils/phase-family.util';
 import { roleAccent } from '../../../core/utils/role-accent.util';
@@ -119,6 +120,7 @@ export class RoomShell {
     readonly witchTarget = signal<string | null | undefined>(undefined);
     readonly witchHealUsed = signal(false);
     readonly witchPoisonUsed = signal(false);
+    readonly dyingIds = signal<Set<string>>(new Set());
 
     // Voting-phase local state (mirrors former VotingScreen)
     readonly selectedVoteTarget = signal<string | null | undefined>(undefined);
@@ -411,7 +413,8 @@ export class RoomShell {
                 isAlive: p.isAlive,
                 isMe: p.playerId === myId,
                 isHost: p.playerId === lobby?.hostPlayerId,
-                revealedRole: roles[p.playerId]
+                revealedRole: roles[p.playerId],
+                dying: this.dyingIds().has(p.playerId)
             }));
         }
 
@@ -427,7 +430,8 @@ export class RoomShell {
                     voteCount: this.voteCountFor(p.playerId),
                     selected: this.selectedVoteTarget() === p.playerId,
                     actionLabel: this.translate.instant('roomShell.gridActions.vote'),
-                    actionVariant: 'accent' as const
+                    actionVariant: 'accent' as const,
+                    dying: this.dyingIds().has(p.playerId)
                 })),
                 {
                     playerId: '__abstain__',
@@ -457,7 +461,8 @@ export class RoomShell {
                         isMyTurn && p.playerId !== myId
                             ? this.translate.instant('roomShell.gridActions.shoot')
                             : undefined,
-                    actionVariant: 'danger' as const
+                    actionVariant: 'danger' as const,
+                    dying: this.dyingIds().has(p.playerId)
                 }));
         }
 
@@ -508,7 +513,8 @@ export class RoomShell {
                 // showX() goes false before any poll/state update could render a "currently
                 // selected" glow) -- Cupid is the only night role with a real sustained pending
                 // selection (first pick persists on screen until the second pick confirms it).
-                selected: this.showCupid() && this.cupidFirstPick() === p.playerId
+                selected: this.showCupid() && this.cupidFirstPick() === p.playerId,
+                dying: this.dyingIds().has(p.playerId)
             };
         });
     });
@@ -557,6 +563,33 @@ export class RoomShell {
             this.witchPoisonUsed.set(false);
             this.cupidFirstPick.set(null);
         });
+
+        let previousAlive: AliveFlag[] | null = null;
+        const dyingTimeouts: ReturnType<typeof setTimeout>[] = [];
+        effect(() => {
+            const state = this.state();
+            const nextAlive: AliveFlag[] = state
+                ? state.players.map((p) => ({ playerId: p.playerId, isAlive: p.isAlive }))
+                : [];
+            const newlyDead = diffNewlyDead(previousAlive, nextAlive);
+            previousAlive = nextAlive;
+            if (newlyDead.size === 0) {
+                return;
+            }
+            this.dyingIds.update((current) => new Set([...current, ...newlyDead]));
+            dyingTimeouts.push(
+                setTimeout(() => {
+                    this.dyingIds.update((current) => {
+                        const next = new Set(current);
+                        for (const id of newlyDead) {
+                            next.delete(id);
+                        }
+                        return next;
+                    });
+                }, 900)
+            );
+        });
+        inject(DestroyRef).onDestroy(() => dyingTimeouts.forEach(clearTimeout));
 
         effect(() => {
             const role = this.myRole();
