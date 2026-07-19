@@ -68,14 +68,14 @@ test('an 8-player game runs past night 3, with chat and rules-setup exercised al
             await row.locator('input[type="number"]').fill(String(count));
         }
         await host.getByRole('button', { name: 'Apply Role Distribution' }).click();
-        await host.getByRole('button', { name: 'Confirm & Close' }).click();
+        await host.getByRole('button', { name: 'Close' }).click();
         await shoot('role distribution configured');
 
         await readyUpRestOfRoom(host, pages, PLAYER_NAMES);
         await shoot('all 8 players ready');
 
         await host.getByRole('button', { name: /Start Game|Force Start/ }).click();
-        await expect(host.getByText(/NIGHT 1/)).toBeVisible();
+        await expect(host.locator('.phase-banner__status').getByText(/NIGHT 1/)).toBeVisible();
         await shoot('game started');
 
         // Drive nights/voting via direct API calls -- see resolveNight/resolveDay below. A full

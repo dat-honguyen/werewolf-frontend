@@ -78,14 +78,14 @@ async function setUpTwelvePlayerGame(
         await row.locator('input[type="number"]').fill(String(count));
     }
     await host.getByRole('button', { name: 'Apply Role Distribution' }).click();
-    await host.getByRole('button', { name: 'Confirm & Close' }).click();
+    await host.getByRole('button', { name: 'Close' }).click();
     await shoot('role distribution set (3 wolves, seer, doctor, cupid, tanner, 5 villagers)');
 
     await readyUpRestOfRoom(host, pages, PLAYER_NAMES);
     await shoot('all 12 players ready');
 
     await host.getByRole('button', { name: /Start Game|Force Start/ }).click();
-    await expect(host.getByText(/NIGHT 1/)).toBeVisible();
+    await expect(host.locator('.phase-banner__status').getByText(/NIGHT 1/)).toBeVisible();
     await shoot('game started');
 
     return { host, pages, roomCode, hostPlayerId: hostPlayerId!, shoot, contexts };

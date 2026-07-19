@@ -56,7 +56,7 @@ test('a started game renders a balanced layout at desktop and mobile widths', as
         await shoot('all players ready');
 
         await host.getByRole('button', { name: /Start Game|Force Start/ }).click();
-        await expect(host.getByText(/NIGHT 1/)).toBeVisible();
+        await expect(host.locator('.phase-banner__status').getByText(/NIGHT 1/)).toBeVisible();
         await shoot('game started (role reveal)');
 
         // Reveals the host's role card, which also flips GameStateService.currentView() from

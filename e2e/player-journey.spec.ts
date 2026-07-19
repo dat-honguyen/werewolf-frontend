@@ -82,12 +82,12 @@ test("a player's full journey -- role card, night action, chat, vote, final role
             await row.locator('input[type="number"]').fill(String(count));
         }
         await host.getByRole('button', { name: 'Apply Role Distribution' }).click();
-        await host.getByRole('button', { name: 'Confirm & Close' }).click();
+        await host.getByRole('button', { name: 'Close' }).click();
         await shoot('role distribution configured');
 
         await readyUpRestOfRoom(host, pages, PLAYER_NAMES);
         await host.getByRole('button', { name: /Start Game|Force Start/ }).click();
-        await expect(host.getByText(/NIGHT 1/)).toBeVisible();
+        await expect(host.locator('.phase-banner__status').getByText(/NIGHT 1/)).toBeVisible();
         await shoot('game started');
 
         // Match each real browser page to the playerId the server assigned it, then find out
