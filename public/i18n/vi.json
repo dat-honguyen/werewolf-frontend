@@ -14,6 +14,16 @@
         "Cupid": "Thần Tình Yêu",
         "Tanner": "Thợ thuộc da"
     },
+    "roleDescriptions": {
+        "Villager": "Không có phép thuật -- chỉ có lá phiếu và sự tinh ý của bạn. Thắng khi mọi ma sói đã bị loại.",
+        "Werewolf": "Mỗi đêm, bỏ phiếu cùng bầy đàn để giết. Thắng khi số ma sói bằng hoặc vượt số người còn lại.",
+        "Seer": "Mỗi đêm, biết được một người có phải ma sói hay không -- chỉ vậy thôi.",
+        "Doctor": "Mỗi đêm, bảo vệ một người khỏi cuộc tấn công của ma sói.",
+        "Witch": "Một bình thuốc cứu, một bình thuốc độc, mỗi loại chỉ dùng được một lần trong ván.",
+        "Hunter": "Nếu bạn chết, hãy bắn một phát trả thù vào một người còn sống trước khi ra đi.",
+        "Cupid": "Vào đêm đầu tiên, ghép đôi hai người thành tình nhân -- nếu một người chết, người kia cũng vậy.",
+        "Tanner": "Thắng một mình nếu bị dân làng treo cổ. Chết theo cách khác chỉ là một cái chết bình thường."
+    },
     "home": {
         "rejoin": {
             "message": "Bạn vẫn còn trong phòng {{roomCode}}.",
@@ -86,6 +96,7 @@
         "roomCode": "Phòng #{{code}}",
         "copyInviteLink": "🔗 Sao chép liên kết mời",
         "rulesAndSetup": "⚙️ Luật Chơi & Thiết Lập",
+        "roleGuide": "📖 Sổ Tay Vai Trò",
         "livingSouls": "Linh Hồn Còn Sống",
         "fallen": "Đã Ngã Xuống",
         "covenOverview": "Tổng Quan Hội Đồng",
@@ -183,6 +194,11 @@
         "ready": "Sẵn sàng",
         "notReady": "Chưa sẵn sàng",
         "votes": "{{count}} phiếu"
+    },
+    "roleGuide": {
+        "title": "Sổ Tay Vai Trò",
+        "loading": "Đang tải mô tả vai trò…",
+        "loadFailed": "Không tải được mô tả vai trò. Vui lòng thử lại sau."
     },
     "settings": {
         "title": "Luật Chơi & Thiết Lập",

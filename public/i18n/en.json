@@ -14,6 +14,16 @@
         "Cupid": "Cupid",
         "Tanner": "Tanner"
     },
+    "roleDescriptions": {
+        "Villager": "No powers -- just your vote and your wits. Win when every werewolf is gone.",
+        "Werewolf": "Each night, vote with the pack to kill. Win once wolves equal or outnumber the rest.",
+        "Seer": "Each night, learn if one player is a werewolf or not -- nothing more.",
+        "Doctor": "Each night, protect one player from the werewolves' kill.",
+        "Witch": "One heal potion, one poison potion, each usable once per game.",
+        "Hunter": "If you die, fire one revenge shot at another living player before you go.",
+        "Cupid": "On night one, pair two players as lovers -- if one dies, so does the other.",
+        "Tanner": "Win alone if the village lynches you. Any other death is just a death."
+    },
     "home": {
         "rejoin": {
             "message": "You were still in room {{roomCode}}.",
@@ -86,6 +96,7 @@
         "roomCode": "Room #{{code}}",
         "copyInviteLink": "🔗 Copy invite link",
         "rulesAndSetup": "⚙️ Rules & Setup",
+        "roleGuide": "📖 Role Guide",
         "livingSouls": "Living Souls",
         "fallen": "Fallen",
         "covenOverview": "Coven Live Overview",
@@ -183,6 +194,11 @@
         "ready": "Ready",
         "notReady": "Not ready",
         "votes": "{{count}} votes"
+    },
+    "roleGuide": {
+        "title": "Role Guide",
+        "loading": "Loading role descriptions…",
+        "loadFailed": "Couldn't load role descriptions. Try again later."
     },
     "settings": {
         "title": "Rules & Setup",

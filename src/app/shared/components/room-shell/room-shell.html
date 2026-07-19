@@ -31,6 +31,13 @@
                 {{ 'roomShell.copyInviteLink' | translate }}
             </button>
             }
+            <button
+                type="button"
+                class="room-shell__ghost-button"
+                (click)="showRoleGuide.set(true)"
+            >
+                {{ 'roomShell.roleGuide' | translate }}
+            </button>
             <button type="button" class="room-shell__ghost-button" (click)="showSettings.set(true)">
                 {{ 'roomShell.rulesAndSetup' | translate }}
             </button>
@@ -49,10 +56,7 @@
 
     <div class="room-shell__viewport">
         <aside class="room-shell__left">
-            <app-identity-grimoire-card
-                [role]="myRole()"
-                [description]="roleDescription()"
-            ></app-identity-grimoire-card>
+            <app-identity-grimoire-card [role]="myRole()"></app-identity-grimoire-card>
 
             <div class="room-shell__stats">
                 <h3>{{ 'roomShell.covenOverview' | translate }}</h3>
@@ -201,5 +205,7 @@
         [readOnly]="view() !== 'lobby'"
         (closed)="showSettings.set(false)"
     ></app-settings-modal>
+    } @if (showRoleGuide()) {
+    <app-role-guide-modal (closed)="showRoleGuide.set(false)"></app-role-guide-modal>
     }
 </div>

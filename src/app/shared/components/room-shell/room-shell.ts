@@ -9,7 +9,6 @@ import { GameApiService } from '../../../core/services/game-api.service';
 import { GameStateService, GameView } from '../../../core/services/game-state.service';
 import { LobbyApiService } from '../../../core/services/lobby-api.service';
 import { PlayerIdentityService } from '../../../core/services/player-identity.service';
-import { RulesApiService } from '../../../core/services/rules-api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { WerewolfHubService } from '../../../core/services/werewolf-hub.service';
 import { AliveFlag, diffNewlyDead } from '../../../core/utils/death-diff.util';
@@ -23,6 +22,7 @@ import { PhaseBanner } from '../phase-banner/phase-banner';
 import { PhaseTransition } from '../phase-transition/phase-transition';
 import { PlayerGrid, PlayerGridEntry } from '../player-grid/player-grid';
 import { RoomActionPanel } from '../room-action-panel/room-action-panel';
+import { RoleGuideModal } from '../role-guide-modal/role-guide-modal';
 import { SettingsModal } from '../settings-modal/settings-modal';
 import { LanguageSwitch } from '../language-switch/language-switch';
 import { RoomBackdrop } from '../room-backdrop/room-backdrop';
@@ -87,6 +87,7 @@ const ROLE_OBJECTIVE_KEY: Record<Role, string> = {
         PhaseTransition,
         PlayerGrid,
         RoomActionPanel,
+        RoleGuideModal,
         SettingsModal,
         LanguageSwitch,
         RoomBackdrop
@@ -99,7 +100,6 @@ export class RoomShell {
     private readonly gameState = inject(GameStateService);
     private readonly lobbyApi = inject(LobbyApiService);
     private readonly playerIdentity = inject(PlayerIdentityService);
-    private readonly rulesApi = inject(RulesApiService);
     private readonly toast = inject(ToastService);
     private readonly translate = inject(TranslateService);
     private readonly hub = inject(WerewolfHubService);
@@ -112,12 +112,12 @@ export class RoomShell {
     readonly myPlayerId = this.playerIdentity.playerId;
 
     readonly showSettings = signal(false);
+    readonly showRoleGuide = signal(false);
     readonly showPhaseTransition = signal(false);
     readonly chatTab = signal<ChatTab>('town');
     readonly townMessages = signal<ChatMessage[]>([]);
     readonly draftMessage = signal('');
 
-    readonly roleDescription = signal('');
     readonly lastDeathText = signal<string | null>(null);
     readonly nowMs = signal(Date.now());
     readonly logEntries = signal<string[] | null>(null);
@@ -663,17 +663,6 @@ export class RoomShell {
         });
         inject(DestroyRef).onDestroy(() => dyingTimeouts.forEach(clearTimeout));
         inject(DestroyRef).onDestroy(() => this.justActedTimeouts.forEach(clearTimeout));
-
-        effect(() => {
-            const role = this.myRole();
-            if (!role) {
-                this.roleDescription.set('');
-                return;
-            }
-            void this.rulesApi.getRoles().then((roles) => {
-                this.roleDescription.set(roles.find((r) => r.role === role)?.description ?? '');
-            });
-        });
 
         const roomCode = this.roomCode();
         if (roomCode) {

@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GameStateService } from '../../../core/services/game-state.service';
 import { Role } from '../../../core/models/role.model';
 import { ROLE_ICON } from '../../../core/utils/role-icon.util';
@@ -21,9 +21,18 @@ import { roleAccent } from '../../../core/utils/role-accent.util';
 export class IdentityGrimoireCard {
     private readonly sanitizer = inject(DomSanitizer);
     private readonly gameState = inject(GameStateService);
+    private readonly translate = inject(TranslateService);
 
     readonly role = input<Role | null>(null);
-    readonly description = input('');
+
+    /** A short, FE-local blurb (public/i18n/*.json's roleDescriptions) -- the backend's full,
+     * multi-sentence rules-accurate description (GetRolesEndpoint) is reserved for the Role Guide
+     * modal instead of being fetched just to render one line on this card. */
+    readonly description = computed(() => {
+        this.translate.currentLang();
+        const role = this.role();
+        return role ? this.translate.instant('roleDescriptions.' + role) : '';
+    });
 
     readonly flipped = signal(this.gameState.hasSeenRoleReveal());
 

@@ -23,7 +23,11 @@
                     >{{ 'identityGrimoire.yourRole' | translate }}</span
                 >
                 @if (icon(); as icon) {
-                <div class="identity-grimoire__role-icon" [innerHTML]="icon"></div>
+                <svg
+                    class="identity-grimoire__role-icon"
+                    viewBox="0 0 24 24"
+                    [innerHTML]="icon"
+                ></svg>
                 }
                 <div class="identity-grimoire__role-text">
                     <h4>{{ role() ? ('roles.' + role() | translate) : '' }}</h4>
