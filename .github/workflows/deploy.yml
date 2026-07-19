@@ -40,10 +40,21 @@ jobs:
 
             - name: Sync to S3
               run: |
+                  # i18n/*.json keep a stable filename across releases (unlike the hashed bundle
+                  # files) but their *content* changes every time a translation key is added or
+                  # edited -- an immutable year-long cache silently serves a returning browser its
+                  # own stale copy even right after a release purges Cloudflare's edge cache, since
+                  # that purge never reaches a client that already has the old response cached
+                  # locally. Same short/must-revalidate treatment as index.html for that reason.
                   aws s3 sync dist/werewolf-frontend/browser "s3://${{ secrets.S3_BUCKET }}" \
                     --delete \
                     --cache-control "public,max-age=31536000,immutable" \
-                    --exclude "index.html"
+                    --exclude "index.html" \
+                    --exclude "i18n/*"
+
+                  aws s3 sync dist/werewolf-frontend/browser/i18n "s3://${{ secrets.S3_BUCKET }}/i18n" \
+                    --delete \
+                    --cache-control "public,max-age=300,must-revalidate"
 
                   aws s3 cp dist/werewolf-frontend/browser/index.html "s3://${{ secrets.S3_BUCKET }}/index.html" \
                     --cache-control "public,max-age=0,must-revalidate"
