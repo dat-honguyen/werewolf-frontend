@@ -10,6 +10,7 @@ export interface GameSettings {
     allowForceStart: boolean;
     witchKnowsWerewolfTarget: boolean;
     discussionDurationSeconds: number;
+    votingDurationSeconds: number;
 }
 
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
@@ -21,7 +22,8 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
     minPlayers: 5,
     allowForceStart: false,
     witchKnowsWerewolfTarget: true,
-    discussionDurationSeconds: 120
+    discussionDurationSeconds: 120,
+    votingDurationSeconds: 30
 };
 
 export interface CreateLobbyRequest {

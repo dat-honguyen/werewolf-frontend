@@ -90,6 +90,7 @@
         "fallen": "Đã Ngã Xuống",
         "covenOverview": "Tổng Quan Hội Đồng",
         "discussionEndsIn": "Thảo luận kết thúc sau",
+        "votingEndsIn": "Bỏ phiếu kết thúc sau",
         "publicSquare": "Quảng Trường Làng",
         "privateGrimoires": "Sách Phép Riêng",
         "chatPlaceholder": "Nói gì đó...",
@@ -196,6 +197,7 @@
         "allowForceStart": "Cho phép bắt đầu ngay",
         "minPlayers": "Số Người Chơi Tối Thiểu",
         "discussionDuration": "Thời Lượng Thảo Luận (giây)",
+        "votingDuration": "Thời Lượng Bỏ Phiếu (giây)",
         "applySessionRules": "Áp Dụng Luật Cho Phiên Chơi",
         "close": "Đóng",
         "version": "FE {{fe}} · BE {{be}}"

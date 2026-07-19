@@ -54,6 +54,28 @@
         &--expired &-clock {
             color: var(--danger);
         }
+
+        // Voting's countdown reads as a bleeding-out clock instead of Discussion's hourglass --
+        // gives the two phases a visually distinct "time pressure" cue instead of one reused icon.
+        &--blood {
+            border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+
+            &.phase-banner__countdown--expired {
+                animation: cardGlowPulse 1.8s ease-in-out infinite;
+
+                --glow-color: var(--color-blood-glow, var(--danger));
+            }
+        }
+    }
+
+    &__countdown-icon {
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+
+    &__countdown-text {
+        display: flex;
+        flex-direction: column;
     }
 
     &__countdown-label {
@@ -69,5 +91,23 @@
         font-weight: 700;
         font-family: monospace;
         color: var(--primary);
+    }
+
+    &__countdown-track {
+        width: 4rem;
+        height: 0.3rem;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--text-muted) 25%, transparent);
+        overflow: hidden;
+    }
+
+    &__countdown-fill {
+        height: 100%;
+        background: var(--primary);
+        transition: width 1s linear;
+    }
+
+    &__countdown--blood &__countdown-fill {
+        background: var(--danger);
     }
 }

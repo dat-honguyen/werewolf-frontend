@@ -46,6 +46,18 @@ type NightAction = 'cupid' | 'seer' | 'werewolf' | 'doctor' | 'witch';
 
 const WOLF_VOTE_POLL_MS = 2000;
 
+/** Shared mm:ss formatter for both the Day Discussion and Day Voting countdowns. */
+function formatCountdown(seconds: number | null): string | null {
+    if (seconds === null) {
+        return null;
+    }
+    const mins = Math.floor(seconds / 60)
+        .toString()
+        .padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+}
+
 const ROLE_OBJECTIVE_KEY: Record<Role, string> = {
     Villager: 'roomShell.objectives.villager',
     Werewolf: 'roomShell.objectives.werewolf',
@@ -301,16 +313,44 @@ export class RoomShell {
         }
         return Math.max(0, Math.floor((new Date(deadline).getTime() - this.nowMs()) / 1000));
     });
-    readonly countdownDisplay = computed(() => {
-        const seconds = this.secondsRemaining();
-        if (seconds === null) {
+    readonly countdownDisplay = computed(() => formatCountdown(this.secondsRemaining()));
+
+    readonly votingSecondsRemaining = computed(() => {
+        const deadline = this.state()?.votingDeadlineUtc;
+        if (!deadline) {
             return null;
         }
-        const mins = Math.floor(seconds / 60)
-            .toString()
-            .padStart(2, '0');
-        const secs = (seconds % 60).toString().padStart(2, '0');
-        return `${mins}:${secs}`;
+        return Math.max(0, Math.floor((new Date(deadline).getTime() - this.nowMs()) / 1000));
+    });
+    readonly votingCountdownDisplay = computed(() =>
+        formatCountdown(this.votingSecondsRemaining())
+    );
+
+    /** Whichever countdown is live for the current view -- Day Discussion's or Day Voting's --
+     * folded into one set of signals so PhaseBanner only needs one countdown slot instead of the
+     * template picking between two. */
+    readonly activeCountdownSeconds = computed(() =>
+        this.view() === 'voting' ? this.votingSecondsRemaining() : this.secondsRemaining()
+    );
+    readonly activeCountdownDisplay = computed(() =>
+        this.view() === 'voting' ? this.votingCountdownDisplay() : this.countdownDisplay()
+    );
+    /** Percent of the countdown's total duration still remaining, for PhaseBanner's progress-bar
+     * fill. Null whenever there's no active countdown (activeCountdownSeconds() is null) or the
+     * configured duration is 0 (guards a divide-by-zero rather than assuming settings are sane). */
+    readonly countdownProgressPercent = computed(() => {
+        const remaining = this.activeCountdownSeconds();
+        if (remaining === null) {
+            return null;
+        }
+        const total =
+            this.view() === 'voting'
+                ? this.settings().votingDurationSeconds
+                : this.settings().discussionDurationSeconds;
+        if (!total) {
+            return null;
+        }
+        return Math.max(0, Math.min(100, (remaining / total) * 100));
     });
 
     /** Phase banner content, keyed off GameStateService.currentView(). */
@@ -689,6 +729,50 @@ export class RoomShell {
 
         const tickId = setInterval(() => this.nowMs.set(Date.now()), 1000);
         inject(DestroyRef).onDestroy(() => clearInterval(tickId));
+
+        // Discussion's countdown is otherwise cosmetic -- AdvanceToVoting is a host-only API call,
+        // so nothing moves the game past Day Discussion once the clock hits 0:00 unless the host
+        // clicks the button themselves. Auto-fire it for them instead. Keyed off
+        // discussionDeadlineUtc (not just "seconds === 0") so this fires exactly once per
+        // discussion, not on every 1s tick while the clock sits at zero waiting for the request to
+        // land.
+        let autoAdvancedForDeadline: string | null = null;
+        effect(() => {
+            if (!this.isHost() || this.view() !== 'day-discussion') {
+                return;
+            }
+            const deadline = this.state()?.discussionDeadlineUtc;
+            if (
+                !deadline ||
+                this.secondsRemaining() !== 0 ||
+                autoAdvancedForDeadline === deadline
+            ) {
+                return;
+            }
+            autoAdvancedForDeadline = deadline;
+            this.advanceToVotingAction();
+        });
+
+        // Same pattern for Day Voting: CloseVoting is host-only too, and otherwise only fires via
+        // an explicit "Close Voting Early" click or once every living player has voted. Auto-fire
+        // it once the voting countdown hits 0:00 so an undervoted round doesn't stall the game
+        // forever waiting on a click nobody's going to make.
+        let autoClosedForDeadline: string | null = null;
+        effect(() => {
+            if (!this.isHost() || this.view() !== 'voting') {
+                return;
+            }
+            const deadline = this.state()?.votingDeadlineUtc;
+            if (
+                !deadline ||
+                this.votingSecondsRemaining() !== 0 ||
+                autoClosedForDeadline === deadline
+            ) {
+                return;
+            }
+            autoClosedForDeadline = deadline;
+            this.closeVotingAction();
+        });
 
         interval(WOLF_VOTE_POLL_MS)
             .pipe(

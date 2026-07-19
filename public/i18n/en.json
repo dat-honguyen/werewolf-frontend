@@ -90,6 +90,7 @@
         "fallen": "Fallen",
         "covenOverview": "Coven Live Overview",
         "discussionEndsIn": "Discussion ends in",
+        "votingEndsIn": "Voting ends in",
         "publicSquare": "Public Square",
         "privateGrimoires": "Private Grimoires",
         "chatPlaceholder": "Type a message…",
@@ -196,6 +197,7 @@
         "allowForceStart": "Allow force start",
         "minPlayers": "Minimum Players Required",
         "discussionDuration": "Discussion Duration (seconds)",
+        "votingDuration": "Voting Duration (seconds)",
         "applySessionRules": "Apply Session Rules",
         "close": "Close",
         "version": "FE {{fe}} · BE {{be}}"

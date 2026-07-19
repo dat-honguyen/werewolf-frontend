@@ -83,6 +83,10 @@ export interface GameStateResponse {
     /** ISO timestamp the Day Discussion countdown runs out at. Null outside DayDiscussion. Purely a
      * shared clock for display -- the host still advances to Voting manually. */
     discussionDeadlineUtc: string | null;
+    /** ISO timestamp the Day Voting countdown runs out at. Null outside DayVoting. Unlike
+     * discussionDeadlineUtc, RoomShell auto-closes voting once this passes (see
+     * advanceToVotingAction/closeVotingAction's shared auto-trigger effect). */
+    votingDeadlineUtc: string | null;
     /** Monotonically increasing per-change sequence number -- see GameStateService's version-gap
      * resync: a SignalR notification is a "there's something newer" signal, not authoritative data,
      * so the client always re-fetches this endpoint and adopts whatever version it returns. */

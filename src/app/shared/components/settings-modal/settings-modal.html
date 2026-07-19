@@ -102,6 +102,17 @@
                     [disabled]="readOnly()"
                 />
             </div>
+            <div class="settings-modal__number-row">
+                <span>{{ 'settings.votingDuration' | translate }}</span>
+                <input
+                    type="number"
+                    min="30"
+                    step="30"
+                    [ngModel]="gameSettingsDraft().votingDurationSeconds"
+                    (ngModelChange)="setDraftSetting('votingDurationSeconds', $event)"
+                    [disabled]="readOnly()"
+                />
+            </div>
 
             @if (!readOnly()) {
             <button

@@ -11,9 +11,20 @@
     <div
         class="phase-banner__countdown"
         [class.phase-banner__countdown--expired]="countdownExpired()"
+        [class.phase-banner__countdown--blood]="countdownVariant() === 'blood'"
     >
-        <span class="phase-banner__countdown-label">{{ countdownLabel() }}</span>
-        <span class="phase-banner__countdown-clock">{{ countdown }}</span>
+        <span class="phase-banner__countdown-icon"
+            >{{ countdownVariant() === 'blood' ? '🩸' : '⏳' }}</span
+        >
+        <div class="phase-banner__countdown-text">
+            <span class="phase-banner__countdown-label">{{ countdownLabel() }}</span>
+            <span class="phase-banner__countdown-clock">{{ countdown }}</span>
+        </div>
+        @if (countdownProgress() !== null) {
+        <div class="phase-banner__countdown-track">
+            <div class="phase-banner__countdown-fill" [style.width.%]="countdownProgress()"></div>
+        </div>
+        }
     </div>
     }
 </div>

@@ -77,9 +77,14 @@
                 [icon]="bannerIcon()"
                 [status]="bannerStatus()"
                 [instruction]="bannerInstruction()"
-                [countdown]="countdownDisplay()"
-                [countdownLabel]="'roomShell.discussionEndsIn' | translate"
-                [countdownExpired]="secondsRemaining() === 0"
+                [countdown]="activeCountdownDisplay()"
+                [countdownLabel]="
+                    (view() === 'voting' ? 'roomShell.votingEndsIn' : 'roomShell.discussionEndsIn')
+                        | translate
+                "
+                [countdownExpired]="activeCountdownSeconds() === 0"
+                [countdownProgress]="countdownProgressPercent()"
+                [countdownVariant]="view() === 'voting' ? 'blood' : 'sand'"
             ></app-phase-banner>
 
             @if (lastDeathText(); as death) {
