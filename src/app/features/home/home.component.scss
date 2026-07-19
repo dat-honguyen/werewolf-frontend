@@ -114,14 +114,15 @@
     }
 
     &__logo {
-        font-family: var(--font-display);
+        font-family: var(--font-creepy);
         font-size: 1.8rem;
-        font-weight: 800;
+        font-weight: 400;
         letter-spacing: 0.1em;
         text-transform: uppercase;
         text-shadow: 0 0 10px var(--color-gold-glow);
 
         span {
+            font-family: var(--font-blood);
             color: var(--primary);
         }
     }

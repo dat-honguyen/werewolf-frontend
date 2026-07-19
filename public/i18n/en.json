@@ -20,10 +20,6 @@
             "rejoinButton": "Rejoin",
             "dismissButton": "Dismiss"
         },
-        "logo": {
-            "were": "Were",
-            "wolf": "wolf"
-        },
         "tabs": {
             "create": "Create Room",
             "join": "Join Room"
