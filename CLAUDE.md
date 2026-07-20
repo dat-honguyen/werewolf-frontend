@@ -22,6 +22,11 @@ a backend change. Three places, all three need it:
   SignalR shape from the frontend side (e.g. discovering the backend contract needs to change too),
   the backend's own copy needs the same update, not just the two above.
 
+## Git commits
+
+**Never add a `Co-Authored-By` trailer (Claude or otherwise) to commits in this repo.** Commit
+messages should read like any other commit here — no AI-attribution footer.
+
 ## Backend integration
 
 - Base URL / hub URL: `src/environments/environment*.ts`.
