@@ -30,21 +30,25 @@
         <div class="room-shell__header-actions">
             <app-language-switch></app-language-switch>
             @if (roomCode()) {
-            <button type="button" class="room-shell__button" (click)="copyInviteLink()">
+            <button type="button" class="room-shell__ghost-button" (click)="copyInviteLink()">
                 {{ (copiedInviteLink() ? 'roomShell.copyInviteLinkCopied' :
                 'roomShell.copyInviteLink') | translate }}
             </button>
             }
-            <button type="button" class="room-shell__button" (click)="showRoleGuide.set(true)">
+            <button
+                type="button"
+                class="room-shell__ghost-button"
+                (click)="showRoleGuide.set(true)"
+            >
                 {{ 'roomShell.roleGuide' | translate }}
             </button>
-            <button type="button" class="room-shell__button" (click)="showSettings.set(true)">
+            <button type="button" class="room-shell__ghost-button" (click)="showSettings.set(true)">
                 {{ 'roomShell.rulesAndSetup' | translate }}
             </button>
             @if (headerAction(); as action) {
             <button
                 type="button"
-                class="room-shell__button room-shell__button--primary"
+                class="room-shell__cta"
                 [disabled]="action.disabled"
                 (click)="onHeaderAction()"
             >

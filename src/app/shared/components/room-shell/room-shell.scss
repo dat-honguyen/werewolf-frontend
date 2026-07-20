@@ -32,15 +32,15 @@
     color: var(--text-main);
     font-family: Inter, system-ui, sans-serif;
 
-    // Headings explicitly opt back into Inter -- the global stylesheet
-    // (src/styles/base/_typography.scss) applies --font-title (Grenze Gotisch, a gothic serif)
-    // to every h1-h3, which clashed with this screen's cleaner sans-serif look. Buttons no longer
-    // opt out here (used to, for the same reason) -- see &__button's own comment for why they now
-    // match every other screen's gothic-serif --font-ui buttons instead.
+    // Every heading/button this component renders explicitly opts back into Inter -- the global
+    // stylesheet (src/styles/base/_typography.scss, _buttons.scss) applies --font-title/--font-ui
+    // (Grenze Gotisch / Alegreya, gothic serifs used by the classic/bloody theme) to every h1-h3
+    // and <button> in the app, which clashes with the LUNARIS mockup's clean sans-serif look.
     h1,
     h2,
     h3,
-    h4 {
+    h4,
+    button {
         font-family: inherit;
     }
 
@@ -118,13 +118,7 @@
         flex-wrap: wrap;
     }
 
-    // Was its own bespoke "ghost-button"/"cta" pair styled to match the old LUNARIS-branded
-    // sans-serif look -- now named &__button / &__button--primary like every other screen's
-    // buttons (room-action-panel, settings-modal, home, ...), so the global attribute-selector
-    // sweep in src/styles/base/_buttons.scss (gothic-serif font, unified padding/radius, hover
-    // lift, primary's clip-path corners) picks these up too instead of this screen alone looking
-    // like a different app.
-    &__button {
+    &__ghost-button {
         display: flex;
         align-items: center;
         gap: 0.4rem;
@@ -140,28 +134,33 @@
         &:hover {
             border-color: var(--primary);
         }
+    }
+
+    &__cta {
+        border: none;
+        border-radius: 999px;
+        padding: 0.55rem 1.25rem;
+        font-weight: 700;
+        font-size: 0.75rem;
+        cursor: pointer;
 
         // White text on the day gradient's amber end measured ~2.2:1 against WCAG's 4.5:1 minimum;
         // dark parchment ink clears 7:1+ (same fix as room-action-panel's --primary button).
-        &--primary {
-            border: none;
-            color: var(--color-parchment-ink, #2a2118);
-            background: linear-gradient(135deg, var(--accent-day), var(--color-gold, #d9a441));
-            box-shadow: 0 4px 15px color-mix(in srgb, var(--primary) 25%, transparent);
+        color: var(--color-parchment-ink, #2a2118);
+        background: linear-gradient(135deg, var(--accent-day), var(--color-gold, #d9a441));
+        box-shadow: 0 4px 15px color-mix(in srgb, var(--primary) 25%, transparent);
 
-            &[data-phase='night'],
-            .room-shell[data-phase='night'] & {
-                // The lighter #8b5cf6/#6366f1 pair failed WCAG for both white (~4.2:1) and dark
-                // ink (~3.7:1) text; one shade darker (violet-600/indigo-600) clears white text to
-                // ~5.7:1+.
-                color: white;
-                background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            }
+        &[data-phase='night'],
+        .room-shell[data-phase='night'] & {
+            // The lighter #8b5cf6/#6366f1 pair failed WCAG for both white (~4.2:1) and dark ink
+            // (~3.7:1) text; one shade darker (violet-600/indigo-600) clears white text to ~5.7:1+.
+            color: white;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+        }
 
-            &:disabled {
-                opacity: 0.4;
-                cursor: not-allowed;
-            }
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
     }
 
