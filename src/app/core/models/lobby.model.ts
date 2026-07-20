@@ -14,7 +14,7 @@ export interface GameSettings {
 }
 
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
-    revealRoleOnDeath: true,
+    revealRoleOnDeath: false,
     doctorCanSelfProtect: true,
     werewolfCanTargetWerewolf: false,
     werewolfCanVoteNoKill: false,
