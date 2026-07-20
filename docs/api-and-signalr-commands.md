@@ -49,10 +49,16 @@ clients treat it as "there's something newer than what I have" and re-fetch
 | `chat.room`       | `RoomChatMessageSent`                                | room                   | `{ senderId, text, sentAtUtc }`     |
 | `lobby.updated`   | `NotifyRoomUpdated` (from `RoomLobbyViewProjection`) | room                   | `{ }` (just `stateVersion`)         |
 
-Not pushed at all: werewolf pack coordination (who's voting for whom) — living werewolves poll
-`GET /api/v1/game/{roomCode}/werewolf/votes` instead, to avoid leaking pack membership via
-SignalR group fan-out. Pack chat (`chat.pack`) also stays HTTP-only (`SendPackChatMessage`) — out
-of scope for the Town Square SignalR migration.
+Not pushed at all: werewolf pack coordination (who's voting for whom) and Cupid's lovers pairing —
+living werewolves poll `GET /api/v1/game/{roomCode}/werewolf/votes` and paired players poll
+`GET /api/v1/game/{roomCode}/lovers` instead, to avoid leaking pack/pairing membership via SignalR
+group fan-out. **Confirmed design decision (2026-07-20) — not an oversight, don't "fix" it by adding
+a push.** A private per-player push is provably safe (`seer.result`/`night.turn`/`hunter.turn` already
+work that way), but the poll-and-404 design keeps "is this caller a pack member" decided in exactly
+one auditable place with a leak-proof response shape; a push version would re-decide that on every
+vote change and leave a trail in logs/APM instead. See `../werewolf/GAME_FLOW.md`'s §7 note for the
+full writeup. Pack chat (`chat.pack`) also stays HTTP-only (`SendPackChatMessage`) — out of scope for
+the Town Square SignalR migration.
 
 ## HTTP API
 

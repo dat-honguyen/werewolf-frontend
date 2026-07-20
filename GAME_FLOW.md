@@ -161,9 +161,17 @@ rejected until the werewolves' target is locked.
   (a werewolf becomes a selectable target for other werewolves — but a werewolf can never vote for
   _themselves_, regardless of settings). Build the wolf-vote picker off these two flags (read from
   `/api/v1/rules` or your own lobby settings state) rather than hardcoding the exclusions.
-- **Werewolves see each other's votes live**: every living werewolf gets a private `werewolf.vote`
-  push as each pack member votes, and a `werewolf.locked` push once the target (or no-kill) locks in
-  — see §7. Render this as an in-progress tally in the wolf-only panel.
+- **Werewolves see each other's votes live over plain HTTP, not SignalR**: `GET
+/api/v1/game/{roomCode}/werewolf/votes?playerId={callerId}` returns the current vote tally and lock
+  state — but only if `callerId` is themselves a living werewolf (404 otherwise, not 403, so the
+  response never confirms or denies pack membership to a non-wolf). Poll this endpoint to render an
+  in-progress tally in the wolf-only panel; see §4.3 and §7 for why this is HTTP-pull instead of a
+  push like every other role's private channel.
+- **Night roles act in a fixed order, strictly enforced server-side**: Cupid (night 1 only) →
+  Werewolves → Doctor → Seer → Witch. A role's endpoint rejects the call with 400 if it isn't yet
+  that role's turn (e.g. the Doctor can't act before the Werewolves have locked a target) — see §4.2's
+  guard column and §7's `night.narration`/`night.turn` pushes for how the client learns whose turn it
+  is without any push ever naming a player by role.
 - **Day votes are visible to everyone as they're cast**: a `vote.cast` broadcast fires for every
   `CastVote`, not just once voting closes — see §7. Render a live tally during Voting, not just the
   final result.
@@ -179,17 +187,18 @@ same player two nights in a row."`) when a guard fails.
 
 ### 4.1 Lobby
 
-| Method & Route                | Body                                                         | Notes                                                       |
-| ----------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| `POST /api/v1/lobby`          | `{ hostPlayerId, hostDisplayName }`                          | Returns `{ roomCode }`. Host auto-joins, ready.             |
-| `POST /api/v1/lobby/join`     | `{ roomCode, playerId, displayName }`                        | No-op if already joined.                                    |
-| `POST /api/v1/lobby/leave`    | `{ roomCode, playerId }`                                     | Transfers host if the host leaves.                          |
-| `POST /api/v1/lobby/kick`     | `{ roomCode, requestedBy, playerId }`                        | Host only; can't kick self.                                 |
-| `POST /api/v1/lobby/ready`    | `{ roomCode, playerId, isReady }`                            | Toggle ready state.                                         |
-| `POST /api/v1/lobby/roles`    | `{ roomCode, requestedBy, distribution: { <Role>: count } }` | Host only.                                                  |
-| `POST /api/v1/lobby/settings` | `{ roomCode, requestedBy, settings: {...GameSettings} }`     | Host only.                                                  |
-| `POST /api/v1/lobby/cancel`   | `{ roomCode, requestedBy }`                                  | Host only; terminal.                                        |
-| `POST /api/v1/lobby/start`    | `{ roomCode, requestedBy, forceStart }`                      | Host only. Returns `{ gameId, roomCode }`. Bridges to Game. |
+| Method & Route                | Body                                                         | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/v1/lobby`          | `{ hostPlayerId, hostDisplayName }`                          | Returns `{ roomCode }`. Host auto-joins, ready.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `POST /api/v1/lobby/join`     | `{ roomCode, playerId, displayName }`                        | No-op if already joined.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `POST /api/v1/lobby/leave`    | `{ roomCode, playerId }`                                     | Transfers host if the host leaves.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `POST /api/v1/lobby/kick`     | `{ roomCode, requestedBy, playerId }`                        | Host only; can't kick self.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `POST /api/v1/lobby/ready`    | `{ roomCode, playerId, isReady }`                            | Toggle ready state.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `POST /api/v1/lobby/roles`    | `{ roomCode, requestedBy, distribution: { <Role>: count } }` | Host only.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `POST /api/v1/lobby/settings` | `{ roomCode, requestedBy, settings: {...GameSettings} }`     | Host only.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `POST /api/v1/lobby/cancel`   | `{ roomCode, requestedBy }`                                  | Host only; terminal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `POST /api/v1/lobby/start`    | `{ roomCode, requestedBy, forceStart }`                      | Host only. Returns `{ gameId, roomCode }`. Bridges to Game.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `POST /api/v1/lobby/rematch`  | `{ roomCode, requestedBy }`                                  | Host only; lobby `Status` must be `Closed` (game already started/ended in this room). Reopens the lobby: `Status` becomes `Open` again, every non-host player's ready flag resets to `false` (host stays ready), role distribution and settings carry over unchanged. Emits `LobbyReopened` event, triggering the same `lobby.updated` SignalR notification as any other lobby mutation (clients resync via `GET /api/v1/lobby` if needed). Returns 200 with no body. The subsequent `POST /api/v1/lobby/start` call creates a brand-new `GameState` stream (fresh `gameId`) for round 2, so the game log starts empty automatically (keyed by `GameId`) -- but Town Square chat (§4.4) is keyed by the lobby's own id, so it carries straight through into round 2 instead of resetting. |
 
 `Role` enum: `Villager, Werewolf, Seer, Doctor, Hunter, Witch, Cupid, Tanner`.
 
@@ -198,22 +207,32 @@ same player two nights in a row."`) when a guard fails.
 ```json
 {
     "revealRoleOnDeath": true,
-    "doctorCanSelfProtect": false,
+    "doctorCanSelfProtect": true,
     "werewolfRequiresConsensus": true,
     "werewolfCanTargetWerewolf": false,
     "werewolfCanVoteNoKill": false,
-    "witchSinglePotionPerNight": true,
+    "witchSinglePotionPerNight": false,
     "minPlayers": 5,
-    "allowForceStart": false
+    "allowForceStart": false,
+    "witchKnowsWerewolfTarget": true
 }
 ```
 
 `werewolfCanTargetWerewolf` (default `false`): if `true`, a werewolf may vote to kill a fellow living
 werewolf (never themselves — that's blocked unconditionally). `werewolfCanVoteNoKill` (default
 `false`): if `true`, a werewolf may omit `targetPlayerId` to vote for no kill instead of naming a
-victim.
+victim. `witchKnowsWerewolfTarget` (default `true`, the classic tabletop rule): if `true`, the Witch
+can call `GET /api/v1/game/{roomCode}/witch/target` to learn who the werewolves locked onto before
+deciding whether to heal/poison/pass; if `false`, that endpoint always returns a `null` target and she
+must decide blind.
 
 ### 4.2 Game — commands
+
+Night-role commands below are gated by a fixed turn order — Cupid (night 1 only) → Werewolves →
+Doctor → Seer → Witch — in addition to each row's own guard. A role's endpoint returns 400 (`"It is
+not this role's turn yet (current turn: X)."`) if called before every earlier step in that order has
+finished, even if the caller's own role-specific preconditions (alive, hasn't acted yet, etc.) are
+otherwise satisfied.
 
 | Method & Route                     | Body                                                    | Guard                                                                                                                                                                                     |
 | ---------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -236,17 +255,35 @@ validation failure.
 
 ### 4.3 Read (`GET`) endpoints
 
-| Method & Route                    | Returns             | Notes                                                                                                                                                                                            |
-| --------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /api/v1/game/{roomCode}`     | `GameStateResponse` | Full current game state — phase, players (role + alive), lovers, werewolf locked target, pending hunter-revenge queue, result. See §5.3.                                                         |
-| `GET /api/v1/game/{roomCode}/log` | `GameLogResponse`   | Human-readable play-by-play with player names substituted for ids (backed by `GameLogView` + `PlayerDirectory`, both `Inline` projections — safe to read immediately after the triggering call). |
-| `GET /api/v1/roles`               | `List<RoleInfo>`    | Static reference: every role, its faction, and a full-text description. Good for an in-app "how to play" screen.                                                                                 |
-| `GET /api/v1/rules`               | `RulesResponse`     | Static reference: overview, phase descriptions, night action order, win conditions, configurable settings (with defaults), and the same role list as `/api/v1/roles`.                            |
+| Method & Route                                             | Returns                                                                 | Notes                                                                                                                                                                                            |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /api/v1/game/{roomCode}`                              | `GameStateResponse`                                                     | Full current game state — phase, players (role + alive), lovers, werewolf locked target, pending hunter-revenge queue, result. See §5.3.                                                         |
+| `GET /api/v1/game/{roomCode}/log`                          | `GameLogResponse`                                                       | Human-readable play-by-play with player names substituted for ids (backed by `GameLogView` + `PlayerDirectory`, both `Inline` projections — safe to read immediately after the triggering call). |
+| `GET /api/v1/game/{roomCode}/werewolf/votes?playerId={id}` | `{ votes: { [wolfPlayerId]: targetPlayerId? }, locked, lockedTarget? }` | Living-werewolf-only pack tally, polled instead of pushed — see §3 and §7. Returns 404 (not 403) if `playerId` isn't a living werewolf, so the response can't be used to test pack membership.   |
+| `GET /api/v1/game/{roomCode}/lovers?playerId={id}`         | `{ firstPlayerId, secondPlayerId }`                                     | Only for the two players Cupid actually paired — 404 for anyone else (including a caller with no lovers set yet), same reasoning as the werewolf-votes endpoint.                                 |
+| `GET /api/v1/game/{roomCode}/witch/target?playerId={id}`   | `{ targetPlayerId? }`                                                   | Living-Witch-only; 404 for anyone else. `targetPlayerId` is the werewolves' locked target if `WitchKnowsWerewolfTarget` is on, else always `null` (see §4.1).                                    |
+| `GET /api/v1/roles`                                        | `List<RoleInfo>`                                                        | Static reference: every role, its faction, and a full-text description. Good for an in-app "how to play" screen.                                                                                 |
+| `GET /api/v1/rules`                                        | `RulesResponse`                                                         | Static reference: overview, phase descriptions, night action order, win conditions, configurable settings (with defaults), and the same role list as `/api/v1/roles`.                            |
+| `GET /api/v1/version`                                      | `{ version: string }`                                                   | The running build's version — the git release tag it was deployed from, or `dev-<short-sha>` for a non-release build. Baked into the Docker image at build time via the `APP_VERSION` build-arg. |
 
 There is currently no `GET` for `RoomLobbyView`/`PlayerGameView` (the lobby-side and per-player
 projections) — build the lobby screen from `POST` responses plus SignalR, or add a `GET` endpoint
 following the same `FetchLatest`/`LoadAsync` pattern as `GetGameStateEndpoint`/`GetGameLogEndpoint` if
 you need one.
+
+### 4.4 Chat
+
+| Method & Route                                        | Body / Query                   | Notes                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/v1/game/chat/room`                         | `{ roomCode, playerId, text }` | Town Square (public). Appends to `LobbyState` (not `GameState`), so it works from the moment a room is created, stays usable through an active game, and — unlike everything else keyed by `GameId` — carries straight through a `POST /api/v1/lobby/rematch` into round 2 instead of resetting. `playerId` must be a current member of the room; `text` max 500 chars. Broadcasts `chat.room` over SignalR (§7). |
+| `GET /api/v1/game/{roomCode}/chat/room`               | —                              | Full Town Square history, oldest first, with sender display names resolved. Works before a game has started (see above).                                                                                                                                                                                                                                                                                          |
+| `POST /api/v1/game/chat/pack`                         | `{ roomCode, playerId, text }` | Werewolf-pack-only. Unlike Town Square, this stays keyed by `GameId` — pack membership only exists once roles are assigned, so it only works during an active game and resets each rematch round like the game log. Not pushed over SignalR; see the `GET` row.                                                                                                                                                   |
+| `GET /api/v1/game/{roomCode}/chat/pack?playerId={id}` | —                              | Living-werewolf-only; 404 for anyone else (same reasoning as the werewolf-votes/lovers endpoints in §4.3) — poll this instead of a push.                                                                                                                                                                                                                                                                          |
+
+Town Square is deliberately _not_ phase-gated — it's available in the Lobby, throughout Night/Day,
+and after `GameOver`. There is no server-side "muted at night" rule; if a client wants to restrict
+when the town-chat input is usable, that's a front-end-only decision layered on top of an always-
+available endpoint.
 
 ---
 
@@ -334,22 +371,26 @@ the Werewolf description already reflects whichever of `WerewolfCanTargetWerewol
 `GET /api/v1/game/{roomCode}` player row, right after `game.started`. Transitions to **Night Action
 Panel**.
 
-### Night Action Panel (role-conditional)
+### Night Action Panel (role-conditional, turn-ordered)
 
-Only render the block(s) matching the viewer's own role — never show other roles' controls.
+Only render the block(s) matching the viewer's own role — never show other roles' controls. Roles now
+act in a **fixed, server-enforced order**: Cupid (night 1 only) → Werewolves → Doctor → Seer → Witch.
+A role's action buttons should stay disabled until that role's `night.turn` push arrives (see §7) —
+calling the endpoint early gets a 400, so use the push (or poll `GET /api/v1/game/{roomCode}` and
+compare against the room-wide `night.narration` step) to gate the UI rather than letting players click
+ahead of their turn.
 
 ```
 ┌─ Night 1 ───────────────────────────────────────────┐
 │ Alive: 8   Asleep icons for dead players             │
 │                                                      │
+│ Narrator (room-wide, night.narration): "Werewolves,  │
+│ wake up and choose your victim."                     │
+│                                                      │
 │ [Cupid]    (night 1 only, mandatory, then never      │
 │            shown again) Pick two players:            │
 │            First:  (picker)   Second: (picker)       │
 │            [ Pair as Lovers ] -> SubmitCupidPairing  │
-│                                                      │
-│ [Seer]     Target: (picker, excludes self)           │
-│            [ Inspect ] -> SubmitSeerInspection       │
-│            Result: "NOT a werewolf" (private)        │
 │                                                      │
 │ [Werewolf] Target: (picker; excludes other wolves    │
 │            AND self, unless WerewolfCanTargetWere-   │
@@ -357,34 +398,45 @@ Only render the block(s) matching the viewer's own role — never show other rol
 │            [ Vote to Kill ]  -> SubmitWerewolfVote   │
 │            [ Vote No Kill ]  -> same call, omit      │
 │            (only if WerewolfCanVoteNoKill)  target   │
-│            Live pack tally (werewolf.vote pushes):   │
+│            Live pack tally (poll GET .../werewolf/   │
+│            votes, not a push -- see §3/§4.3):        │
 │             "P2 -> P5   P7 -> no kill   ...P9?"      │
-│            Locked (werewolf.locked): "-> P5"         │
+│            Locked: "-> P5"                           │
 │                                                      │
-│ [Doctor]   Target: (picker, last night's pick        │
+│ [Doctor]   (shown once werewolves lock)              │
+│            Target: (picker, last night's pick        │
 │            grayed out)                               │
 │            [ Protect ] -> SubmitDoctorProtection     │
 │                                                      │
-│ [Witch]    (shown once wolves' target locks)         │
+│ [Seer]     (shown once Doctor acts)                  │
+│            Target: (picker, excludes self)           │
+│            [ Inspect ] -> SubmitSeerInspection       │
+│            Result: "NOT a werewolf" (private)        │
+│                                                      │
+│ [Witch]    (shown once Seer acts)                    │
+│            If WitchKnowsWerewolfTarget: GET .../     │
+│            witch/target first, show who's dying      │
 │            [ Heal target ] -> UseWitchHealPotion     │
 │            [ Poison... ▾ ] -> UseWitchPoisonPotion   │
 │            [ Pass ]        -> PassWitch              │
 │                                                      │
-│ (non-night roles: "Everyone else is asleep --        │
-│  waiting on Seer, Doctor...")                        │
+│ (non-night roles, and night roles before their turn: │
+│  "Everyone else is asleep -- waiting on the           │
+│  Werewolves..." driven off night.narration)          │
 └──────────────────────────────────────────────────────┘
 ```
 
-Controls disable individually once that role's action lands this night. The Cupid block only ever
-renders on night 1 (`nightNumber === 1` and `lovers === null` — check `GET /api/v1/game/{roomCode}`);
-from night 2 onward, a Cupid player sees the same "waiting on other roles" state as any non-night
-role. The Werewolf block's target
-picker and "Vote No Kill" button should be driven off `WerewolfCanTargetWerewolf` /
-`WerewolfCanVoteNoKill` (read from `/api/v1/rules` or the lobby's own settings state), not hardcoded —
-a werewolf is never a selectable target for _themselves_ regardless of either setting. Render the pack
-tally from the private `werewolf.vote` pushes as they land, and swap it for the `werewolf.locked`
-payload once the target (or no-kill) locks in. Transitions to **Day Discussion** on `night resolved`
-(poll or `day.started`), or to the **Hunter Revenge modal** if a night death queues one.
+Controls disable individually once that role's action lands this night, and stay disabled until the
+matching `night.turn` push says it's that role's turn (see §7). The Cupid block only ever renders on
+night 1 (`nightNumber === 1` and `lovers === null` — check `GET /api/v1/game/{roomCode}`); from night 2
+onward, a Cupid player sees the same "waiting on other roles" state as any non-night role. The
+Werewolf block's target picker and "Vote No Kill" button should be driven off
+`WerewolfCanTargetWerewolf` / `WerewolfCanVoteNoKill` (read from `/api/v1/rules` or the lobby's own
+settings state), not hardcoded — a werewolf is never a selectable target for _themselves_ regardless
+of either setting. Render the pack tally by polling `GET /api/v1/game/{roomCode}/werewolf/votes`
+(§4.3) — this is intentionally HTTP-pull rather than a SignalR push, unlike every other role's private
+channel; see §7 for why. Transitions to **Day Discussion** on `night resolved` (poll or
+`day.started`), or to the **Hunter Revenge modal** if a night death queues one.
 
 ### Day Discussion
 
@@ -399,6 +451,12 @@ payload once the target (or no-kill) locks in. Transitions to **Day Discussion**
 ```
 
 Transitions to **Voting** for everyone on `voting.started`.
+
+`GameStateResponse` (§ "GET /api/v1/game/{roomCode}") includes `discussionDeadlineUtc` (nullable
+`DateTime`), present only while `phase == "DayDiscussion"` -- computed as the phase's start time plus
+`GameSettings.DiscussionDurationSeconds`, for clients to render a synced countdown from. It's `null`
+in every other phase. Purely informational: the host still advances to Voting explicitly via
+`AdvanceToVoting`, the deadline elapsing doesn't auto-advance anything server-side.
 
 ### Voting
 
@@ -470,21 +528,46 @@ Send `LeaveGameRoom` (same shape) to unsubscribe. Two group scopes exist server-
 
 Notification `kind` values currently wired (see `Werewolf/Notifications/PlayerNotification.cs`):
 
-| `kind`            | Scope                           | Payload                                                                                                                                                                                     |
-| ----------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `game.started`    | broadcast                       | `{ gameId }`                                                                                                                                                                                |
-| `night.started`   | broadcast                       | `{ nightNumber }`                                                                                                                                                                           |
-| `day.started`     | broadcast                       | `{ dayNumber }`                                                                                                                                                                             |
-| `voting.started`  | broadcast                       | `{}`                                                                                                                                                                                        |
-| `player.died`     | broadcast                       | `{ playerId, cause, role? }` — `role` only if `revealRoleOnDeath`                                                                                                                           |
-| `player.lynched`  | broadcast                       | `{ playerId, role? }`                                                                                                                                                                       |
-| `seer.result`     | private (Seer)                  | `{ targetPlayerId, isWerewolf }` — boolean only, never the exact role                                                                                                                       |
-| `werewolf.vote`   | private (every living werewolf) | `{ wolfPlayerId, targetPlayerId }` — fired on every `SubmitWerewolfVote`; `targetPlayerId` is `null` for a no-kill vote. Lets the pack see each other's votes live before the target locks. |
-| `werewolf.locked` | private (every living werewolf) | `{ targetPlayerId }` — fired once the kill target (or no-kill) locks in for the night; `targetPlayerId` is `null` if the pack locked in no-kill.                                            |
-| `vote.cast`       | broadcast                       | `{ voterPlayerId, targetPlayerId }` — fired on every day-vote `CastVote`, not just once voting closes; `targetPlayerId` is `null` for an abstain. Lets everyone watch the tally live.       |
-| `game.ended`      | broadcast                       | `{ winningFaction, roles: { playerId: role } }`                                                                                                                                             |
+| `kind`            | Scope                                                        | Payload                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ----------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `game.started`    | broadcast                                                    | `{ gameId }`                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `night.started`   | broadcast                                                    | `{ nightNumber }`                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `day.started`     | broadcast                                                    | `{ dayNumber }`                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `voting.started`  | broadcast                                                    | `{}`                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `player.died`     | broadcast                                                    | `{ playerId, cause, role? }` — `role` only if `revealRoleOnDeath`                                                                                                                                                                                                                                                                                                                                                 |
+| `player.lynched`  | broadcast                                                    | `{ playerId, role? }`                                                                                                                                                                                                                                                                                                                                                                                             |
+| `seer.result`     | private (Seer)                                               | `{ targetPlayerId, isWerewolf }` — boolean only, never the exact role                                                                                                                                                                                                                                                                                                                                             |
+| `night.narration` | broadcast                                                    | `{ step, text }` — fired every time the night's turn advances (see §3/§4.2's fixed order); flavor text only, never names a player, so it's safe to show every player in the room, e.g. `"Doctor, who will you save tonight?"`. `step` is one of `Cupid`, `Werewolves`, `Doctor`, `Seer`, `Witch`.                                                                                                                 |
+| `night.turn`      | private (every living player holding the role that's now up) | `{ role, prompt }` — the actionable counterpart to `night.narration`: sent only to the player(s) who actually hold the next role, so the client knows to enable that role's controls right now.                                                                                                                                                                                                                   |
+| `vote.cast`       | broadcast                                                    | `{ voterPlayerId, targetPlayerId }` — fired on every day-vote `CastVote`, not just once voting closes; `targetPlayerId` is `null` for an abstain. Lets everyone watch the tally live.                                                                                                                                                                                                                             |
+| `game.ended`      | broadcast                                                    | `{ winningFaction, roles: { playerId: role } }`                                                                                                                                                                                                                                                                                                                                                                   |
+| `chat.room`       | broadcast                                                    | `{ senderId, text, sentAtUtc }` — fired on every Town Square `POST /api/v1/game/chat/room` (§4.4), including messages sent before a game has started. No `stateVersion` (see §0.2-adjacent note below) since it's driven off `LobbyState`, a different version counter than the rest of this table — comparing it against the client's last-known _GameState_ version would be comparing two unrelated sequences. |
 
 `cause` for `player.died` is one of: `"night"`, `"lynch"`, `"lover-link"`, `"hunter-revenge"`.
+
+**Werewolf pack coordination and Cupid's lovers are deliberately _not_ pushed over SignalR at all** —
+unlike every other private channel above, there is no `werewolf.vote`/`werewolf.locked`/`lovers.paired`
+notification. Which player IDs are joined to which SignalR player-group is one more surface that could
+leak sensitive role/pairing membership if ever inspected, so both of these are pulled over
+authenticated HTTP instead: `GET /api/v1/game/{roomCode}/werewolf/votes?playerId={id}` (poll while the
+Werewolves' turn is active) and `GET /api/v1/game/{roomCode}/lovers?playerId={id}` (call once, after
+Cupid pairs — see §4.3). Both 404 for anyone who isn't actually a living werewolf / one of the two
+lovers, rather than a 403, so a wrong guess can't be used to fish for the answer.
+
+> **Confirmed design decision (2026-07-20), do not change without revisiting this note.** This was
+> reconsidered explicitly — `PlayerNotification.ToPlayer` already proves a genuinely private,
+> per-player SignalR push is safe (that's exactly how `seer.result`/`night.turn`/`hunter.turn` work),
+> so pushing pack-vote updates the same way is technically possible. The reason to _not_ do it isn't
+> "SignalR can't do this safely" — it's that the poll-and-404 design has a narrower, already-audited
+> leak surface than a push would: exactly one code path (`GetWerewolfVotesEndpoint`/
+> `GetLoversEndpoint`) ever decides "is this caller a pack member / a lover," and its response shape
+> is identical whether the answer is "wrong room," "not that role," or "game doesn't exist." A push
+> version has to make that same decision on every vote change, inside a `foreach` over
+> `AlivePlayersWithRole(state, Werewolf)` — which moves the decision out of one auditable boundary and
+> into application logs / APM / SignalR-group activity, none of which exist as a membership signal
+> today. The feature is low-frequency and latency-tolerant (a handful of votes across one night phase,
+> nobody blocked waiting on it), so push's only upside — lower latency — doesn't outweigh trading away
+> that invariant. Revisit only if polling latency becomes an actual complaint, not preemptively.
 
 There is currently **no SignalR push for Lobby-side changes** (join/leave/ready/settings) — only Game
 events are wired to notifications (see `PublishEventsToWolverine` in `CritterConfiguration.cs`). Poll
@@ -551,6 +634,7 @@ type GameSettings = {
     witchSinglePotionPerNight: boolean;
     minPlayers: number;
     allowForceStart: boolean;
+    witchKnowsWerewolfTarget: boolean; // default true — Witch can GET .../witch/target before deciding
 };
 ```
 
@@ -633,6 +717,19 @@ type GameStateResponse = {
 
 // GET /api/v1/game/{roomCode}/log
 type GameLogResponse = { roomCode: string; gameId: string; entries: string[] };
+
+// GET /api/v1/game/{roomCode}/werewolf/votes?playerId={id} — 404 unless a living werewolf
+type WerewolfVotesResponse = {
+    votes: Record<string, string | null>;
+    locked: boolean;
+    lockedTarget: string | null;
+};
+
+// GET /api/v1/game/{roomCode}/lovers?playerId={id} — 404 unless one of the two lovers
+type LoversResponse = { firstPlayerId: string; secondPlayerId: string };
+
+// GET /api/v1/game/{roomCode}/witch/target?playerId={id} — 404 unless a living Witch
+type WitchTargetResponse = { targetPlayerId: string | null }; // null if WitchKnowsWerewolfTarget is off
 
 // GET /api/v1/roles
 type RoleInfo = { role: Role; faction: string; description: string };
