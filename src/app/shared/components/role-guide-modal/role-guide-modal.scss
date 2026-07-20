@@ -12,10 +12,13 @@
     backdrop-filter: blur(6px);
     font-family: Inter, system-ui, sans-serif;
 
+    // Buttons no longer opt out of the global gothic-serif --font-ui here -- see
+    // room-shell.scss's &__button comment for why that opt-out gets removed everywhere it shows
+    // up (it made this modal's own "Close" button look like a different app from every other
+    // screen's buttons).
     h1,
     h2,
-    h3,
-    button {
+    h3 {
         font-family: inherit;
     }
 

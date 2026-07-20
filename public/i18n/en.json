@@ -94,6 +94,7 @@
         "dayMode": "☀️ Day Mode",
         "roomCode": "Room #{{code}}",
         "copyInviteLink": "🔗 Copy invite link",
+        "copyInviteLinkCopied": "✅ Copied!",
         "rulesAndSetup": "⚙️ Rules & Setup",
         "roleGuide": "📖 Role Guide",
         "livingSouls": "Living Souls",

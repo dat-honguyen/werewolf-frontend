@@ -94,6 +94,7 @@
         "dayMode": "☀️ Chế Độ Ngày",
         "roomCode": "Phòng #{{code}}",
         "copyInviteLink": "🔗 Sao chép liên kết mời",
+        "copyInviteLinkCopied": "✅ Đã sao chép!",
         "rulesAndSetup": "⚙️ Luật Chơi & Thiết Lập",
         "roleGuide": "📖 Sổ Tay Vai Trò",
         "livingSouls": "Linh Hồn Còn Sống",

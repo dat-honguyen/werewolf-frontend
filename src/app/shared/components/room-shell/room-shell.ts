@@ -165,6 +165,11 @@ export class RoomShell {
     readonly justActedTarget = signal<{ role: Role; playerId: string } | null>(null);
     private readonly justActedTimeouts: ReturnType<typeof setTimeout>[] = [];
 
+    /** Swaps the "Copy invite link" button's own label to a confirmation for a beat -- the only
+     * feedback a clipboard write gets otherwise is silence, which reads as "did that work?". */
+    readonly copiedInviteLink = signal(false);
+    private copiedInviteLinkTimeout: ReturnType<typeof setTimeout> | null = null;
+
     // Voting-phase local state (mirrors former VotingScreen)
     readonly selectedVoteTarget = signal<string | null | undefined>(undefined);
     private readonly votesByVoter = signal<Map<string, string | null>>(new Map());
@@ -715,6 +720,11 @@ export class RoomShell {
         });
         inject(DestroyRef).onDestroy(() => dyingTimeouts.forEach(clearTimeout));
         inject(DestroyRef).onDestroy(() => this.justActedTimeouts.forEach(clearTimeout));
+        inject(DestroyRef).onDestroy(() => {
+            if (this.copiedInviteLinkTimeout) {
+                clearTimeout(this.copiedInviteLinkTimeout);
+            }
+        });
 
         const roomCode = this.roomCode();
         if (roomCode) {
@@ -847,7 +857,18 @@ export class RoomShell {
         if (!roomCode) {
             return;
         }
-        void navigator.clipboard.writeText(`${location.origin}/room/${roomCode}`);
+        navigator.clipboard
+            .writeText(`${location.origin}/room/${roomCode}`)
+            .then(() => {
+                this.copiedInviteLink.set(true);
+                if (this.copiedInviteLinkTimeout) {
+                    clearTimeout(this.copiedInviteLinkTimeout);
+                }
+                this.copiedInviteLinkTimeout = setTimeout(() => {
+                    this.copiedInviteLink.set(false);
+                }, 1800);
+            })
+            .catch(() => {});
     }
 
     playerName(playerId: string): string {
