@@ -77,6 +77,10 @@ export class WerewolfHubService {
         await this.sendCommand('leave_game_room', { roomCode, playerId });
     }
 
+    async sendRoomChatMessage(roomCode: string, playerId: string, text: string): Promise<void> {
+        await this.sendCommand('send_room_chat_message', { roomCode, playerId, text });
+    }
+
     async disconnect(): Promise<void> {
         await this.connection?.stop();
         this.connection = null;

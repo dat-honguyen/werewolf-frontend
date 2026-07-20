@@ -98,11 +98,6 @@ export interface GameLogResponse {
     entries: string[];
 }
 
-export interface SendRoomChatMessageRequest {
-    roomCode: string;
-    playerId: string;
-    text: string;
-}
 export interface ChatMessageResponse {
     senderId: string;
     senderDisplayName: string;

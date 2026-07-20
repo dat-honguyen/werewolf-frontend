@@ -192,6 +192,7 @@
                     [placeholder]="'roomShell.chatPlaceholder' | translate"
                     [ngModel]="draftMessage()"
                     (ngModelChange)="draftMessage.set($event)"
+                    [maxlength]="maxTownMessageLength"
                     name="townMessage"
                 />
             </form>

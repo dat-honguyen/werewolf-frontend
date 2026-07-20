@@ -40,8 +40,15 @@ export class IdentityGrimoireCard {
      * to hide the redundant objective hint once the back face's own description covers it. */
     readonly flipped = model(this.gameState.hasSeenRoleReveal());
 
-    readonly icon = () =>
-        this.role() ? this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[this.role()!]) : null;
+    readonly icon = () => {
+        if (!this.role()) {
+            return null;
+        }
+        // ROLE_ICON is a fixed, hardcoded lookup table of SVG markup (role-icon.util.ts), never
+        // user input.
+        // eslint-disable-next-line no-restricted-syntax
+        return this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[this.role()!]);
+    };
 
     readonly accent = computed(() => roleAccent(this.role()));
 

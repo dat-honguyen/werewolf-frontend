@@ -39,6 +39,9 @@ export class RoleGuideModal {
     }
 
     icon(role: RoleInfo['role']) {
+        // ROLE_ICON is a fixed, hardcoded lookup table of SVG markup (role-icon.util.ts), never
+        // user input.
+        // eslint-disable-next-line no-restricted-syntax
         return this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[role]);
     }
 }

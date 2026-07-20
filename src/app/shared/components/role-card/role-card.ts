@@ -30,5 +30,10 @@ export class RoleCard {
     readonly revealed = input(false);
 
     readonly glowColor = computed(() => FACTION_GLOW[this.role()]);
-    readonly icon = computed(() => this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[this.role()]));
+    readonly icon = computed(() => {
+        // ROLE_ICON is a fixed, hardcoded lookup table of SVG markup (role-icon.util.ts), never
+        // user input.
+        // eslint-disable-next-line no-restricted-syntax
+        return this.sanitizer.bypassSecurityTrustHtml(ROLE_ICON[this.role()]);
+    });
 }

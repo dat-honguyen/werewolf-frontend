@@ -19,7 +19,10 @@ export class Avatar {
     readonly size = input(44);
 
     readonly color = computed(() => pick(AVATAR_PALETTE, this.seed(), 'color'));
-    readonly sigil = computed(() =>
-        this.sanitizer.bypassSecurityTrustHtml(pick(AVATAR_SIGILS, this.seed(), 'sigil'))
-    );
+    readonly sigil = computed(() => {
+        // AVATAR_SIGILS is a fixed, hardcoded lookup table of SVG markup (role-icon.util.ts),
+        // never user input.
+        // eslint-disable-next-line no-restricted-syntax
+        return this.sanitizer.bypassSecurityTrustHtml(pick(AVATAR_SIGILS, this.seed(), 'sigil'));
+    });
 }

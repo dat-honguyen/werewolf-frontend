@@ -843,15 +843,18 @@ export class RoomShell {
         ]);
     }
 
+    /** Matches SendRoomChatMessageHandler.MaxMessageLength on the backend -- oversized sends are
+     * silently dropped there (no error surfaces back over the SignalR fire-and-forget path), so
+     * trimming here is the only feedback the user gets. */
+    readonly maxTownMessageLength = 500;
+
     sendTownMessage(): void {
         const roomCode = this.roomCode();
-        const text = this.draftMessage().trim();
+        const text = this.draftMessage().trim().slice(0, this.maxTownMessageLength);
         if (!roomCode || !text) {
             return;
         }
-        this.gameApi
-            .sendRoomChatMessage({ roomCode, playerId: this.myPlayerId(), text })
-            .subscribe();
+        void this.hub.sendRoomChatMessage(roomCode, this.myPlayerId(), text);
         this.draftMessage.set('');
     }
 

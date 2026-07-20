@@ -13,7 +13,6 @@ import {
     PassHunterRevengeRequest,
     PassWitchRequest,
     QuitGameRequest,
-    SendRoomChatMessageRequest,
     SubmitCupidPairingRequest,
     SubmitDoctorProtectionRequest,
     SubmitHunterRevengeShotRequest,
@@ -115,9 +114,5 @@ export class GameApiService {
 
     getRoomChat(roomCode: string): Observable<ChatMessagesResponse> {
         return this.http.get<ChatMessagesResponse>(`${this.baseUrl}/${roomCode}/chat/room`);
-    }
-
-    sendRoomChatMessage(request: SendRoomChatMessageRequest): Observable<void> {
-        return this.http.post<void>(`${this.baseUrl}/chat/room`, request);
     }
 }
