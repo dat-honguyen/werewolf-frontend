@@ -12,9 +12,12 @@
     ></app-phase-transition>
     }
     <app-room-backdrop [isNight]="isNight()"></app-room-backdrop>
-    <header class="room-shell__header">
+    <header class="room-shell__header" #header>
         <div class="room-shell__logo">
-            🔮 {{ 'roomShell.logo' | translate }} @if (state(); as s) {
+            <span class="room-shell__wordmark"
+                >Were<span class="room-shell__wordmark-accent">Wolf</span></span
+            >
+            @if (state(); as s) {
             <span class="room-shell__mode-badge" [class.room-shell__mode-badge--night]="isNight()">
                 {{ (isNight() ? 'roomShell.nightMode' : 'roomShell.dayMode') | translate }}
             </span>
@@ -54,7 +57,10 @@
         </div>
     </header>
 
-    <div class="room-shell__viewport">
+    <div
+        class="room-shell__viewport"
+        [class.room-shell__viewport--chat-collapsed]="isChatCollapsed()"
+    >
         <aside class="room-shell__left">
             <app-identity-grimoire-card
                 [role]="myRole()"
@@ -152,7 +158,30 @@
             ></app-room-action-panel>
         </section>
 
-        <aside class="room-shell__chat">
+        <aside class="room-shell__chat" [class.room-shell__chat--collapsed]="isChatCollapsed()">
+            @if (view() !== 'lobby') {
+            <button
+                type="button"
+                class="room-shell__chat-collapse-toggle"
+                [attr.aria-expanded]="!isChatCollapsed()"
+                [attr.aria-label]="
+                    (isChatCollapsed() ? 'roomShell.expandChat' : 'roomShell.collapseChat')
+                        | translate
+                "
+                (click)="toggleChatCollapsed()"
+            >
+                <span class="room-shell__chat-collapse-icon"
+                    >{{ isChatCollapsed() ? '💬' : '»' }}</span
+                >
+                @if (isChatCollapsed()) {
+                <span class="room-shell__chat-collapse-label"
+                    >{{ 'roomShell.publicSquare' | translate }}</span
+                >
+                @if (hasUnreadTownMessages()) {
+                <span class="room-shell__chat-unread-dot" aria-hidden="true"></span>
+                } }
+            </button>
+            } @if (!isChatCollapsed()) {
             <div class="room-shell__chat-tabs">
                 <button
                     type="button"
@@ -200,7 +229,7 @@
             <div class="room-shell__chat-history">
                 <p class="room-shell__chat-disabled">{{ 'roomShell.chatDisabled' | translate }}</p>
             </div>
-            }
+            } }
         </aside>
     </div>
 

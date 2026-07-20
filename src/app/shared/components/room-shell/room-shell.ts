@@ -1,5 +1,15 @@
 // src/app/shared/components/room-shell/room-shell.ts
-import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import {
+    Component,
+    DestroyRef,
+    ElementRef,
+    afterNextRender,
+    computed,
+    effect,
+    inject,
+    signal,
+    viewChild
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -121,6 +131,18 @@ export class RoomShell {
     readonly chatTab = signal<ChatTab>('town');
     readonly townMessages = signal<ChatMessage[]>([]);
     readonly draftMessage = signal('');
+
+    /** Chat takes up nearly the full column height, which is fine in the lobby (nothing else
+     * competes for that space) but crowds out the player grid/action panel once a game is
+     * running -- so it's collapsible everywhere except the lobby view, where it always stays
+     * expanded regardless of this flag. */
+    readonly chatCollapsed = signal(false);
+    readonly isChatCollapsed = computed(() => this.chatCollapsed() && this.view() !== 'lobby');
+    private readonly townMessageCountAtCollapse = signal(0);
+    readonly hasUnreadTownMessages = computed(
+        () =>
+            this.isChatCollapsed() && this.townMessages().length > this.townMessageCountAtCollapse()
+    );
 
     readonly lastDeathText = signal<string | null>(null);
     readonly nowMs = signal(Date.now());
@@ -595,7 +617,33 @@ export class RoomShell {
         });
     });
 
+    /** Template ref on &__header -- its real rendered height varies with viewport width (the
+     * logo/room-code and header actions wrap onto their own lines below ~480px), but toast-list
+     * (a sibling of RoomShell, not a descendant -- see room.component.html) needs to clear it
+     * regardless. Measuring it here and publishing it as a --header-h custom property on
+     * <html> (inherited everywhere, not just within .room-shell) replaces what used to be a
+     * hardcoded single-line-height guess that silently drifted out of sync whenever the header's
+     * content changed. */
+    private readonly headerRef = viewChild<ElementRef<HTMLElement>>('header');
+
     constructor() {
+        const destroyRef = inject(DestroyRef);
+        afterNextRender(() => {
+            const header = this.headerRef()?.nativeElement;
+            if (!header) {
+                return;
+            }
+            const syncHeaderHeight = () =>
+                document.documentElement.style.setProperty(
+                    '--header-h',
+                    `${header.offsetHeight}px`
+                );
+            syncHeaderHeight();
+            const observer = new ResizeObserver(syncHeaderHeight);
+            observer.observe(header);
+            destroyRef.onDestroy(() => observer.disconnect());
+        });
+
         let lastAnnouncedView: GameView | null = null;
         effect(() => {
             const view = this.view();
@@ -828,6 +876,14 @@ export class RoomShell {
 
     selectChatTab(tab: ChatTab): void {
         this.chatTab.set(tab);
+    }
+
+    toggleChatCollapsed(): void {
+        const collapsing = !this.chatCollapsed();
+        if (collapsing) {
+            this.townMessageCountAtCollapse.set(this.townMessages().length);
+        }
+        this.chatCollapsed.set(collapsing);
     }
 
     private appendSystemMessage(text: string, sentAtUtc = new Date().toISOString()): void {

@@ -90,7 +90,6 @@
         }
     },
     "roomShell": {
-        "logo": "LUNARIS",
         "nightMode": "🌙 Night Mode",
         "dayMode": "☀️ Day Mode",
         "roomCode": "Room #{{code}}",
@@ -106,6 +105,8 @@
         "privateGrimoires": "Private Grimoires",
         "chatPlaceholder": "Type a message…",
         "chatDisabled": "Private Grimoires isn't wired up yet. Coordinate over voice or a group chat outside the app.",
+        "collapseChat": "Collapse chat",
+        "expandChat": "Expand chat",
         "headerActions": {
             "forceStart": "Force Start",
             "startGame": "Start Game",

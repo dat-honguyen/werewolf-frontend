@@ -3,8 +3,13 @@
     // room-shell's own sticky header -- clearing it unconditionally (rather than just on mobile,
     // as before) stops a burst of toasts from covering the room code / header controls at any
     // width, on top of ToastService capping how many stack up at once.
+    // --header-h is measured live off &__header's real rendered height (room-shell.ts's
+    // ResizeObserver, published on <html> since toast-list is a sibling of room-shell, not a
+    // descendant) rather than a hardcoded guess -- room-shell__header's flex-wrap lets its logo/
+    // room-code and action buttons drop onto their own lines below ~480px, and a static pixel
+    // value silently drifts out of sync the moment that wrapped content changes.
     position: fixed;
-    top: 4.75rem;
+    top: calc(var(--header-h, 4.5rem) + 0.25rem);
     left: 0.75rem;
     right: 0.75rem;
     z-index: 100;
@@ -15,15 +20,6 @@
 
     @media (max-width: 900px) {
         max-width: none;
-    }
-
-    // room-shell__header's flex-wrap lets its logo/room-code and its action buttons drop onto
-    // their own lines once they no longer fit one row -- around this width that can stack into
-    // 3 lines (measured ~155px tall), well past the 4.75rem clearance above that's sized for the
-    // normal single-line header. Clearing that fully-wrapped height with a safety margin here
-    // avoids a fragile, content-dependent pixel guess doing double duty across every width.
-    @media (max-width: 480px) {
-        top: 11rem;
     }
 
     &__toast {

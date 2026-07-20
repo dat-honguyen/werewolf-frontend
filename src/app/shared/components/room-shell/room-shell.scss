@@ -63,10 +63,25 @@
         display: flex;
         align-items: baseline;
         gap: 0.6rem;
-        font-family: var(--font-creepy);
         font-size: 1.4rem;
+    }
+
+    // Same wordmark treatment as home.component.scss's &__logo, so the room screen reads as the
+    // same app instead of introducing its own "LUNARIS" brand.
+    &__wordmark {
+        font-family: var(--font-creepy);
         font-weight: 400;
         letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    // Blood-red rather than gold -- matches home.component.scss's same wordmark treatment (see
+    // its comment for why) and stays consistent with the room screen's own --danger/blood accents
+    // rather than the day/night-reactive --primary.
+    &__wordmark-accent {
+        font-family: var(--font-blood);
+        color: var(--color-blood);
+        text-shadow: 0 0 10px var(--color-blood-glow);
     }
 
     &__room-code {
@@ -160,9 +175,21 @@
         max-width: 90rem;
         margin: 0 auto;
         width: 100%;
+        transition: grid-template-columns 0.25s ease;
+
+        // Chat collapsed to a slim rail during gameplay -- see &__chat--collapsed. The grid column
+        // itself has to shrink too, or the reclaimed width just becomes dead space instead of
+        // going back to the player grid/action panel column.
+        &--chat-collapsed {
+            grid-template-columns: 17.5rem minmax(0, 1fr) 3.25rem;
+        }
 
         @media (max-width: 900px) {
             grid-template-columns: 1fr;
+
+            &--chat-collapsed {
+                grid-template-columns: 1fr;
+            }
         }
     }
 
@@ -261,6 +288,7 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        transition: width 0.25s ease;
 
         // Sticks alongside &__left rather than stretching to fill a forced 100vh column -- it
         // keeps its own bounded height (so long histories scroll internally, Discord-style)
@@ -273,6 +301,74 @@
             position: static;
             height: 60vh;
         }
+
+        // Collapsed to a slim rail during gameplay (room-shell.ts's isChatCollapsed) -- the lobby
+        // view never applies this class at all, so chat always stays full-size there.
+        &--collapsed {
+            height: calc(100vh - var(--header-h) - 3rem);
+
+            @media (max-width: 900px) {
+                height: 3rem;
+            }
+        }
+    }
+
+    &__chat-collapse-toggle {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border: none;
+        background: var(--bg-nested);
+        color: var(--text-main);
+        cursor: pointer;
+
+        .room-shell__chat--collapsed & {
+            flex: 1;
+            flex-direction: column;
+            padding: 1rem 0;
+        }
+
+        .room-shell__chat:not(.room-shell__chat--collapsed) & {
+            width: 100%;
+            padding: 0.4rem;
+            border-bottom: 1px solid var(--border);
+            justify-content: flex-end;
+        }
+
+        &:hover {
+            color: var(--primary);
+        }
+    }
+
+    &__chat-collapse-icon {
+        font-size: 1rem;
+    }
+
+    &__chat-collapse-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-muted);
+
+        // Reads top-to-bottom in the vertical rail instead of overflowing a 3.25rem-wide column.
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+
+        @media (max-width: 900px) {
+            writing-mode: horizontal-tb;
+            transform: none;
+        }
+    }
+
+    &__chat-unread-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background: var(--danger);
+        box-shadow: 0 0 6px 1px var(--danger);
     }
 
     &__chat-tabs {

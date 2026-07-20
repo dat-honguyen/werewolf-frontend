@@ -123,9 +123,14 @@
         text-transform: uppercase;
         text-shadow: 0 0 10px var(--color-gold-glow);
 
+        // Blood-red rather than gold -- --font-blood (Nosifer) already has a dripping horror
+        // letterform, and red is what the rest of the app uses for blood/werewolf/danger
+        // (--color-blood, --danger), so this actually cashes in the font choice instead of
+        // blending into the gold theme.
         span {
             font-family: var(--font-blood);
-            color: var(--primary);
+            color: var(--color-blood);
+            text-shadow: 0 0 10px var(--color-blood-glow);
         }
     }
 

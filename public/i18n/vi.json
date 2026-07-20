@@ -90,7 +90,6 @@
         }
     },
     "roomShell": {
-        "logo": "LUNARIS",
         "nightMode": "🌙 Chế Độ Đêm",
         "dayMode": "☀️ Chế Độ Ngày",
         "roomCode": "Phòng #{{code}}",
@@ -106,6 +105,8 @@
         "privateGrimoires": "Sách Phép Riêng",
         "chatPlaceholder": "Nói gì đó...",
         "chatDisabled": "Sách Phép Riêng chưa được kết nối. Hãy trao đổi qua giọng nói hoặc nhóm chat bên ngoài ứng dụng.",
+        "collapseChat": "Thu gọn khung chat",
+        "expandChat": "Mở rộng khung chat",
         "headerActions": {
             "forceStart": "Bắt Đầu Ngay",
             "startGame": "Bắt Đầu Trò Chơi",

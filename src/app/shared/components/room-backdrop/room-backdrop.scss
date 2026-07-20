@@ -27,6 +27,12 @@
         --glow: var(--accent-day);
 
         opacity: 0.5;
+
+        // Candlelight in the windows (the --glow-filled paths) never burns perfectly steady --
+        // irregular keyframe spacing reads as a flicker rather than a mechanical pulse. Whole-SVG
+        // brightness rather than isolating the window paths: cheap, and the warm --glow fill is
+        // what the eye actually follows against the dim silhouette either way.
+        animation: roomBackdropFlicker 5s ease-in-out infinite;
     }
 
     &__graveyard {
@@ -57,10 +63,142 @@
             opacity: 0.22;
         }
     }
+
+    // Motes drift the full viewport height on a loop -- see &__dust-mote's animation-duration
+    // (component-supplied, one per mote) for the per-mote timing that keeps them from moving in
+    // visible lockstep.
+    &__dust {
+        position: absolute;
+        inset: 0;
+    }
+
+    &__dust-mote {
+        position: absolute;
+        bottom: -1rem;
+        border-radius: 50%;
+        background: var(--color-moonlight, #b8c6e8);
+        opacity: 0;
+        animation-name: roomBackdropDustDrift;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+    }
+
+    // Two soft blurred bands drifting opposite directions at different speeds so the overlap
+    // never repeats in an obviously mechanical way -- a single band sliding back and forth reads
+    // as an animated stripe, not fog.
+    &__fog {
+        position: absolute;
+        left: -15%;
+        right: -15%;
+        bottom: -3rem;
+        height: 9rem;
+        background: linear-gradient(
+            to top,
+            color-mix(in srgb, var(--bg-main, #0f1115) 65%, transparent),
+            transparent
+        );
+        filter: blur(16px);
+        opacity: 0.55;
+        animation: roomBackdropFogDriftA 70s ease-in-out infinite;
+
+        &--back {
+            bottom: -2rem;
+            height: 6rem;
+            opacity: 0.35;
+            animation: roomBackdropFogDriftB 95s ease-in-out infinite;
+        }
+    }
+}
+
+@keyframes roomBackdropFlicker {
+    0%,
+    100% {
+        filter: brightness(1);
+    }
+
+    8% {
+        filter: brightness(1.08);
+    }
+
+    17% {
+        filter: brightness(0.94);
+    }
+
+    26% {
+        filter: brightness(1.1);
+    }
+
+    35% {
+        filter: brightness(0.97);
+    }
+
+    50% {
+        filter: brightness(1.04);
+    }
+
+    63% {
+        filter: brightness(0.92);
+    }
+
+    78% {
+        filter: brightness(1.06);
+    }
+
+    90% {
+        filter: brightness(0.98);
+    }
+}
+
+@keyframes roomBackdropDustDrift {
+    0% {
+        transform: translate(0, 0);
+        opacity: 0;
+    }
+
+    12% {
+        opacity: 0.4;
+    }
+
+    88% {
+        opacity: 0.18;
+    }
+
+    100% {
+        transform: translate(2.5vw, -100vh);
+        opacity: 0;
+    }
+}
+
+@keyframes roomBackdropFogDriftA {
+    0%,
+    100% {
+        transform: translateX(-4%);
+    }
+
+    50% {
+        transform: translateX(4%);
+    }
+}
+
+@keyframes roomBackdropFogDriftB {
+    0%,
+    100% {
+        transform: translateX(3%);
+    }
+
+    50% {
+        transform: translateX(-5%);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .room-backdrop__wolf {
         transition: none;
+    }
+
+    .room-backdrop__house,
+    .room-backdrop__dust-mote,
+    .room-backdrop__fog {
+        animation: none;
     }
 }

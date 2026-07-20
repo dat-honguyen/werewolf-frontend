@@ -1232,4 +1232,20 @@
             </g>
         </svg>
     </div>
+
+    <div class="room-backdrop__dust">
+        @for (mote of dustMotes; track $index) {
+        <span
+            class="room-backdrop__dust-mote"
+            [style.left]="mote.left"
+            [style.width.px]="mote.size"
+            [style.height.px]="mote.size"
+            [style.animation-duration]="mote.duration"
+            [style.animation-delay]="mote.delay"
+        ></span>
+        }
+    </div>
+
+    <div class="room-backdrop__fog"></div>
+    <div class="room-backdrop__fog room-backdrop__fog--back"></div>
 </div>

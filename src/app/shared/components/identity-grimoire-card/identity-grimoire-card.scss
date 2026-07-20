@@ -1,10 +1,12 @@
 @use '../../../../styles/abstracts/mixins';
 
 .identity-grimoire {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
     align-items: center;
+    overflow: hidden;
 
     // Matches the surface/border/padding every other card-shaped panel in the shell uses (e.g.
     // room-shell__stats) -- previously this wrapper had no background of its own, so it looked
@@ -15,8 +17,32 @@
     padding: 1.1rem;
     font-family: Inter, system-ui, sans-serif;
 
+    // A soft moonlit glow sitting behind the card -- contained by this panel's own overflow:hidden
+    // + border-radius rather than sized to the card itself, so it never bleeds past the panel edge.
+    &::before {
+        content: '';
+        position: absolute;
+        top: 46%;
+        left: 50%;
+        width: 16rem;
+        height: 16rem;
+        z-index: 0;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--color-moonlight, #b8c6e8) 0%, transparent 72%);
+        opacity: 0.14;
+        pointer-events: none;
+        animation: identityGrimoireMoonlight 6s ease-in-out infinite;
+    }
+
     h4 {
         font-family: inherit;
+    }
+
+    &__title,
+    &__card {
+        position: relative;
+        z-index: 1;
     }
 
     &__title {
@@ -169,5 +195,24 @@
 
             @include mixins.themed-scrollbar(4px);
         }
+    }
+}
+
+@keyframes identityGrimoireMoonlight {
+    0%,
+    100% {
+        opacity: 0.11;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        opacity: 0.2;
+        transform: translate(-50%, -50%) scale(1.08);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .identity-grimoire::before {
+        animation: none;
     }
 }
