@@ -40,8 +40,11 @@
     scrollbar-width: thin;
     scrollbar-color: #{$thumb} transparent;
 
+    // Both set so this looks the same whichever axis actually scrolls (WebKit sizes a
+    // horizontal scrollbar via `height`, not `width`).
     &::-webkit-scrollbar {
         width: $width;
+        height: $width;
     }
 
     &::-webkit-scrollbar-track {

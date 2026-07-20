@@ -1,3 +1,5 @@
+@use '../../../../styles/abstracts/mixins';
+
 .identity-grimoire {
     display: flex;
     flex-direction: column;
@@ -164,6 +166,8 @@
             line-height: 1.4;
             overflow-y: auto;
             min-height: 0;
+
+            @include mixins.themed-scrollbar(4px);
         }
     }
 }

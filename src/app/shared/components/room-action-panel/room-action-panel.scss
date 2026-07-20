@@ -1,3 +1,5 @@
+@use '../../../../styles/abstracts/mixins';
+
 .room-action-panel {
     display: flex;
     flex-wrap: wrap;
@@ -30,9 +32,12 @@
         // Was gradienting into var(--danger), which made Ready Up / Submit Vote read faintly red
         // and diluted red as a "this is destructive" signal for Quit/Cancel Lobby/Leave Lobby/Kick
         // (all correctly on --button--danger below). Gold-to-gold instead of gold-to-red.
+        // White text on this gradient measures ~2.2:1 against WCAG's 4.5:1 minimum -- swapped for
+        // the same dark parchment ink already used for gold-on-text elsewhere (join-name-prompt,
+        // language-switch), which clears 7:1+ across the whole gradient.
         &--primary {
             border: none;
-            color: white;
+            color: var(--color-parchment-ink, #2a2118);
             background: linear-gradient(
                 135deg,
                 var(--accent-day, var(--primary)),
@@ -86,6 +91,8 @@
         max-height: 200px;
         overflow-y: auto;
         width: 100%;
+
+        @include mixins.themed-scrollbar(4px);
 
         li {
             padding: 0.2rem 0;

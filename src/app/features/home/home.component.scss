@@ -1,5 +1,7 @@
 // Local aliases onto the shared Moonlight/Bloody theme tokens (_design-tokens.scss) so the home
 // screen reads as the front door of the same app as the room screen, not a separate mockup.
+@use '../../../styles/abstracts/mixins';
+
 .home {
     --bg-dark: var(--color-bg-void);
     --bg-card: var(--color-bg-table);
@@ -353,6 +355,8 @@
         overflow-x: auto;
         border: 1px solid var(--border);
         border-radius: 0.5rem;
+
+        @include mixins.themed-scrollbar;
     }
 
     &__table {

@@ -1,4 +1,6 @@
 // src/app/shared/components/room-shell/room-shell.scss
+@use '../../../../styles/abstracts/mixins';
+
 .room-shell {
     --bg-main: #0f1115;
     --bg-surface: #1a1d24;
@@ -124,14 +126,20 @@
         padding: 0.55rem 1.25rem;
         font-weight: 700;
         font-size: 0.75rem;
-        color: white;
         cursor: pointer;
-        background: linear-gradient(135deg, var(--accent-day), #ea580c);
+
+        // White text on the day gradient's amber end measured ~2.2:1 against WCAG's 4.5:1 minimum;
+        // dark parchment ink clears 7:1+ (same fix as room-action-panel's --primary button).
+        color: var(--color-parchment-ink, #2a2118);
+        background: linear-gradient(135deg, var(--accent-day), var(--color-gold, #d9a441));
         box-shadow: 0 4px 15px color-mix(in srgb, var(--primary) 25%, transparent);
 
         &[data-phase='night'],
         .room-shell[data-phase='night'] & {
-            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            // The lighter #8b5cf6/#6366f1 pair failed WCAG for both white (~4.2:1) and dark ink
+            // (~3.7:1) text; one shade darker (violet-600/indigo-600) clears white text to ~5.7:1+.
+            color: white;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
         }
 
         &:disabled {
@@ -300,6 +308,8 @@
         padding: 1rem;
         overflow-y: auto;
         font-family: var(--font-book);
+
+        @include mixins.themed-scrollbar;
     }
 
     &__chat-message {

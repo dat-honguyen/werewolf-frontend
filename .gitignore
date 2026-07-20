@@ -48,6 +48,10 @@ __screenshots__/
 /blob-report
 /playwright/.cache
 
+# Nested git worktrees created by agent sessions -- accidentally committed once (86d1ba5) as a
+# broken gitlink with no .gitmodules entry; ignore so that never happens again.
+/.claude/worktrees/
+
 # System files
 .DS_Store
 Thumbs.db

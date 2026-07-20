@@ -147,10 +147,16 @@
             color: var(--danger);
         }
 
+        // Gold-to-gold, dark-ink text (matches room-action-panel's --primary): the previous
+        // amber-to-danger gradient with white text measured ~2.2:1 against WCAG's 4.5:1 minimum.
         &--accent {
             border: none;
-            color: white;
-            background: linear-gradient(135deg, var(--accent-day, var(--primary)), var(--danger));
+            color: var(--color-parchment-ink, #2a2118);
+            background: linear-gradient(
+                135deg,
+                var(--accent-day, var(--primary)),
+                var(--color-gold, #d9a441)
+            );
         }
     }
 
