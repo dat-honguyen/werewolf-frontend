@@ -69,6 +69,14 @@
                 cursor: not-allowed;
             }
         }
+
+        // Ready Up/Unready and Leave Lobby -- the two buttons every non-host player actually
+        // touches in the lobby -- get their own full-width row instead of sitting compact-width
+        // next to whatever else is in the panel, matching Start Game's treatment above.
+        &--expand {
+            flex-basis: 100%;
+            text-align: center;
+        }
     }
 
     &__info {

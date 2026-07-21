@@ -11,7 +11,7 @@
     } @if (showReadyToggle()) {
     <button
         type="button"
-        class="room-action-panel__button room-action-panel__button--primary"
+        class="room-action-panel__button room-action-panel__button--primary room-action-panel__button--expand"
         (click)="readyToggle.emit()"
     >
         {{ (isReady() ? 'actionPanel.unready' : 'actionPanel.readyUp') | translate }}
@@ -27,7 +27,7 @@
     } @if (showLeaveLobby()) {
     <button
         type="button"
-        class="room-action-panel__button room-action-panel__button--danger"
+        class="room-action-panel__button room-action-panel__button--danger room-action-panel__button--expand"
         (click)="leaveLobby.emit()"
     >
         {{ 'actionPanel.leaveLobby' | translate }}
