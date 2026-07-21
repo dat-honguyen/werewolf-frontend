@@ -25,6 +25,7 @@
         "Tanner": "Win alone if the village lynches you. Any other death is just a death."
     },
     "home": {
+        "howToPlay": "❔ How to Play",
         "rejoin": {
             "message": "You were still in room {{roomCode}}.",
             "rejoinButton": "Rejoin",
@@ -97,6 +98,7 @@
         "copyInviteLinkCopied": "✅ Copied!",
         "rulesAndSetup": "⚙️ Rules & Setup",
         "roleGuide": "📖 Role Guide",
+        "howToPlay": "❔ How to Play",
         "livingSouls": "Living Souls",
         "fallen": "Fallen",
         "covenOverview": "Coven Live Overview",
@@ -204,6 +206,52 @@
         "title": "Role Guide",
         "loading": "Loading role descriptions…",
         "loadFailed": "Couldn't load role descriptions. Try again later."
+    },
+    "helpGuide": {
+        "title": "🧭 How to Play",
+        "stepOf": "Step {{current}} of {{total}}",
+        "lookLabel": "What to look at",
+        "doLabel": "What to do",
+        "prev": "◀ Back",
+        "next": "Next ▶",
+        "done": "Got it, let's play!",
+        "steps": {
+            "join": {
+                "title": "1. Gather Your Village",
+                "look": "The Home screen — create a new village, or enter a 6-character code to join one that already exists.",
+                "do": "Type a display name. Then tap Gather a New Village, or enter a code under Join Room and tap Enter Village."
+            },
+            "lobby": {
+                "title": "2. Wait in the Lobby",
+                "look": "The player grid shows everyone who has joined so far, and who's already marked Ready.",
+                "do": "Tap Ready Up once you're set. The host starts the game once everyone's ready (or force-starts it if that's allowed)."
+            },
+            "role": {
+                "title": "3. Learn Your Secret Role",
+                "look": "The Identity Grimoire card in the top-left corner — it starts face down when the game begins.",
+                "do": "Tap the card to flip it and see your role and win condition. Keep it to yourself — that's the whole game."
+            },
+            "night": {
+                "title": "4. Night Falls",
+                "look": "The phase banner turns to Night, and the action panel prompts whichever role is currently acting.",
+                "do": "If you have a night power (Werewolf, Seer, Doctor, Witch, Cupid), tap a player on the grid to act. Everyone else just waits for morning."
+            },
+            "day": {
+                "title": "5. Day Discussion",
+                "look": "The countdown clock in the phase banner, and the Public Square chat where everyone talks.",
+                "do": "Make your case or share suspicions in the chat box before the clock runs out."
+            },
+            "voting": {
+                "title": "6. Cast Your Vote",
+                "look": "Vote counts appear on each living player's card as the votes come in.",
+                "do": "Tap a player (or Abstain) to pick your vote, then tap Submit Vote before the countdown ends."
+            },
+            "gameOver": {
+                "title": "7. Game Over",
+                "look": "The results screen reveals every player's true role and which side won.",
+                "do": "Check View full game log to relive what happened, or tap Rematch to play again in the same room."
+            }
+        }
     },
     "settings": {
         "title": "Rules & Setup",

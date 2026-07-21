@@ -9,6 +9,7 @@ import { GameStateService } from '../../core/services/game-state.service';
 import { resolveUniqueDisplayName } from '../../core/utils/display-name.util';
 import { OpenLobbySummary } from '../../core/models/lobby.model';
 import { LanguageSwitch } from '../../shared/components/language-switch/language-switch';
+import { HelpGuideModal } from '../../shared/components/help-guide-modal/help-guide-modal';
 
 type HomeTab = 'create' | 'join';
 
@@ -28,7 +29,7 @@ const DEFAULT_SPECIAL_ROLES: { roleKey: string; included: boolean }[] = [
 
 @Component({
     selector: 'app-home',
-    imports: [FormsModule, TranslatePipe, LanguageSwitch],
+    imports: [FormsModule, TranslatePipe, LanguageSwitch, HelpGuideModal],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
@@ -42,6 +43,8 @@ export class HomeComponent {
     readonly displayName = signal(this.playerIdentity.displayName());
     readonly errorMessage = signal<string | null>(null);
     readonly activeRoomCode = this.playerIdentity.activeRoomCode;
+
+    readonly showHelpGuide = signal(false);
 
     readonly activeTab = signal<HomeTab>('create');
     readonly codeChars = signal<string[]>(new Array<string>(ROOM_CODE_LENGTH).fill(''));

@@ -1,0 +1,61 @@
+<div class="help-guide-modal">
+    <div class="help-guide-modal__card">
+        <header class="help-guide-modal__header">
+            <h2>{{ 'helpGuide.title' | translate }}</h2>
+            <button type="button" class="help-guide-modal__close" (click)="closed.emit()">✕</button>
+        </header>
+
+        <p class="help-guide-modal__step-count">
+            {{ 'helpGuide.stepOf' | translate: { current: index() + 1, total: totalSteps } }}
+        </p>
+
+        <img
+            class="help-guide-modal__image"
+            [src]="step().image"
+            [alt]="'helpGuide.steps.' + step().key + '.title' | translate"
+        />
+
+        <h3 class="help-guide-modal__step-title">
+            {{ 'helpGuide.steps.' + step().key + '.title' | translate }}
+        </h3>
+
+        <div class="help-guide-modal__section help-guide-modal__section--look">
+            <span class="help-guide-modal__section-label"
+                >{{ 'helpGuide.lookLabel' | translate }}</span
+            >
+            <p>{{ 'helpGuide.steps.' + step().key + '.look' | translate }}</p>
+        </div>
+        <div class="help-guide-modal__section help-guide-modal__section--do">
+            <span class="help-guide-modal__section-label"
+                >{{ 'helpGuide.doLabel' | translate }}</span
+            >
+            <p>{{ 'helpGuide.steps.' + step().key + '.do' | translate }}</p>
+        </div>
+
+        <div class="help-guide-modal__dots">
+            @for (s of steps; track s.key; let i = $index) {
+            <button
+                type="button"
+                class="help-guide-modal__dot"
+                [class.help-guide-modal__dot--active]="i === index()"
+                [attr.aria-label]="'helpGuide.stepOf' | translate: { current: i + 1, total: totalSteps }"
+                (click)="goTo(i)"
+            ></button>
+            }
+        </div>
+
+        <div class="help-guide-modal__actions">
+            <button
+                type="button"
+                class="help-guide-modal__button help-guide-modal__button--outline"
+                [disabled]="isFirst()"
+                (click)="prev()"
+            >
+                {{ 'helpGuide.prev' | translate }}
+            </button>
+            <button type="button" class="help-guide-modal__button" (click)="next()">
+                {{ (isLast() ? 'helpGuide.done' : 'helpGuide.next') | translate }}
+            </button>
+        </div>
+    </div>
+</div>

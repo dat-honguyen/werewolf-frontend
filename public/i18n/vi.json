@@ -25,6 +25,7 @@
         "Tanner": "Thắng một mình nếu bị dân làng treo cổ. Chết theo cách khác chỉ là một cái chết bình thường."
     },
     "home": {
+        "howToPlay": "❔ Hướng Dẫn Chơi",
         "rejoin": {
             "message": "Bạn vẫn còn trong phòng {{roomCode}}.",
             "rejoinButton": "Vào lại",
@@ -97,6 +98,7 @@
         "copyInviteLinkCopied": "✅ Đã sao chép!",
         "rulesAndSetup": "⚙️ Luật Chơi & Thiết Lập",
         "roleGuide": "📖 Sổ Tay Vai Trò",
+        "howToPlay": "❔ Hướng Dẫn Chơi",
         "livingSouls": "Linh Hồn Còn Sống",
         "fallen": "Đã Ngã Xuống",
         "covenOverview": "Tổng Quan Hội Đồng",
@@ -204,6 +206,52 @@
         "title": "Sổ Tay Vai Trò",
         "loading": "Đang tải mô tả vai trò…",
         "loadFailed": "Không tải được mô tả vai trò. Vui lòng thử lại sau."
+    },
+    "helpGuide": {
+        "title": "🧭 Hướng Dẫn Chơi",
+        "stepOf": "Bước {{current}} / {{total}}",
+        "lookLabel": "Hãy để ý",
+        "doLabel": "Việc cần làm",
+        "prev": "◀ Quay lại",
+        "next": "Tiếp ▶",
+        "done": "Đã hiểu, chơi thôi!",
+        "steps": {
+            "join": {
+                "title": "1. Lập Ngôi Làng Của Bạn",
+                "look": "Màn hình chính — tạo một ngôi làng mới, hoặc nhập mã 6 ký tự để vào một làng đã có.",
+                "do": "Nhập tên hiển thị. Sau đó bấm Lập một Ngôi Làng Mới, hoặc nhập mã ở mục Vào phòng rồi bấm Vào Làng."
+            },
+            "lobby": {
+                "title": "2. Chờ Trong Phòng Chờ",
+                "look": "Lưới người chơi hiện tất cả những ai đã vào, và ai đã đánh dấu Sẵn Sàng.",
+                "do": "Bấm Sẵn Sàng khi bạn đã chuẩn bị xong. Chủ phòng sẽ bắt đầu trò chơi khi mọi người sẵn sàng (hoặc bắt đầu ngay nếu được cho phép)."
+            },
+            "role": {
+                "title": "3. Khám Phá Vai Trò Bí Mật",
+                "look": "Thẻ Sách Phép Danh Tính ở góc trên bên trái — thẻ úp mặt khi trò chơi vừa bắt đầu.",
+                "do": "Chạm vào thẻ để lật lên và xem vai trò cùng điều kiện thắng của bạn. Hãy giữ bí mật — đó chính là cả trò chơi."
+            },
+            "night": {
+                "title": "4. Màn Đêm Buông Xuống",
+                "look": "Banner chuyển sang Đêm, và bảng hành động sẽ nhắc vai trò nào đang được thực hiện.",
+                "do": "Nếu bạn có năng lực ban đêm (Ma sói, Tiên tri, Bác sĩ, Phù thủy, Thần Tình Yêu), hãy chạm vào một người chơi trên lưới để hành động. Những người khác chỉ cần chờ đến sáng."
+            },
+            "day": {
+                "title": "5. Thảo Luận Ban Ngày",
+                "look": "Đồng hồ đếm ngược trên banner, và Quảng Trường Làng nơi mọi người trò chuyện.",
+                "do": "Nêu lý lẽ hoặc chia sẻ nghi ngờ trong khung chat trước khi hết giờ."
+            },
+            "voting": {
+                "title": "6. Bỏ Phiếu",
+                "look": "Số phiếu bầu hiện trên thẻ của mỗi người chơi còn sống khi phiếu được gửi vào.",
+                "do": "Chạm vào một người chơi (hoặc Phiếu Trắng) để chọn phiếu bầu, sau đó bấm Gửi Phiếu Bầu trước khi hết giờ."
+            },
+            "gameOver": {
+                "title": "7. Kết Thúc Trò Chơi",
+                "look": "Màn hình kết quả tiết lộ vai trò thật của mọi người và phe nào đã thắng.",
+                "do": "Xem Xem Toàn Bộ Nhật Ký Trận Đấu để ôn lại diễn biến, hoặc bấm Chơi Lại để chơi tiếp trong cùng phòng này."
+            }
+        }
     },
     "settings": {
         "title": "Luật Chơi & Thiết Lập",

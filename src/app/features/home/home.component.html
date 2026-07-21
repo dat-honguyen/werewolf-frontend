@@ -65,6 +65,13 @@
                 </button>
             </nav>
             <div class="home-dashboard__header-actions">
+                <button
+                    type="button"
+                    class="home-dashboard__help-button"
+                    (click)="showHelpGuide.set(true)"
+                >
+                    {{ 'home.howToPlay' | translate }}
+                </button>
                 <app-language-switch></app-language-switch>
             </div>
         </header>
@@ -255,5 +262,9 @@
 
     @if (errorMessage()) {
         <p class="home__error">{{ errorMessage() }}</p>
+    }
+
+    @if (showHelpGuide()) {
+        <app-help-guide-modal (closed)="showHelpGuide.set(false)"></app-help-guide-modal>
     }
 </div>

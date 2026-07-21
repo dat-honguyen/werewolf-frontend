@@ -45,6 +45,13 @@
             <button type="button" class="room-shell__ghost-button" (click)="showSettings.set(true)">
                 {{ 'roomShell.rulesAndSetup' | translate }}
             </button>
+            <button
+                type="button"
+                class="room-shell__ghost-button"
+                (click)="showHelpGuide.set(true)"
+            >
+                {{ 'roomShell.howToPlay' | translate }}
+            </button>
             @if (headerAction(); as action) {
             <button
                 type="button"
@@ -244,5 +251,7 @@
     ></app-settings-modal>
     } @if (showRoleGuide()) {
     <app-role-guide-modal (closed)="showRoleGuide.set(false)"></app-role-guide-modal>
+    } @if (showHelpGuide()) {
+    <app-help-guide-modal (closed)="showHelpGuide.set(false)"></app-help-guide-modal>
     }
 </div>

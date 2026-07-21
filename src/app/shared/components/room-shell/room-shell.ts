@@ -33,6 +33,7 @@ import { PhaseTransition } from '../phase-transition/phase-transition';
 import { PlayerGrid, PlayerGridEntry } from '../player-grid/player-grid';
 import { RoomActionPanel } from '../room-action-panel/room-action-panel';
 import { RoleGuideModal } from '../role-guide-modal/role-guide-modal';
+import { HelpGuideModal } from '../help-guide-modal/help-guide-modal';
 import { SettingsModal } from '../settings-modal/settings-modal';
 import { LanguageSwitch } from '../language-switch/language-switch';
 import { RoomBackdrop } from '../room-backdrop/room-backdrop';
@@ -103,6 +104,7 @@ const ROLE_OBJECTIVE_KEY: Record<Role, string> = {
         PlayerGrid,
         RoomActionPanel,
         RoleGuideModal,
+        HelpGuideModal,
         SettingsModal,
         LanguageSwitch,
         RoomBackdrop
@@ -128,6 +130,7 @@ export class RoomShell {
 
     readonly showSettings = signal(false);
     readonly showRoleGuide = signal(false);
+    readonly showHelpGuide = signal(false);
     readonly showPhaseTransition = signal(false);
     /** Two-way bound to IdentityGrimoireCard's own flip state (not GameStateService's one-shot
      * hasSeenRoleReveal) so the redundant objective hint below can hide once the card's back face
