@@ -91,6 +91,7 @@
         }
     },
     "roomShell": {
+        "backToHome": "Về Trang Chủ",
         "nightMode": "🌙 Chế Độ Đêm",
         "dayMode": "☀️ Chế Độ Ngày",
         "roomCode": "Phòng #{{code}}",
@@ -268,7 +269,6 @@
         "discussionDuration": "Thời Lượng Thảo Luận (giây)",
         "votingDuration": "Thời Lượng Bỏ Phiếu (giây)",
         "applySessionRules": "Áp Dụng Luật Cho Phiên Chơi",
-        "close": "Đóng",
         "version": "FE {{fe}} · BE {{be}}"
     },
     "identityGrimoire": {

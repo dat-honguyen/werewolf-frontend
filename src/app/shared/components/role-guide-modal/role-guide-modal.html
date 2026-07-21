@@ -5,34 +5,28 @@
             <button type="button" class="role-guide-modal__close" (click)="closed.emit()">✕</button>
         </header>
 
-        @if (loadFailed()) {
-        <p class="role-guide-modal__error">{{ 'roleGuide.loadFailed' | translate }}</p>
-        } @else if (!roles()) {
-        <p class="role-guide-modal__loading">{{ 'roleGuide.loading' | translate }}</p>
-        } @else {
-        <div class="role-guide-modal__list">
-            @for (info of roles(); track info.role) {
-            <div class="role-guide-modal__row" [style.--role-accent]="accent(info.role)">
-                <svg
-                    class="role-guide-modal__icon"
-                    viewBox="0 0 24 24"
-                    [innerHTML]="icon(info.role)"
-                ></svg>
-                <div>
-                    <h3>{{ 'roles.' + info.role | translate }}</h3>
-                    <p>{{ info.description }}</p>
+        <div class="role-guide-modal__body">
+            @if (loadFailed()) {
+            <p class="role-guide-modal__error">{{ 'roleGuide.loadFailed' | translate }}</p>
+            } @else if (!roles()) {
+            <p class="role-guide-modal__loading">{{ 'roleGuide.loading' | translate }}</p>
+            } @else {
+            <div class="role-guide-modal__list">
+                @for (info of roles(); track info.role) {
+                <div class="role-guide-modal__row" [style.--role-accent]="accent(info.role)">
+                    <svg
+                        class="role-guide-modal__icon"
+                        viewBox="0 0 24 24"
+                        [innerHTML]="icon(info.role)"
+                    ></svg>
+                    <div>
+                        <h3>{{ 'roles.' + info.role | translate }}</h3>
+                        <p>{{ info.description }}</p>
+                    </div>
                 </div>
+                }
             </div>
             }
         </div>
-        }
-
-        <button
-            type="button"
-            class="role-guide-modal__button role-guide-modal__button--outline role-guide-modal__button--block"
-            (click)="closed.emit()"
-        >
-            {{ 'settings.close' | translate }}
-        </button>
     </div>
 </div>

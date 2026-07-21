@@ -14,9 +14,14 @@
     <app-room-backdrop [isNight]="isNight()"></app-room-backdrop>
     <header class="room-shell__header" #header>
         <div class="room-shell__logo">
-            <span class="room-shell__wordmark"
-                >Were<span class="room-shell__wordmark-accent">Wolf</span></span
+            <button
+                type="button"
+                class="room-shell__wordmark"
+                [attr.aria-label]="'roomShell.backToHome' | translate"
+                (click)="goHome()"
             >
+                Were<span class="room-shell__wordmark-accent">Wolf</span>
+            </button>
             @if (state(); as s) {
             <span class="room-shell__mode-badge" [class.room-shell__mode-badge--night]="isNight()">
                 {{ (isNight() ? 'roomShell.nightMode' : 'roomShell.dayMode') | translate }}
@@ -52,7 +57,15 @@
             >
                 {{ 'roomShell.howToPlay' | translate }}
             </button>
-            @if (headerAction(); as action) {
+            @if (canQuit()) {
+            <button
+                type="button"
+                class="room-shell__ghost-button room-shell__ghost-button--danger"
+                (click)="quitGame()"
+            >
+                {{ 'room.quitButton' | translate }}
+            </button>
+            } @if (headerAction(); as action) {
             <button
                 type="button"
                 class="room-shell__cta"
@@ -253,5 +266,14 @@
     <app-role-guide-modal (closed)="showRoleGuide.set(false)"></app-role-guide-modal>
     } @if (showHelpGuide()) {
     <app-help-guide-modal (closed)="showHelpGuide.set(false)"></app-help-guide-modal>
+    } @if (showQuitConfirm()) {
+    <app-confirm-dialog
+        [title]="'room.quitConfirm.title' | translate"
+        [message]="'room.quitConfirm.message' | translate"
+        [confirmLabel]="'room.quitConfirm.confirmLabel' | translate"
+        [cancelLabel]="'room.quitConfirm.cancelLabel' | translate"
+        (confirmed)="confirmQuit()"
+        (cancelled)="cancelQuit()"
+    ></app-confirm-dialog>
     }
 </div>

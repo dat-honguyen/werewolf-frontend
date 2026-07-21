@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { GameApiService } from '../../core/services/game-api.service';
 import { GameStateService } from '../../core/services/game-state.service';
@@ -11,13 +11,12 @@ import { WerewolfHubService } from '../../core/services/werewolf-hub.service';
 import { resolveUniqueDisplayName } from '../../core/utils/display-name.util';
 import { extractErrorMessage } from '../../core/utils/http-error.util';
 import { ToastList } from '../../shared/components/toast-list/toast-list';
-import { ConfirmDialog } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { JoinNamePrompt } from './join-name-prompt/join-name-prompt';
 import { RoomShell } from '../../shared/components/room-shell/room-shell';
 
 @Component({
     selector: 'app-room',
-    imports: [ToastList, ConfirmDialog, JoinNamePrompt, RoomShell, TranslatePipe],
+    imports: [ToastList, JoinNamePrompt, RoomShell],
     templateUrl: './room.component.html',
     styleUrl: './room.component.scss'
 })
@@ -34,11 +33,6 @@ export class RoomComponent implements OnInit, OnDestroy {
 
     private roomCode = '';
     readonly needsDisplayName = signal(false);
-    readonly showQuitConfirm = signal(false);
-
-    readonly canQuit = computed(
-        () => !['lobby', 'game-over'].includes(this.gameStateService.currentView())
-    );
 
     ngOnInit(): void {
         this.roomCode = this.route.snapshot.paramMap.get('roomCode') ?? '';
@@ -119,20 +113,6 @@ export class RoomComponent implements OnInit, OnDestroy {
         void this.gameStateService.refreshLobby(this.roomCode);
         void this.gameStateService.refreshGameState(this.roomCode);
         this.gameStateService.startSync();
-    }
-
-    quitGame(): void {
-        this.showQuitConfirm.set(true);
-    }
-
-    confirmQuit(): void {
-        this.showQuitConfirm.set(false);
-        this.playerIdentity.clearActiveRoom();
-        void this.gameStateService.quitGame(this.roomCode);
-    }
-
-    cancelQuit(): void {
-        this.showQuitConfirm.set(false);
     }
 
     ngOnDestroy(): void {

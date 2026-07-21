@@ -37,6 +37,7 @@ import { HelpGuideModal } from '../help-guide-modal/help-guide-modal';
 import { SettingsModal } from '../settings-modal/settings-modal';
 import { LanguageSwitch } from '../language-switch/language-switch';
 import { RoomBackdrop } from '../room-backdrop/room-backdrop';
+import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 
 interface ChatMessage {
     senderId: string;
@@ -107,7 +108,8 @@ const ROLE_OBJECTIVE_KEY: Record<Role, string> = {
         HelpGuideModal,
         SettingsModal,
         LanguageSwitch,
-        RoomBackdrop
+        RoomBackdrop,
+        ConfirmDialog
     ],
     templateUrl: './room-shell.html',
     styleUrl: './room-shell.scss'
@@ -131,6 +133,13 @@ export class RoomShell {
     readonly showSettings = signal(false);
     readonly showRoleGuide = signal(false);
     readonly showHelpGuide = signal(false);
+    readonly showQuitConfirm = signal(false);
+    /** Moved here from RoomComponent (which used to own a fixed corner "Quit game" button as a
+     * sibling of <app-room-shell>) so it can live in the header's button row instead -- this
+     * component already injects everything the quit flow needs (GameStateService,
+     * PlayerIdentityService). Can't quit from the lobby (nothing to quit yet) or after game-over
+     * (already over). */
+    readonly canQuit = computed(() => !['lobby', 'game-over'].includes(this.view()));
     readonly showPhaseTransition = signal(false);
     /** Two-way bound to IdentityGrimoireCard's own flip state (not GameStateService's one-shot
      * hasSeenRoleReveal) so the redundant objective hint below can hide once the card's back face
@@ -910,6 +919,30 @@ export class RoomShell {
                 .getWitchTarget(code, this.myPlayerId())
                 .subscribe((result) => this.witchTarget.set(result.targetPlayerId));
         });
+    }
+
+    /** Deliberately doesn't call playerIdentity.clearActiveRoom() (unlike leaveRoomAction) -- this
+     * is just navigation, not quitting, so Home's rejoin banner should still offer a way back in. */
+    goHome(): void {
+        void this.router.navigate(['/']);
+    }
+
+    quitGame(): void {
+        this.showQuitConfirm.set(true);
+    }
+
+    confirmQuit(): void {
+        this.showQuitConfirm.set(false);
+        const roomCode = this.roomCode();
+        if (!roomCode) {
+            return;
+        }
+        this.playerIdentity.clearActiveRoom();
+        void this.gameState.quitGame(roomCode);
+    }
+
+    cancelQuit(): void {
+        this.showQuitConfirm.set(false);
     }
 
     copyInviteLink(): void {

@@ -5,136 +5,132 @@
             <button type="button" class="settings-modal__close" (click)="closed.emit()">✕</button>
         </header>
 
-        <section class="settings-modal__section">
-            <h3>{{ 'settings.roleDistribution' | translate }}</h3>
+        <div class="settings-modal__body">
+            <section class="settings-modal__section">
+                <h3>{{ 'settings.roleDistribution' | translate }}</h3>
 
-            @for (role of allRoles; track role) {
-            <div class="settings-modal__role-row">
-                <span class="settings-modal__role-label">
-                    <span class="settings-modal__role-icon" [style.color]="roleColor(role)"
-                        >{{ roleEmoji(role) }}</span
-                    >
-                    <span class="settings-modal__role-name">{{ 'roles.' + role | translate }}</span>
-                </span>
-                <input
-                    type="number"
-                    min="0"
-                    [ngModel]="draftRoleCount(role)"
-                    (ngModelChange)="setDraftRoleCount(role, $event)"
+                @for (role of allRoles; track role) {
+                <div class="settings-modal__role-row">
+                    <span class="settings-modal__role-label">
+                        <span class="settings-modal__role-icon" [style.color]="roleColor(role)"
+                            >{{ roleEmoji(role) }}</span
+                        >
+                        <span class="settings-modal__role-name"
+                            >{{ 'roles.' + role | translate }}</span
+                        >
+                    </span>
+                    <input
+                        type="number"
+                        min="0"
+                        [ngModel]="draftRoleCount(role)"
+                        (ngModelChange)="setDraftRoleCount(role, $event)"
+                        [disabled]="readOnly()"
+                    />
+                </div>
+                } @if (!readOnly()) {
+                <button
+                    type="button"
+                    class="settings-modal__button settings-modal__button--primary settings-modal__button--block"
+                    (click)="applyRoleDistribution()"
+                >
+                    {{ 'settings.applyRoleDistribution' | translate }}
+                </button>
+                }
+            </section>
+
+            <section class="settings-modal__section">
+                <h3>{{ 'settings.advancedLogic' | translate }}</h3>
+
+                <app-toggle-switch
+                    class="settings-modal__toggle-row"
+                    [label]="'settings.revealRoleOnDeath' | translate"
+                    [checked]="gameSettingsDraft().revealRoleOnDeath"
                     [disabled]="readOnly()"
-                />
-            </div>
-            } @if (!readOnly()) {
-            <button
-                type="button"
-                class="settings-modal__button settings-modal__button--primary settings-modal__button--block"
-                (click)="applyRoleDistribution()"
-            >
-                {{ 'settings.applyRoleDistribution' | translate }}
-            </button>
-            }
-        </section>
-
-        <section class="settings-modal__section">
-            <h3>{{ 'settings.advancedLogic' | translate }}</h3>
-
-            <app-toggle-switch
-                class="settings-modal__toggle-row"
-                [label]="'settings.revealRoleOnDeath' | translate"
-                [checked]="gameSettingsDraft().revealRoleOnDeath"
-                [disabled]="readOnly()"
-                (checkedChange)="setDraftSetting('revealRoleOnDeath', $event)"
-            ></app-toggle-switch>
-            <app-toggle-switch
-                class="settings-modal__toggle-row"
-                [label]="'settings.doctorCanSelfProtect' | translate"
-                [checked]="gameSettingsDraft().doctorCanSelfProtect"
-                [disabled]="readOnly()"
-                (checkedChange)="setDraftSetting('doctorCanSelfProtect', $event)"
-            ></app-toggle-switch>
-            <app-toggle-switch
-                class="settings-modal__toggle-row"
-                [label]="'settings.werewolfCanTargetWerewolf' | translate"
-                [checked]="gameSettingsDraft().werewolfCanTargetWerewolf"
-                [disabled]="readOnly()"
-                (checkedChange)="setDraftSetting('werewolfCanTargetWerewolf', $event)"
-            ></app-toggle-switch>
-            <app-toggle-switch
-                class="settings-modal__toggle-row"
-                [label]="'settings.werewolfCanVoteNoKill' | translate"
-                [checked]="gameSettingsDraft().werewolfCanVoteNoKill"
-                [disabled]="readOnly()"
-                (checkedChange)="setDraftSetting('werewolfCanVoteNoKill', $event)"
-            ></app-toggle-switch>
-            <app-toggle-switch
-                class="settings-modal__toggle-row"
-                [label]="'settings.witchSinglePotionPerNight' | translate"
-                [checked]="gameSettingsDraft().witchSinglePotionPerNight"
-                [disabled]="readOnly()"
-                (checkedChange)="setDraftSetting('witchSinglePotionPerNight', $event)"
-            ></app-toggle-switch>
-            <app-toggle-switch
-                class="settings-modal__toggle-row"
-                [label]="'settings.allowForceStart' | translate"
-                [checked]="gameSettingsDraft().allowForceStart"
-                [disabled]="readOnly()"
-                (checkedChange)="setDraftSetting('allowForceStart', $event)"
-            ></app-toggle-switch>
-
-            <div class="settings-modal__number-row">
-                <span>{{ 'settings.minPlayers' | translate }}</span>
-                <input
-                    type="number"
-                    min="1"
-                    [ngModel]="gameSettingsDraft().minPlayers"
-                    (ngModelChange)="setDraftSetting('minPlayers', $event)"
+                    (checkedChange)="setDraftSetting('revealRoleOnDeath', $event)"
+                ></app-toggle-switch>
+                <app-toggle-switch
+                    class="settings-modal__toggle-row"
+                    [label]="'settings.doctorCanSelfProtect' | translate"
+                    [checked]="gameSettingsDraft().doctorCanSelfProtect"
                     [disabled]="readOnly()"
-                />
-            </div>
-            <div class="settings-modal__number-row">
-                <span>{{ 'settings.discussionDuration' | translate }}</span>
-                <input
-                    type="number"
-                    min="30"
-                    step="30"
-                    [ngModel]="gameSettingsDraft().discussionDurationSeconds"
-                    (ngModelChange)="setDraftSetting('discussionDurationSeconds', $event)"
+                    (checkedChange)="setDraftSetting('doctorCanSelfProtect', $event)"
+                ></app-toggle-switch>
+                <app-toggle-switch
+                    class="settings-modal__toggle-row"
+                    [label]="'settings.werewolfCanTargetWerewolf' | translate"
+                    [checked]="gameSettingsDraft().werewolfCanTargetWerewolf"
                     [disabled]="readOnly()"
-                />
-            </div>
-            <div class="settings-modal__number-row">
-                <span>{{ 'settings.votingDuration' | translate }}</span>
-                <input
-                    type="number"
-                    min="30"
-                    step="30"
-                    [ngModel]="gameSettingsDraft().votingDurationSeconds"
-                    (ngModelChange)="setDraftSetting('votingDurationSeconds', $event)"
+                    (checkedChange)="setDraftSetting('werewolfCanTargetWerewolf', $event)"
+                ></app-toggle-switch>
+                <app-toggle-switch
+                    class="settings-modal__toggle-row"
+                    [label]="'settings.werewolfCanVoteNoKill' | translate"
+                    [checked]="gameSettingsDraft().werewolfCanVoteNoKill"
                     [disabled]="readOnly()"
-                />
-            </div>
+                    (checkedChange)="setDraftSetting('werewolfCanVoteNoKill', $event)"
+                ></app-toggle-switch>
+                <app-toggle-switch
+                    class="settings-modal__toggle-row"
+                    [label]="'settings.witchSinglePotionPerNight' | translate"
+                    [checked]="gameSettingsDraft().witchSinglePotionPerNight"
+                    [disabled]="readOnly()"
+                    (checkedChange)="setDraftSetting('witchSinglePotionPerNight', $event)"
+                ></app-toggle-switch>
+                <app-toggle-switch
+                    class="settings-modal__toggle-row"
+                    [label]="'settings.allowForceStart' | translate"
+                    [checked]="gameSettingsDraft().allowForceStart"
+                    [disabled]="readOnly()"
+                    (checkedChange)="setDraftSetting('allowForceStart', $event)"
+                ></app-toggle-switch>
 
-            @if (!readOnly()) {
-            <button
-                type="button"
-                class="settings-modal__button settings-modal__button--primary settings-modal__button--block"
-                (click)="applyGameSettings()"
-            >
-                {{ 'settings.applySessionRules' | translate }}
-            </button>
-            }
-        </section>
+                <div class="settings-modal__number-row">
+                    <span>{{ 'settings.minPlayers' | translate }}</span>
+                    <input
+                        type="number"
+                        min="1"
+                        [ngModel]="gameSettingsDraft().minPlayers"
+                        (ngModelChange)="setDraftSetting('minPlayers', $event)"
+                        [disabled]="readOnly()"
+                    />
+                </div>
+                <div class="settings-modal__number-row">
+                    <span>{{ 'settings.discussionDuration' | translate }}</span>
+                    <input
+                        type="number"
+                        min="30"
+                        step="30"
+                        [ngModel]="gameSettingsDraft().discussionDurationSeconds"
+                        (ngModelChange)="setDraftSetting('discussionDurationSeconds', $event)"
+                        [disabled]="readOnly()"
+                    />
+                </div>
+                <div class="settings-modal__number-row">
+                    <span>{{ 'settings.votingDuration' | translate }}</span>
+                    <input
+                        type="number"
+                        min="30"
+                        step="30"
+                        [ngModel]="gameSettingsDraft().votingDurationSeconds"
+                        (ngModelChange)="setDraftSetting('votingDurationSeconds', $event)"
+                        [disabled]="readOnly()"
+                    />
+                </div>
 
-        <button
-            type="button"
-            class="settings-modal__button settings-modal__button--outline settings-modal__button--block"
-            (click)="closed.emit()"
-        >
-            {{ 'settings.close' | translate }}
-        </button>
+                @if (!readOnly()) {
+                <button
+                    type="button"
+                    class="settings-modal__button settings-modal__button--primary settings-modal__button--block"
+                    (click)="applyGameSettings()"
+                >
+                    {{ 'settings.applySessionRules' | translate }}
+                </button>
+                }
+            </section>
 
-        <p class="settings-modal__version">
-            {{ 'settings.version' | translate: { fe: feVersion, be: beVersion() } }}
-        </p>
+            <p class="settings-modal__version">
+                {{ 'settings.version' | translate: { fe: feVersion, be: beVersion() } }}
+            </p>
+        </div>
     </div>
 </div>

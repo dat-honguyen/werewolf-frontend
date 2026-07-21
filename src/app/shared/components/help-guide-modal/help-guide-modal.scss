@@ -22,7 +22,6 @@
     &__card {
         display: flex;
         flex-direction: column;
-        gap: 0.85rem;
         padding: 1.5rem;
         border-radius: 1rem;
         background-color: var(--bg-main);
@@ -31,16 +30,21 @@
         max-width: 28rem;
         width: 100%;
         max-height: 85vh;
-        overflow-y: auto;
+        overflow: hidden;
         box-shadow: 0 20px 60px rgb(0 0 0 / 50%);
 
-        @include mixins.themed-scrollbar;
+        // Bigger on desktop -- there's room to spare, and the screenshots read better larger.
+        @media (min-width: 48rem) {
+            max-width: 40rem;
+            max-height: 90vh;
+        }
     }
 
     &__header {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        flex-shrink: 0;
         padding-bottom: 0.75rem;
         border-bottom: 1px solid var(--border);
 
@@ -51,6 +55,26 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
+    }
+
+    // Only this scrolls -- the header (and its close button) stays fixed in view above it.
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        padding-top: 0.85rem;
+        overflow-y: auto;
+
+        @include mixins.themed-scrollbar;
+    }
+
+    &__footer {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex-shrink: 0;
+        padding-top: 0.85rem;
+        border-top: 1px solid var(--border);
     }
 
     &__close {
@@ -83,6 +107,10 @@
         background-color: var(--bg-surface);
         object-fit: cover;
         aspect-ratio: 16 / 10;
+
+        @media (min-width: 48rem) {
+            aspect-ratio: 16 / 9;
+        }
     }
 
     &__step-title {
@@ -150,12 +178,14 @@
 
     &__actions {
         display: flex;
-        gap: 0.6rem;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
     }
 
     &__button {
-        flex: 1;
-        padding: 0.65rem 1rem;
+        min-width: 7rem;
+        padding: 0.65rem 1.25rem;
         border-radius: 0.75rem;
         border: 1px solid var(--border);
         background: var(--primary);

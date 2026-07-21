@@ -91,6 +91,7 @@
         }
     },
     "roomShell": {
+        "backToHome": "Back to Home",
         "nightMode": "🌙 Night Mode",
         "dayMode": "☀️ Day Mode",
         "roomCode": "Room #{{code}}",
@@ -268,7 +269,6 @@
         "discussionDuration": "Discussion Duration (seconds)",
         "votingDuration": "Voting Duration (seconds)",
         "applySessionRules": "Apply Session Rules",
-        "close": "Close",
         "version": "FE {{fe}} · BE {{be}}"
     },
     "identityGrimoire": {

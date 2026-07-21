@@ -67,12 +67,19 @@
     }
 
     // Same wordmark treatment as home.component.scss's &__logo, so the room screen reads as the
-    // same app instead of introducing its own "LUNARIS" brand.
+    // same app instead of introducing its own "LUNARIS" brand. A <button> (not a <span>) so it can
+    // double as a "back to Home" link -- reset to look like plain text rather than a button.
     &__wordmark {
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
         font-family: var(--font-creepy);
+        font-size: inherit;
         font-weight: 400;
         letter-spacing: 0.05em;
         text-transform: uppercase;
+        cursor: pointer;
     }
 
     // Blood-red rather than gold -- matches home.component.scss's same wordmark treatment (see
@@ -133,6 +140,21 @@
 
         &:hover {
             border-color: var(--primary);
+        }
+
+        // Modifier (combine with &__ghost-button, not a standalone class) -- red, to distinguish
+        // the one destructive action in this row (quitting) from the reference/utility buttons
+        // around it. Replaces the old room.component.scss fixed bottom-left "Quit game" button
+        // now that it lives in the header.
+        &--danger {
+            border-color: var(--danger);
+            background: transparent;
+            color: var(--danger);
+
+            &:hover {
+                background: var(--danger);
+                color: #ffffff;
+            }
         }
     }
 
