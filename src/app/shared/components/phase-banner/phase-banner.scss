@@ -35,11 +35,16 @@
         color: var(--primary);
     }
 
+    // This is the narrator's voice -- the one line telling players what's happening/what to do right
+    // now (night prompts, "cast your votes", etc). It used to match the surrounding card's plain
+    // body-text weight, which made it easy to skim past; sized and colored up so it reads as the
+    // most important text in the banner rather than blending into the status label above it.
     &__instruction {
-        margin: 0.15rem 0 0;
-        font-size: 1rem;
+        margin: 0.25rem 0 0;
+        font-size: 1.15rem;
         font-weight: 700;
-        color: var(--text-main);
+        line-height: 1.35;
+        color: var(--accent-day, var(--primary));
     }
 
     &__countdown {

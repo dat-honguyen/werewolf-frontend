@@ -56,6 +56,19 @@
             color: var(--success);
             background: color-mix(in srgb, var(--success) 10%, transparent);
         }
+
+        // The lobby's single most consequential button -- sized up and given its own row so it
+        // doesn't blend into the smaller utility buttons (Ready Up, Cancel Lobby) around it.
+        &--start-game {
+            flex-basis: 100%;
+            font-size: 0.95rem;
+            padding: 0.85rem 1.1rem;
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+        }
     }
 
     &__info {
@@ -72,10 +85,13 @@
         margin: 0;
     }
 
+    // Was 0.85rem muted italic -- easy to mistake for decorative flavor text rather than "here's
+    // what's happening and why you can't act right now", which is exactly the copy meant to stop
+    // players from wondering if it's their turn.
     &__waiting {
-        font-size: 0.85rem;
-        font-style: italic;
-        color: var(--text-muted);
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-main);
         margin: 0;
     }
 

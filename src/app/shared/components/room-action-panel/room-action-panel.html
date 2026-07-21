@@ -1,5 +1,14 @@
 <div class="room-action-panel">
-    @if (showReadyToggle()) {
+    @if (startGameLabel(); as label) {
+    <button
+        type="button"
+        class="room-action-panel__button room-action-panel__button--primary room-action-panel__button--start-game"
+        [disabled]="startGameDisabled()"
+        (click)="startGame.emit()"
+    >
+        {{ label }}
+    </button>
+    } @if (showReadyToggle()) {
     <button
         type="button"
         class="room-action-panel__button room-action-panel__button--primary"

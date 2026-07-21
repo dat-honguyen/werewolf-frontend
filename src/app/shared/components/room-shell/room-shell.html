@@ -111,6 +111,9 @@
             ></app-player-grid>
 
             <app-room-action-panel
+                [startGameLabel]="startGameButton()?.label ?? null"
+                [startGameDisabled]="startGameButton()?.disabled ?? false"
+                (startGame)="startGameAction()"
                 [showReadyToggle]="view() === 'lobby' && !isHost()"
                 [isReady]="myPlayer()?.isReady ?? false"
                 (readyToggle)="readyToggleAction()"

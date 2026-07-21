@@ -15,6 +15,9 @@ import { TranslatePipe } from '@ngx-translate/core';
 })
 export class RoomActionPanel {
     // Lobby
+    readonly startGameLabel = input<string | null>(null);
+    readonly startGameDisabled = input(false);
+    readonly startGame = output<void>();
     readonly showReadyToggle = input(false);
     readonly isReady = input(false);
     readonly readyToggle = output<void>();

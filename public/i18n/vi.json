@@ -108,6 +108,7 @@
         "chatDisabled": "Sách Phép Riêng chưa được kết nối. Hãy trao đổi qua giọng nói hoặc nhóm chat bên ngoài ứng dụng.",
         "collapseChat": "Thu gọn khung chat",
         "expandChat": "Mở rộng khung chat",
+        "yourTurn": "🔔 Đến lượt bạn — hãy thực hiện hành động ngay.",
         "headerActions": {
             "forceStart": "Bắt Đầu Ngay",
             "startGame": "Bắt Đầu Trò Chơi",
@@ -157,6 +158,7 @@
         "noKill": "không giết",
         "playerKicked": "{{name}} đã bị đuổi khỏi phòng chờ.",
         "playerDied": "{{name}} đã chết ({{cause}}).",
+        "tallyingVotes": "🗳️ Đang kiểm phiếu...",
         "gridActions": {
             "kick": "Đuổi",
             "vote": "Bầu",
@@ -190,6 +192,7 @@
     },
     "playerGrid": {
         "you": "BẠN",
+        "yourTurn": "LƯỢT CỦA BẠN",
         "host": "CHỦ PHÒNG",
         "active": "Còn sống",
         "deceased": "Đã chết",
@@ -251,6 +254,7 @@
         "roleDistributionUpdated": "Đã cập nhật phân bổ vai trò.",
         "roleDistributionFailed": "Không thể cập nhật phân bổ vai trò.",
         "gameSettingsUpdated": "Đã cập nhật luật chơi.",
-        "gameSettingsFailed": "Không thể cập nhật luật chơi."
+        "gameSettingsFailed": "Không thể cập nhật luật chơi.",
+        "hunterActionFailed": "Không thể gửi hành động. Vui lòng thử lại."
     }
 }

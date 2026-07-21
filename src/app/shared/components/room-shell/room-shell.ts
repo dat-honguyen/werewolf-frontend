@@ -55,6 +55,11 @@ type ChatTab = 'town' | 'pack';
 type NightAction = 'cupid' | 'seer' | 'werewolf' | 'doctor' | 'witch';
 
 const WOLF_VOTE_POLL_MS = 2000;
+/** How long to hold a "tallying the votes" message before revealing who was lynched -- voting used
+ * to resolve to the result the instant the closing SignalR notification landed, which read as
+ * abrupt and gave players no beat to register the vote had actually closed. Only applies to lynch
+ * deaths (a vote outcome); night/hunter-revenge/quit deaths still reveal immediately. */
+const VOTE_RESULT_REVEAL_DELAY_MS = 3000;
 
 /** Shared mm:ss formatter for both the Day Discussion and Day Voting countdowns. */
 function formatCountdown(seconds: number | null): string | null {
@@ -164,6 +169,7 @@ export class RoomShell {
      * and entries() below. */
     readonly justActedTarget = signal<{ role: Role; playerId: string } | null>(null);
     private readonly justActedTimeouts: ReturnType<typeof setTimeout>[] = [];
+    private readonly voteResultTimeouts: ReturnType<typeof setTimeout>[] = [];
 
     /** Swaps the "Copy invite link" button's own label to a confirmation for a beat -- the only
      * feedback a clipboard write gets otherwise is silence, which reads as "did that work?". */
@@ -264,6 +270,17 @@ export class RoomShell {
             this.myRole() === 'Witch' &&
             this.myTurnRole() === 'Witch' &&
             !this.actionsTaken().has('witch')
+    );
+    /** True while it's specifically *this* player's night-role turn to act -- used to highlight
+     * their own grid card (see entries() below) since nothing previously distinguished "I need to
+     * act now" from "someone else is acting", the reported cause of players missing their turn. */
+    readonly isActingNow = computed(
+        () =>
+            this.showCupid() ||
+            this.showSeer() ||
+            this.showWerewolf() ||
+            this.showDoctor() ||
+            this.showWitch()
     );
 
     /** Colors the acting player's own selectable/selected grid cards to match their current
@@ -446,23 +463,34 @@ export class RoomShell {
         }
     });
 
+    /** Start Game/Force Start lives in the bottom action panel rather than the header -- it's the
+     * single most consequential button in the lobby (everyone lands here first), so it sits next to
+     * the ready toggle where players are already looking instead of competing for space with the
+     * header's utility buttons (invite link, role guide, settings). */
+    readonly startGameButton = computed<{ label: string; disabled?: boolean } | null>(() => {
+        this.translate.currentLang();
+        if (!this.isHost() || this.view() !== 'lobby') {
+            return null;
+        }
+        return {
+            label: this.translate.instant(
+                this.needsForceStart()
+                    ? 'roomShell.headerActions.forceStart'
+                    : 'roomShell.headerActions.startGame'
+            ),
+            disabled: !this.canStartGame()
+        };
+    });
+
     /** Header contextual action button -- replaces the mockup's fake "Switch to Night/Day" toggle
-     * with whatever real host action applies to the current phase (null hides the button). */
+     * with whatever real host action applies to the current phase (null hides the button). Lobby's
+     * Start Game lives in startGameButton/the action panel instead, see above. */
     readonly headerAction = computed<{ label: string; disabled?: boolean } | null>(() => {
         this.translate.currentLang();
         if (!this.isHost()) {
             return null;
         }
         switch (this.view()) {
-            case 'lobby':
-                return {
-                    label: this.translate.instant(
-                        this.needsForceStart()
-                            ? 'roomShell.headerActions.forceStart'
-                            : 'roomShell.headerActions.startGame'
-                    ),
-                    disabled: !this.canStartGame()
-                };
             case 'day-discussion':
                 return { label: this.translate.instant('roomShell.headerActions.advanceToVoting') };
             case 'voting':
@@ -562,7 +590,8 @@ export class RoomShell {
                             ? this.translate.instant('roomShell.gridActions.shoot')
                             : undefined,
                     actionVariant: 'danger' as const,
-                    dying: this.dyingIds().has(p.playerId)
+                    dying: this.dyingIds().has(p.playerId),
+                    isMyTurn: isMyTurn && p.playerId === myId
                 }));
         }
 
@@ -617,7 +646,8 @@ export class RoomShell {
                 selected:
                     (this.showCupid() && this.cupidFirstPick() === p.playerId) ||
                     this.justActedTarget()?.playerId === p.playerId,
-                dying: this.dyingIds().has(p.playerId)
+                dying: this.dyingIds().has(p.playerId),
+                isMyTurn: p.playerId === myId && this.isActingNow()
             };
         });
     });
@@ -681,6 +711,23 @@ export class RoomShell {
             }
         });
 
+        // Fires a toast the moment it becomes this player's turn to act (a night role or Hunter's
+        // Revenge) -- the grid-card pulse/tag (isMyTurn, see entries() and player-grid.scss) only
+        // helps once someone is already looking at the grid, and players reported not noticing
+        // their turn had started at all. Edge-triggered off a plain closure flag (not a signal) so
+        // it fires once per turn instead of once per re-render while the turn is active.
+        let wasMyTurn = false;
+        effect(() => {
+            const isMyTurn =
+                this.isActingNow() ||
+                (this.view() === 'hunter-revenge' &&
+                    this.state()?.pendingHunterRevenge?.[0] === this.myPlayerId());
+            if (isMyTurn && !wasMyTurn) {
+                this.toast.show(this.translate.instant('roomShell.yourTurn'), 'success');
+            }
+            wasMyTurn = isMyTurn;
+        });
+
         effect(() => {
             this.currentNightNumber();
             this.actionsTaken.set(new Set());
@@ -720,6 +767,7 @@ export class RoomShell {
         });
         inject(DestroyRef).onDestroy(() => dyingTimeouts.forEach(clearTimeout));
         inject(DestroyRef).onDestroy(() => this.justActedTimeouts.forEach(clearTimeout));
+        inject(DestroyRef).onDestroy(() => this.voteResultTimeouts.forEach(clearTimeout));
         inject(DestroyRef).onDestroy(() => {
             if (this.copiedInviteLinkTimeout) {
                 clearTimeout(this.copiedInviteLinkTimeout);
@@ -764,12 +812,21 @@ export class RoomShell {
                 });
             }
             if (notification.kind === 'player.died') {
-                this.lastDeathText.set(
-                    this.translate.instant('roomShell.playerDied', {
-                        name: this.playerName(notification.playerId),
-                        cause: notification.cause
-                    })
-                );
+                const finalText = this.translate.instant('roomShell.playerDied', {
+                    name: this.playerName(notification.playerId),
+                    cause: notification.cause
+                });
+                if (notification.cause === 'lynch') {
+                    this.lastDeathText.set(this.translate.instant('roomShell.tallyingVotes'));
+                    this.voteResultTimeouts.push(
+                        setTimeout(
+                            () => this.lastDeathText.set(finalText),
+                            VOTE_RESULT_REVEAL_DELAY_MS
+                        )
+                    );
+                } else {
+                    this.lastDeathText.set(finalText);
+                }
             }
             if (notification.kind === 'vote.cast') {
                 const next = new Map(this.votesByVoter());
@@ -956,7 +1013,16 @@ export class RoomShell {
                         playerId: this.myPlayerId(),
                         targetPlayerId: playerId
                     })
-                    .subscribe();
+                    .subscribe({
+                        error: (error: unknown) =>
+                            this.toast.show(
+                                extractErrorMessage(
+                                    error,
+                                    this.translate.instant('toasts.hunterActionFailed')
+                                ),
+                                'error'
+                            )
+                    });
                 return;
             case 'game-over':
                 return;
@@ -1084,7 +1150,13 @@ export class RoomShell {
         if (!roomCode) {
             return;
         }
-        this.gameApi.passHunterRevenge({ roomCode, playerId: this.myPlayerId() }).subscribe();
+        this.gameApi.passHunterRevenge({ roomCode, playerId: this.myPlayerId() }).subscribe({
+            error: (error: unknown) =>
+                this.toast.show(
+                    extractErrorMessage(error, this.translate.instant('toasts.hunterActionFailed')),
+                    'error'
+                )
+        });
     }
 
     submitVoteAction(): void {
@@ -1254,6 +1326,30 @@ export class RoomShell {
         });
     }
 
+    startGameAction(): void {
+        const lobby = this.lobby();
+        if (!lobby) {
+            return;
+        }
+        this.lobbyApi
+            .startGame({
+                roomCode: lobby.roomCode,
+                requestedBy: this.myPlayerId(),
+                forceStart: this.needsForceStart()
+            })
+            .subscribe({
+                next: () => void this.gameState.refreshGameState(lobby.roomCode),
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(
+                            error,
+                            this.translate.instant('toasts.startGameFailed')
+                        ),
+                        'error'
+                    )
+            });
+    }
+
     /** Header contextual button click -- dispatches to whichever action `headerAction()` is
      * currently describing. */
     onHeaderAction(): void {
@@ -1262,25 +1358,6 @@ export class RoomShell {
             return;
         }
         switch (this.view()) {
-            case 'lobby':
-                this.lobbyApi
-                    .startGame({
-                        roomCode: lobby.roomCode,
-                        requestedBy: this.myPlayerId(),
-                        forceStart: this.needsForceStart()
-                    })
-                    .subscribe({
-                        next: () => void this.gameState.refreshGameState(lobby.roomCode),
-                        error: (error: unknown) =>
-                            this.toast.show(
-                                extractErrorMessage(
-                                    error,
-                                    this.translate.instant('toasts.startGameFailed')
-                                ),
-                                'error'
-                            )
-                    });
-                return;
             case 'day-discussion':
                 this.advanceToVotingAction();
                 return;

@@ -24,6 +24,10 @@ export interface PlayerGridEntry {
     actionDisabled?: boolean;
     revealedRole?: Role;
     dying?: boolean;
+    /** True only on the acting player's own card, only during their own turn (night role action or
+     * Hunter's Revenge) -- see room-shell's isMyTurn computed. Distinct from `isMe`, which is always
+     * true on the current player's card regardless of whether it's their turn. */
+    isMyTurn?: boolean;
 }
 
 @Component({

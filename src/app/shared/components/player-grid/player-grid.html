@@ -6,6 +6,7 @@
         [class.player-grid__card--dying]="entry.dying"
         [class.player-grid__card--selected]="entry.selected"
         [class.player-grid__card--suspected]="!entry.selected && (entry.voteCount ?? 0) > 0"
+        [class.player-grid__card--my-turn]="entry.isMyTurn"
     >
         <div class="player-grid__identity">
             <div class="player-grid__avatar-wrap">
@@ -19,6 +20,10 @@
                 <div class="player-grid__name">
                     {{ entry.displayName }} @if (entry.isMe) {
                     <span class="player-grid__tag">{{ 'playerGrid.you' | translate }}</span>
+                    } @if (entry.isMyTurn) {
+                    <span class="player-grid__tag player-grid__tag--my-turn"
+                        >{{ 'playerGrid.yourTurn' | translate }}</span
+                    >
                     } @if (entry.isHost) {
                     <span class="player-grid__tag player-grid__tag--host"
                         >{{ 'playerGrid.host' | translate }}</span

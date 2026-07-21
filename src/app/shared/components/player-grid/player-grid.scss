@@ -35,6 +35,16 @@
                 color-mix(in srgb, var(--action-accent, var(--primary)) 30%, transparent);
         }
 
+        // The acting player's own card during their own turn -- everything else in this file
+        // highlights the cards you can *target*, nothing previously marked "it's you who needs to
+        // act", which is exactly the case players reported missing their turn entirely.
+        &--my-turn {
+            border-color: var(--action-accent, var(--primary));
+            animation: cardGlowPulse 1.6s ease-in-out infinite;
+
+            --glow-color: var(--action-accent, var(--color-gold-glow));
+        }
+
         // Resurrects the cardDeath keyframe (src/styles/abstracts/_animations.scss) -- it's been
         // sitting unused since the player-card component it was written for was replaced by this
         // grid. Plays once when a player flips alive -> dead (see RoomShell's dyingIds signal),
@@ -103,6 +113,11 @@
 
         &--host {
             background: color-mix(in srgb, var(--accent-night, var(--primary)) 15%, transparent);
+        }
+
+        &--my-turn {
+            background: var(--action-accent, var(--primary));
+            color: var(--color-parchment-ink, #2a2118);
         }
     }
 

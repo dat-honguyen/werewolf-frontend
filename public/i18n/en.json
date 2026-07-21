@@ -108,6 +108,7 @@
         "chatDisabled": "Private Grimoires isn't wired up yet. Coordinate over voice or a group chat outside the app.",
         "collapseChat": "Collapse chat",
         "expandChat": "Expand chat",
+        "yourTurn": "🔔 It's your turn — take your action now.",
         "headerActions": {
             "forceStart": "Force Start",
             "startGame": "Start Game",
@@ -157,6 +158,7 @@
         "noKill": "no kill",
         "playerKicked": "{{name}} was kicked from the lobby.",
         "playerDied": "{{name}} died ({{cause}}).",
+        "tallyingVotes": "🗳️ Tallying the votes...",
         "gridActions": {
             "kick": "Kick",
             "vote": "Vote",
@@ -190,6 +192,7 @@
     },
     "playerGrid": {
         "you": "YOU",
+        "yourTurn": "YOUR TURN",
         "host": "HOST",
         "active": "Active",
         "deceased": "Deceased",
@@ -251,6 +254,7 @@
         "roleDistributionUpdated": "Role distribution updated.",
         "roleDistributionFailed": "Could not update role distribution.",
         "gameSettingsUpdated": "Game settings updated.",
-        "gameSettingsFailed": "Could not update game settings."
+        "gameSettingsFailed": "Could not update game settings.",
+        "hunterActionFailed": "Could not submit that. Try again."
     }
 }
