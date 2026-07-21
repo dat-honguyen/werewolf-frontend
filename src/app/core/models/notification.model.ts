@@ -1,9 +1,10 @@
 import { Role } from './role.model';
 
-/** `stateVersion` is present on every GameState-derived kind (absent for lobby.updated, which
- * isn't versioned) -- see GameStateService's version-gap resync. It's a "there's something newer
- * than what you have" signal only; the payload fields below are supplementary UI-only data (e.g.
- * a private seer result HTTP can't otherwise reconstruct), never treated as authoritative state. */
+/** `stateVersion` is present on every kind, including `lobby.updated` (keyed off `LobbyState.Version`
+ * rather than `GameState.Version` -- see GameStateService's version-gap resync, which tracks the two
+ * as separate counters). It's a "there's something newer than what you have" signal only; the
+ * payload fields below are supplementary UI-only data (e.g. a private seer result HTTP can't
+ * otherwise reconstruct), never treated as authoritative state. */
 export type WerewolfNotification = { stateVersion?: number } & (
     | { kind: 'game.started'; gameId: string }
     | { kind: 'night.started'; nightNumber: number }
@@ -37,9 +38,9 @@ export type WerewolfNotification = { stateVersion?: number } & (
     // its payload as UI-only supplementary data) since GetRoomChatEndpoint's history fetch is only
     // called once on mount -- this is the sole source of live appends after that.
     | { kind: 'chat.room'; senderId: string; text: string; sentAtUtc: string }
-    // Lobby kind/payload is unconfirmed against the real hub — server just needs to broadcast
-    // this to the room group whenever the lobby aggregate changes (join/leave/kick/ready/
-    // settings/roles/cancel); the client always re-fetches full state via GET, so no extra
-    // payload fields are required.
+    // Broadcast to the room group whenever the lobby aggregate changes (join/leave/kick/ready/
+    // settings/roles/cancel/close/reopen), confirmed end-to-end against the real hub (see
+    // GAME_FLOW.md §7). The client always re-fetches full state via GET, so no extra payload
+    // fields are required beyond stateVersion.
     | { kind: 'lobby.updated' }
 );
