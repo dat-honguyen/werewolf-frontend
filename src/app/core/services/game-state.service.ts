@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, Signal, WritableSignal, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -59,6 +60,7 @@ export class GameStateService {
 
     private notificationsSubscription: Subscription | null = null;
     private reconnectedSubscription: Subscription | null = null;
+    private readonly pendingRetryTimeouts = new Set<ReturnType<typeof setTimeout>>();
 
     get myPlayerId(): Signal<string> {
         return this.playerIdentity.playerId;
@@ -89,15 +91,27 @@ export class GameStateService {
     });
 
     /** The single "GetCurrentState()" call in the version-gap resync pattern -- always fetches the
-     * server's authoritative state and adopts whatever version it reports. `Math.max` guards
-     * against a slow response from an older request resolving after a newer one already landed. */
-    async refreshGameState(roomCode: string): Promise<void> {
+     * server's authoritative state and adopts whatever version it reports. The `state.version` guard
+     * on the `.set()` call (not just the separate `lastKnownVersion` counter) stops a slow response
+     * from an older request clobbering a newer one that already landed while both were in flight. A
+     * failed fetch is retried with backoff instead of being swallowed: `resyncIfNewer` already adopted
+     * `notifiedVersion` into `lastKnownVersion` optimistically before calling this, so a fetch that
+     * silently gives up here would permanently desync the client -- every later notification at or
+     * below that version would then look "not newer" and never trigger another attempt. */
+    async refreshGameState(roomCode: string, attempt = 0): Promise<void> {
         try {
             const state = await firstValueFrom(this.gameApi.getState(roomCode));
-            this.gameState.set(state);
+            const current = this.gameState();
+            if (!current || state.version >= current.version) {
+                this.gameState.set(state);
+            }
             this.lastKnownVersion = Math.max(this.lastKnownVersion, state.version);
-        } catch {
-            // No game yet (still in lobby) — safe no-op.
+        } catch (error) {
+            if (error instanceof HttpErrorResponse && error.status === 404) {
+                // No game yet (still in lobby) — safe no-op.
+                return;
+            }
+            this.scheduleRetry(attempt, () => void this.refreshGameState(roomCode, attempt + 1));
         }
     }
 
@@ -118,15 +132,40 @@ export class GameStateService {
         }
     }
 
-    async refreshLobby(roomCode: string): Promise<void> {
+    async refreshLobby(roomCode: string, attempt = 0): Promise<void> {
         try {
             const next = await firstValueFrom(this.lobbyApi.getLobby(roomCode));
-            this.announceLobbyChanges(this.lobby(), next);
-            this.lobby.set(next);
+            const current = this.lobby();
+            if (!current || next.version >= current.version) {
+                this.announceLobbyChanges(current, next);
+                this.lobby.set(next);
+            }
             this.lastKnownLobbyVersion = Math.max(this.lastKnownLobbyVersion, next.version);
-        } catch {
-            // Lobby not found (bad room code) — safe no-op.
+        } catch (error) {
+            if (error instanceof HttpErrorResponse && error.status === 404) {
+                // Lobby not found (bad room code) — safe no-op.
+                return;
+            }
+            this.scheduleRetry(attempt, () => void this.refreshLobby(roomCode, attempt + 1));
         }
+    }
+
+    /** Exponential backoff, capped at 8s between attempts, for a resync fetch that failed for a
+     * reason other than "doesn't exist yet" (network blip, 5xx, timeout) -- see
+     * refreshGameState/refreshLobby above. Deliberately never gives up: resyncIfNewer already
+     * adopted the notified version optimistically, so no *later* notification at or below that
+     * version can ever re-trigger a fetch -- a bounded retry count that expires during a genuine
+     * multi-second outage would leave the client permanently stuck showing stale state (e.g. a
+     * night with several near-simultaneous deaths, which is more notifications = more chances to
+     * land in a bad network window) until the next SignalR reconnect happens to fire. The capped
+     * interval keeps retries cheap rather than hammering the server. */
+    private scheduleRetry(attempt: number, retry: () => void): void {
+        const delayMs = Math.min(500 * 2 ** attempt, 8000);
+        const timeoutId = setTimeout(() => {
+            this.pendingRetryTimeouts.delete(timeoutId);
+            retry();
+        }, delayMs);
+        this.pendingRetryTimeouts.add(timeoutId);
     }
 
     /**
@@ -219,6 +258,11 @@ export class GameStateService {
         this.notificationsSubscription = null;
         this.reconnectedSubscription?.unsubscribe();
         this.reconnectedSubscription = null;
+        // Unbounded retries (see scheduleRetry) must not keep firing against a room this client has
+        // already left -- they'd otherwise refetch a stale roomCode's state and could still be
+        // in-flight when a later room's sync starts.
+        this.pendingRetryTimeouts.forEach(clearTimeout);
+        this.pendingRetryTimeouts.clear();
         // Reset so a later room (rejoin, or a different room entirely) can't have its first
         // notification silently ignored against a stale version left over from this one.
         this.lastKnownVersion = 0;
