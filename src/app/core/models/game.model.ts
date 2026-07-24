@@ -63,6 +63,11 @@ export interface QuitGameRequest {
     roomCode: string;
     playerId: string;
 }
+export interface SendGraveChatMessageRequest {
+    roomCode: string;
+    playerId: string;
+    text: string;
+}
 
 export interface GameStateResponse {
     roomCode: string;

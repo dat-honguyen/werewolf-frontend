@@ -78,6 +78,59 @@
         </div>
     </header>
 
+    <div class="room-shell__action-bar" #actionBar>
+        <app-room-action-panel
+            [startGameLabel]="startGameButton()?.label ?? null"
+            [startGameDisabled]="startGameButton()?.disabled ?? false"
+            (startGame)="startGameAction()"
+            [showReadyToggle]="view() === 'lobby' && !isHost()"
+            [isReady]="myPlayer()?.isReady ?? false"
+            (readyToggle)="readyToggleAction()"
+            [showCancelLobby]="view() === 'lobby' && isHost()"
+            (cancelLobby)="cancelLobbyAction()"
+            [showLeaveLobby]="view() === 'lobby' && !isHost()"
+            (leaveLobby)="leaveLobbyAction()"
+            [werewolfTally]="werewolfTallyDisplay()"
+            [werewolfLockedLabel]="werewolfLockedLabel()"
+            [showWerewolfPass]="showWerewolf() && settings().werewolfCanVoteNoKill"
+            (werewolfPass)="werewolfPassAction()"
+            [seerResult]="
+                seerResult()
+                    ? ('roomShell.seerResult.' + (seerResult()!.isWerewolf ? 'isWerewolf' : 'notWerewolf') | translate: { name: playerName(seerResult()!.targetPlayerId) })
+                    : null
+            "
+            [witchTargetInfo]="
+                showWitch() && witchTarget() !== undefined
+                    ? witchTarget()
+                        ? ('roomShell.witchInfo.targeted' | translate: { name: playerName(witchTarget()!) })
+                        : ('roomShell.witchInfo.unknown' | translate)
+                    : null
+            "
+            [showWitchHeal]="showWitch() && !witchHealUsed()"
+            (witchHeal)="witchHealAction()"
+            [showWitchPass]="showWitch()"
+            [witchPassLabel]="(witchHealUsed() || witchPoisonUsed() ? 'actionPanel.witchEndTurn' : 'actionPanel.witchPassAll') | translate"
+            (witchPass)="witchPassAction()"
+            [cupidHint]="showCupid() ? (cupidFirstPickHint()) : null"
+            [waitingText]="
+                (view() === 'night' || view() === 'role-reveal') &&
+                !showCupid() && !showSeer() && !showWerewolf() && !showDoctor() && !showWitch()
+                    ? bannerInstruction()
+                    : null
+            "
+            [showSubmitVote]="view() === 'voting' && selectedVoteTarget() !== undefined && myIsAlive()"
+            (submitVote)="submitVoteAction()"
+            [voteTally]="view() === 'voting' ? ('actionPanel.votesOf' | translate: { voted: votedCount(), total: (state()?.players?.length ?? 0) }) : null"
+            [showHunterPass]="view() === 'hunter-revenge' && state()?.pendingHunterRevenge?.[0] === myPlayerId()"
+            (hunterPass)="hunterPassAction()"
+            [showViewLog]="view() === 'game-over'"
+            (viewLog)="viewLogAction()"
+            [logEntries]="logEntries()"
+            [showLeaveRoom]="view() === 'game-over'"
+            (leaveRoom)="leaveRoomAction()"
+        ></app-room-action-panel>
+    </div>
+
     <div
         class="room-shell__viewport"
         [class.room-shell__viewport--chat-collapsed]="isChatCollapsed()"
@@ -129,57 +182,6 @@
                 [entries]="entries()"
                 (action)="onGridAction($event)"
             ></app-player-grid>
-
-            <app-room-action-panel
-                [startGameLabel]="startGameButton()?.label ?? null"
-                [startGameDisabled]="startGameButton()?.disabled ?? false"
-                (startGame)="startGameAction()"
-                [showReadyToggle]="view() === 'lobby' && !isHost()"
-                [isReady]="myPlayer()?.isReady ?? false"
-                (readyToggle)="readyToggleAction()"
-                [showCancelLobby]="view() === 'lobby' && isHost()"
-                (cancelLobby)="cancelLobbyAction()"
-                [showLeaveLobby]="view() === 'lobby' && !isHost()"
-                (leaveLobby)="leaveLobbyAction()"
-                [werewolfTally]="werewolfTallyDisplay()"
-                [werewolfLockedLabel]="werewolfLockedLabel()"
-                [showWerewolfPass]="showWerewolf() && settings().werewolfCanVoteNoKill"
-                (werewolfPass)="werewolfPassAction()"
-                [seerResult]="
-                    seerResult()
-                        ? ('roomShell.seerResult.' + (seerResult()!.isWerewolf ? 'isWerewolf' : 'notWerewolf') | translate: { name: playerName(seerResult()!.targetPlayerId) })
-                        : null
-                "
-                [witchTargetInfo]="
-                    showWitch() && witchTarget() !== undefined
-                        ? witchTarget()
-                            ? ('roomShell.witchInfo.targeted' | translate: { name: playerName(witchTarget()!) })
-                            : ('roomShell.witchInfo.unknown' | translate)
-                        : null
-                "
-                [showWitchHeal]="showWitch() && !witchHealUsed()"
-                (witchHeal)="witchHealAction()"
-                [showWitchPass]="showWitch()"
-                [witchPassLabel]="(witchHealUsed() || witchPoisonUsed() ? 'actionPanel.witchEndTurn' : 'actionPanel.witchPassAll') | translate"
-                (witchPass)="witchPassAction()"
-                [cupidHint]="showCupid() ? (cupidFirstPickHint()) : null"
-                [waitingText]="
-                    (view() === 'night' || view() === 'role-reveal') &&
-                    !showCupid() && !showSeer() && !showWerewolf() && !showDoctor() && !showWitch()
-                        ? bannerInstruction()
-                        : null
-                "
-                [showSubmitVote]="view() === 'voting' && selectedVoteTarget() !== undefined"
-                (submitVote)="submitVoteAction()"
-                [voteTally]="view() === 'voting' ? ('actionPanel.votesOf' | translate: { voted: votedCount(), total: (state()?.players?.length ?? 0) }) : null"
-                [showHunterPass]="view() === 'hunter-revenge' && state()?.pendingHunterRevenge?.[0] === myPlayerId()"
-                (hunterPass)="hunterPassAction()"
-                [showViewLog]="view() === 'game-over'"
-                (viewLog)="viewLogAction()"
-                [logEntries]="logEntries()"
-                [showLeaveRoom]="view() === 'game-over'"
-                (leaveRoom)="leaveRoomAction()"
-            ></app-room-action-panel>
         </section>
 
         <aside class="room-shell__chat" [class.room-shell__chat--collapsed]="isChatCollapsed()">
@@ -224,11 +226,20 @@
                 >
                     {{ 'roomShell.privateGrimoires' | translate }}
                 </button>
+                } @if (canSeeGraveChat()) {
+                <button
+                    type="button"
+                    class="room-shell__chat-tab room-shell__chat-tab--danger"
+                    [class.room-shell__chat-tab--active]="chatTab() === 'grave'"
+                    (click)="selectChatTab('grave')"
+                >
+                    {{ 'roomShell.graveChat' | translate }}
+                </button>
                 }
             </div>
 
             @if (chatTab() === 'town') {
-            <div class="room-shell__chat-history">
+            <div class="room-shell__chat-history" #chatHistory>
                 @for (message of townMessages(); track message.sentAtUtc + message.senderId) { @if
                 (message.isSystem) {
                 <p class="room-shell__chat-system">{{ message.text }}</p>
@@ -247,6 +258,25 @@
                     (ngModelChange)="draftMessage.set($event)"
                     [maxlength]="maxTownMessageLength"
                     name="townMessage"
+                />
+            </form>
+            } @else if (chatTab() === 'grave') {
+            <div class="room-shell__chat-history" #chatHistory>
+                @for (message of graveMessages(); track message.sentAtUtc + message.senderId) {
+                <p class="room-shell__chat-message">
+                    <span class="room-shell__chat-sender">{{ message.senderName }}:</span> {{
+                    message.text }}
+                </p>
+                }
+            </div>
+            <form class="room-shell__chat-input-area" (ngSubmit)="sendGraveMessage()">
+                <input
+                    type="text"
+                    [placeholder]="'roomShell.chatPlaceholder' | translate"
+                    [ngModel]="draftGraveMessage()"
+                    (ngModelChange)="draftGraveMessage.set($event)"
+                    [maxlength]="maxTownMessageLength"
+                    name="graveMessage"
                 />
             </form>
             } @else {
@@ -274,6 +304,15 @@
         [cancelLabel]="'room.quitConfirm.cancelLabel' | translate"
         (confirmed)="confirmQuit()"
         (cancelled)="cancelQuit()"
+    ></app-confirm-dialog>
+    } @if (pendingConfirmAction(); as action) {
+    <app-confirm-dialog
+        [title]="action.title"
+        [message]="action.message"
+        [confirmLabel]="action.confirmLabel ?? null"
+        [cancelLabel]="action.cancelLabel ?? null"
+        (confirmed)="confirmPendingAction()"
+        (cancelled)="cancelPendingAction()"
     ></app-confirm-dialog>
     }
 </div>

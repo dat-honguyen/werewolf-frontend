@@ -13,6 +13,7 @@ import {
     PassHunterRevengeRequest,
     PassWitchRequest,
     QuitGameRequest,
+    SendGraveChatMessageRequest,
     SubmitCupidPairingRequest,
     SubmitDoctorProtectionRequest,
     SubmitHunterRevengeShotRequest,
@@ -114,5 +115,16 @@ export class GameApiService {
 
     getRoomChat(roomCode: string): Observable<ChatMessagesResponse> {
         return this.http.get<ChatMessagesResponse>(`${this.baseUrl}/${roomCode}/chat/room`);
+    }
+
+    /** 404s unless `playerId` is themselves dead -- see GAME_FLOW.md's Grave Chat section. */
+    getGraveChat(roomCode: string, playerId: string): Observable<ChatMessagesResponse> {
+        return this.http.get<ChatMessagesResponse>(
+            `${this.baseUrl}/${roomCode}/chat/grave?playerId=${encodeURIComponent(playerId)}`
+        );
+    }
+
+    sendGraveChatMessage(request: SendGraveChatMessageRequest): Observable<void> {
+        return this.http.post<void>(`${this.baseUrl}/chat/grave`, request);
     }
 }

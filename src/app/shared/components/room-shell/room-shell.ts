@@ -47,16 +47,30 @@ interface ChatMessage {
     isSystem?: boolean;
 }
 
+/** Generic "are you sure?" gate for any irreversible mutating action (cast vote, hunter shoot,
+ * witch heal/poison, werewolf attack, etc.) -- one signal + one confirm-dialog render instead of a
+ * showXConfirm boolean per action. */
+interface PendingConfirmAction {
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    onConfirm: () => void;
+}
+
 const PHASE_ANNOUNCEMENT_KEY: Partial<Record<GameView, string>> = {
     'day-discussion': 'roomShell.phaseAnnouncement.dayDiscussion',
     night: 'roomShell.phaseAnnouncement.night',
     voting: 'roomShell.phaseAnnouncement.voting'
 };
 
-type ChatTab = 'town' | 'pack';
+type ChatTab = 'town' | 'pack' | 'grave';
 type NightAction = 'cupid' | 'seer' | 'werewolf' | 'doctor' | 'witch';
 
 const WOLF_VOTE_POLL_MS = 2000;
+/** Grave Chat has no SignalR push (see GameApiService.getGraveChat) -- poll while the tab is open,
+ * same posture as the werewolf vote tally poll below. */
+const GRAVE_CHAT_POLL_MS = 3000;
 /** How long to hold a "tallying the votes" message before revealing who was lynched -- voting used
  * to resolve to the result the instant the closing SignalR notification landed, which read as
  * abrupt and gave players no beat to register the vote had actually closed. Only applies to lynch
@@ -134,6 +148,7 @@ export class RoomShell {
     readonly showRoleGuide = signal(false);
     readonly showHelpGuide = signal(false);
     readonly showQuitConfirm = signal(false);
+    readonly pendingConfirmAction = signal<PendingConfirmAction | null>(null);
     /** Moved here from RoomComponent (which used to own a fixed corner "Quit game" button as a
      * sibling of <app-room-shell>) so it can live in the header's button row instead -- this
      * component already injects everything the quit flow needs (GameStateService,
@@ -147,7 +162,9 @@ export class RoomShell {
     readonly isRoleCardFlipped = signal(false);
     readonly chatTab = signal<ChatTab>('town');
     readonly townMessages = signal<ChatMessage[]>([]);
+    readonly graveMessages = signal<ChatMessage[]>([]);
     readonly draftMessage = signal('');
+    readonly draftGraveMessage = signal('');
 
     /** Chat takes up nearly the full column height, which is fine in the lobby (nothing else
      * competes for that space) but crowds out the player grid/action panel once a game is
@@ -201,6 +218,12 @@ export class RoomShell {
     readonly myRole = computed<Role | null>(
         () => this.state()?.players.find((p) => p.playerId === this.myPlayerId())?.role ?? null
     );
+    /** Defaults to true before a GameState exists (lobby) so nothing else has to null-check this
+     * before the game starts. Used to keep dead players from casting a lynch vote client-side --
+     * see showSubmitVote in room-shell.html and the 'voting' branch of onGridAction below. */
+    readonly myIsAlive = computed(
+        () => this.state()?.players.find((p) => p.playerId === this.myPlayerId())?.isAlive ?? true
+    );
     readonly ownObjective = computed(() => {
         this.translate.currentLang();
         const role = this.myRole();
@@ -228,6 +251,9 @@ export class RoomShell {
     readonly canSeePackChat = computed(
         () => this.myRole() === 'Werewolf' && this.myPlayer() !== undefined
     );
+    /** Only dead players can see/use Grave Chat -- mirrors canSeePackChat's role gate, gated on
+     * aliveness instead of role. */
+    readonly canSeeGraveChat = computed(() => !this.myIsAlive() && this.myPlayer() !== undefined);
 
     readonly canStartGame = computed(() => {
         const lobby = this.lobby();
@@ -672,6 +698,14 @@ export class RoomShell {
      * hardcoded single-line-height guess that silently drifted out of sync whenever the header's
      * content changed. */
     private readonly headerRef = viewChild<ElementRef<HTMLElement>>('header');
+    /** Same --header-h publishing pattern, for the sticky action bar sitting just below the header
+     * (see &__left/&__chat's sticky `top` in room-shell.scss, which stack both offsets). */
+    private readonly actionBarRef = viewChild<ElementRef<HTMLElement>>('actionBar');
+
+    /** Same #chatHistory template ref name is reused across the town/pack/grave @if branches in
+     * room-shell.html -- only one is ever in the DOM at a time, so viewChild always resolves to
+     * whichever chat pane is actually showing. */
+    private readonly chatHistoryRef = viewChild<ElementRef<HTMLElement>>('chatHistory');
 
     constructor() {
         const destroyRef = inject(DestroyRef);
@@ -689,6 +723,39 @@ export class RoomShell {
             const observer = new ResizeObserver(syncHeaderHeight);
             observer.observe(header);
             destroyRef.onDestroy(() => observer.disconnect());
+        });
+
+        afterNextRender(() => {
+            const actionBar = this.actionBarRef()?.nativeElement;
+            if (!actionBar) {
+                return;
+            }
+            const syncActionBarHeight = () =>
+                document.documentElement.style.setProperty(
+                    '--action-bar-h',
+                    `${actionBar.offsetHeight}px`
+                );
+            syncActionBarHeight();
+            const observer = new ResizeObserver(syncActionBarHeight);
+            observer.observe(actionBar);
+            destroyRef.onDestroy(() => observer.disconnect());
+        });
+
+        // Auto-scroll whichever chat pane is open to its latest message -- new messages otherwise
+        // arrived below the fold with no indication anything had been said. Re-runs on every new
+        // message and on tab switch; deferred to a microtask since the element's scrollHeight isn't
+        // updated with the new message's height until after this effect's own change detection pass
+        // commits.
+        effect(() => {
+            this.townMessages();
+            this.graveMessages();
+            this.chatTab();
+            const el = this.chatHistoryRef()?.nativeElement;
+            if (el) {
+                queueMicrotask(() => {
+                    el.scrollTop = el.scrollHeight;
+                });
+            }
         });
 
         let lastAnnouncedView: GameView | null = null;
@@ -910,6 +977,28 @@ export class RoomShell {
                 this.wolfLockedTarget.set(result.lockedTarget);
             });
 
+        interval(GRAVE_CHAT_POLL_MS)
+            .pipe(
+                switchMap(() => {
+                    const code = this.roomCode();
+                    if (this.chatTab() !== 'grave' || !this.canSeeGraveChat() || !code) {
+                        return [];
+                    }
+                    return this.gameApi.getGraveChat(code, this.myPlayerId());
+                }),
+                takeUntilDestroyed()
+            )
+            .subscribe((response) => {
+                this.graveMessages.set(
+                    response.messages.map((m) => ({
+                        senderId: m.senderId,
+                        senderName: m.senderDisplayName,
+                        text: m.text,
+                        sentAtUtc: m.sentAtUtc
+                    }))
+                );
+            });
+
         effect(() => {
             const code = this.roomCode();
             if (!this.showWitch() || !code || this.witchTarget() !== undefined) {
@@ -943,6 +1032,22 @@ export class RoomShell {
 
     cancelQuit(): void {
         this.showQuitConfirm.set(false);
+    }
+
+    /** Stages an irreversible action behind the shared confirm-dialog gate (see
+     * PendingConfirmAction/pendingConfirmAction above) instead of firing it immediately. */
+    private confirmAction(action: PendingConfirmAction): void {
+        this.pendingConfirmAction.set(action);
+    }
+
+    confirmPendingAction(): void {
+        const action = this.pendingConfirmAction();
+        this.pendingConfirmAction.set(null);
+        action?.onConfirm();
+    }
+
+    cancelPendingAction(): void {
+        this.pendingConfirmAction.set(null);
     }
 
     copyInviteLink(): void {
@@ -1028,6 +1133,29 @@ export class RoomShell {
         this.draftMessage.set('');
     }
 
+    sendGraveMessage(): void {
+        const roomCode = this.roomCode();
+        const text = this.draftGraveMessage().trim().slice(0, this.maxTownMessageLength);
+        if (!roomCode || !text) {
+            return;
+        }
+        this.gameApi
+            .sendGraveChatMessage({ roomCode, playerId: this.myPlayerId(), text })
+            .subscribe(() => {
+                this.draftGraveMessage.set('');
+                this.gameApi.getGraveChat(roomCode, this.myPlayerId()).subscribe((response) => {
+                    this.graveMessages.set(
+                        response.messages.map((m) => ({
+                            senderId: m.senderId,
+                            senderName: m.senderDisplayName,
+                            text: m.text,
+                            sentAtUtc: m.sentAtUtc
+                        }))
+                    );
+                });
+            });
+    }
+
     /** Single entry point for every PlayerGrid `(action)` click -- dispatches by current view +
      * (for night) whichever role's turn it is, since the grid itself doesn't know game rules. */
     onGridAction(playerId: string): void {
@@ -1040,25 +1168,20 @@ export class RoomShell {
                 this.kick(playerId);
                 return;
             case 'voting':
+                if (!this.myIsAlive()) {
+                    return;
+                }
                 this.selectedVoteTarget.set(playerId === '__abstain__' ? null : playerId);
                 return;
             case 'hunter-revenge':
-                this.gameApi
-                    .submitHunterRevengeShot({
-                        roomCode,
-                        playerId: this.myPlayerId(),
-                        targetPlayerId: playerId
-                    })
-                    .subscribe({
-                        error: (error: unknown) =>
-                            this.toast.show(
-                                extractErrorMessage(
-                                    error,
-                                    this.translate.instant('toasts.hunterActionFailed')
-                                ),
-                                'error'
-                            )
-                    });
+                this.confirmAction({
+                    title: this.translate.instant('confirmActions.hunterShoot.title'),
+                    message: this.translate.instant('confirmActions.hunterShoot.message', {
+                        name: this.playerName(playerId)
+                    }),
+                    confirmLabel: this.translate.instant('confirmActions.hunterShoot.confirmLabel'),
+                    onConfirm: () => this.submitHunterShotCommit(roomCode, playerId)
+                });
                 return;
             case 'game-over':
                 return;
@@ -1069,66 +1192,126 @@ export class RoomShell {
 
     private onNightGridAction(roomCode: string, playerId: string): void {
         if (this.showSeer()) {
-            this.gameApi
-                .submitSeerInspection({
-                    roomCode,
-                    playerId: this.myPlayerId(),
-                    targetPlayerId: playerId
-                })
-                .subscribe(() => {
-                    this.flashActedTarget('Seer', playerId);
-                    this.markDone('seer');
-                });
+            this.confirmAction({
+                title: this.translate.instant('confirmActions.seerInspect.title'),
+                message: this.translate.instant('confirmActions.seerInspect.message', {
+                    name: this.playerName(playerId)
+                }),
+                onConfirm: () => {
+                    this.gameApi
+                        .submitSeerInspection({
+                            roomCode,
+                            playerId: this.myPlayerId(),
+                            targetPlayerId: playerId
+                        })
+                        .subscribe(() => {
+                            this.flashActedTarget('Seer', playerId);
+                            this.markDone('seer');
+                        });
+                }
+            });
         } else if (this.showWerewolf()) {
-            this.gameApi
-                .submitWerewolfVote({
-                    roomCode,
-                    playerId: this.myPlayerId(),
-                    targetPlayerId: playerId
-                })
-                .subscribe(() => {
-                    this.flashActedTarget('Werewolf', playerId);
-                    this.markDone('werewolf');
-                });
+            this.confirmAction({
+                title: this.translate.instant('confirmActions.werewolfAttack.title'),
+                message: this.translate.instant('confirmActions.werewolfAttack.message', {
+                    name: this.playerName(playerId)
+                }),
+                onConfirm: () => {
+                    this.gameApi
+                        .submitWerewolfVote({
+                            roomCode,
+                            playerId: this.myPlayerId(),
+                            targetPlayerId: playerId
+                        })
+                        .subscribe(() => {
+                            this.flashActedTarget('Werewolf', playerId);
+                            this.markDone('werewolf');
+                        });
+                }
+            });
         } else if (this.showDoctor()) {
-            this.gameApi
-                .submitDoctorProtection({
-                    roomCode,
-                    playerId: this.myPlayerId(),
-                    targetPlayerId: playerId
-                })
-                .subscribe(() => {
-                    this.flashActedTarget('Doctor', playerId);
-                    this.lastDoctorTarget.set(playerId);
-                    this.markDone('doctor');
-                });
+            this.confirmAction({
+                title: this.translate.instant('confirmActions.doctorProtect.title'),
+                message: this.translate.instant('confirmActions.doctorProtect.message', {
+                    name: this.playerName(playerId)
+                }),
+                onConfirm: () => {
+                    this.gameApi
+                        .submitDoctorProtection({
+                            roomCode,
+                            playerId: this.myPlayerId(),
+                            targetPlayerId: playerId
+                        })
+                        .subscribe(() => {
+                            this.flashActedTarget('Doctor', playerId);
+                            this.lastDoctorTarget.set(playerId);
+                            this.markDone('doctor');
+                        });
+                }
+            });
         } else if (this.showWitch() && !this.witchPoisonUsed()) {
-            this.gameApi
-                .useWitchPoisonPotion({
-                    roomCode,
-                    playerId: this.myPlayerId(),
-                    targetPlayerId: playerId
-                })
-                .subscribe(() => {
-                    this.flashActedTarget('Witch', playerId);
-                    this.witchPoisonUsed.set(true);
-                    this.finalizeWitchIfBothPotionsResolved();
-                });
+            this.confirmAction({
+                title: this.translate.instant('confirmActions.witchPoison.title'),
+                message: this.translate.instant('confirmActions.witchPoison.message', {
+                    name: this.playerName(playerId)
+                }),
+                onConfirm: () => {
+                    this.gameApi
+                        .useWitchPoisonPotion({
+                            roomCode,
+                            playerId: this.myPlayerId(),
+                            targetPlayerId: playerId
+                        })
+                        .subscribe(() => {
+                            this.flashActedTarget('Witch', playerId);
+                            this.witchPoisonUsed.set(true);
+                            this.finalizeWitchIfBothPotionsResolved();
+                        });
+                }
+            });
         } else if (this.showCupid()) {
             const first = this.cupidFirstPick();
             if (!first) {
                 this.cupidFirstPick.set(playerId);
             } else if (first !== playerId) {
-                this.gameApi
-                    .submitCupidPairing({
-                        roomCode,
-                        playerId: this.myPlayerId(),
-                        firstPlayerId: first,
-                        secondPlayerId: playerId
-                    })
-                    .subscribe(() => this.markDone('cupid'));
+                this.confirmAction({
+                    title: this.translate.instant('confirmActions.cupidPair.title'),
+                    message: this.translate.instant('confirmActions.cupidPair.message', {
+                        first: this.playerName(first),
+                        second: this.playerName(playerId)
+                    }),
+                    onConfirm: () => {
+                        this.gameApi
+                            .submitCupidPairing({
+                                roomCode,
+                                playerId: this.myPlayerId(),
+                                firstPlayerId: first,
+                                secondPlayerId: playerId
+                            })
+                            .subscribe(() => this.markDone('cupid'));
+                    }
+                });
             }
         }
+    }
+
+    private submitHunterShotCommit(roomCode: string, targetPlayerId: string): void {
+        this.gameApi
+            .submitHunterRevengeShot({
+                roomCode,
+                playerId: this.myPlayerId(),
+                targetPlayerId
+            })
+            .subscribe({
+                error: (error: unknown) =>
+                    this.toast.show(
+                        extractErrorMessage(
+                            error,
+                            this.translate.instant('toasts.hunterActionFailed')
+                        ),
+                        'error'
+                    )
+            });
     }
 
     private finalizeWitchIfBothPotionsResolved(): void {
@@ -1151,6 +1334,14 @@ export class RoomShell {
         if (!roomCode) {
             return;
         }
+        this.confirmAction({
+            title: this.translate.instant('confirmActions.witchHeal.title'),
+            message: this.translate.instant('confirmActions.witchHeal.message'),
+            onConfirm: () => this.witchHealCommit(roomCode)
+        });
+    }
+
+    private witchHealCommit(roomCode: string): void {
         this.gameApi.useWitchHealPotion({ roomCode, playerId: this.myPlayerId() }).subscribe(() => {
             this.witchHealUsed.set(true);
             this.finalizeWitchIfBothPotionsResolved();
@@ -1162,6 +1353,14 @@ export class RoomShell {
         if (!roomCode) {
             return;
         }
+        this.confirmAction({
+            title: this.translate.instant('confirmActions.witchPass.title'),
+            message: this.translate.instant('confirmActions.witchPass.message'),
+            onConfirm: () => this.witchPassCommit(roomCode)
+        });
+    }
+
+    private witchPassCommit(roomCode: string): void {
         this.gameApi
             .passWitch({ roomCode, playerId: this.myPlayerId() })
             .subscribe(() => this.markDone('witch'));
@@ -1172,6 +1371,14 @@ export class RoomShell {
         if (!roomCode) {
             return;
         }
+        this.confirmAction({
+            title: this.translate.instant('confirmActions.werewolfPass.title'),
+            message: this.translate.instant('confirmActions.werewolfPass.message'),
+            onConfirm: () => this.werewolfPassCommit(roomCode)
+        });
+    }
+
+    private werewolfPassCommit(roomCode: string): void {
         this.gameApi
             .submitWerewolfVote({
                 roomCode,
@@ -1186,6 +1393,14 @@ export class RoomShell {
         if (!roomCode) {
             return;
         }
+        this.confirmAction({
+            title: this.translate.instant('confirmActions.hunterPass.title'),
+            message: this.translate.instant('confirmActions.hunterPass.message'),
+            onConfirm: () => this.hunterPassCommit(roomCode)
+        });
+    }
+
+    private hunterPassCommit(roomCode: string): void {
         this.gameApi.passHunterRevenge({ roomCode, playerId: this.myPlayerId() }).subscribe({
             error: (error: unknown) =>
                 this.toast.show(
@@ -1198,9 +1413,24 @@ export class RoomShell {
     submitVoteAction(): void {
         const roomCode = this.roomCode();
         const selected = this.selectedVoteTarget();
-        if (!roomCode || selected === undefined) {
+        if (!roomCode || selected === undefined || !this.myIsAlive()) {
             return;
         }
+        const targetName =
+            selected === null
+                ? this.translate.instant('actionPanel.abstain')
+                : this.playerName(selected);
+        this.confirmAction({
+            title: this.translate.instant('confirmActions.castVote.title'),
+            message: this.translate.instant('confirmActions.castVote.message', {
+                name: targetName
+            }),
+            confirmLabel: this.translate.instant('confirmActions.castVote.confirmLabel'),
+            onConfirm: () => this.submitVoteCommit(roomCode, selected)
+        });
+    }
+
+    private submitVoteCommit(roomCode: string, selected: string | null): void {
         this.gameApi
             .castVote({
                 roomCode,

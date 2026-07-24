@@ -107,6 +107,7 @@
         "votingEndsIn": "Voting ends in",
         "publicSquare": "Public Square",
         "privateGrimoires": "Private Grimoires",
+        "graveChat": "Beyond the Veil",
         "chatPlaceholder": "Type a message…",
         "chatDisabled": "Private Grimoires isn't wired up yet. Coordinate over voice or a group chat outside the app.",
         "collapseChat": "Collapse chat",
@@ -280,6 +281,54 @@
     "confirmDialog": {
         "defaultConfirm": "Confirm",
         "defaultCancel": "Cancel"
+    },
+    "confirmActions": {
+        "castVote": {
+            "title": "Cast this vote?",
+            "message": "Vote to lynch {{name}}? You can change your vote until voting closes.",
+            "confirmLabel": "Submit Vote"
+        },
+        "hunterShoot": {
+            "title": "Take your revenge shot?",
+            "message": "Fire on {{name}}? This cannot be undone.",
+            "confirmLabel": "Shoot"
+        },
+        "hunterPass": {
+            "title": "Pass on your revenge shot?",
+            "message": "You will not fire on anyone. This cannot be undone."
+        },
+        "seerInspect": {
+            "title": "Inspect this player?",
+            "message": "Learn whether {{name}} is a werewolf? This uses your action for the night."
+        },
+        "werewolfAttack": {
+            "title": "Attack this player?",
+            "message": "Vote with the pack to kill {{name}} tonight?"
+        },
+        "werewolfPass": {
+            "title": "Pass on tonight's kill?",
+            "message": "The pack will not kill anyone tonight."
+        },
+        "doctorProtect": {
+            "title": "Protect this player?",
+            "message": "Protect {{name}} from the werewolves tonight? This uses your action for the night."
+        },
+        "witchHeal": {
+            "title": "Use your heal potion?",
+            "message": "Save tonight's target from the werewolves? This potion can only be used once."
+        },
+        "witchPoison": {
+            "title": "Use your poison potion?",
+            "message": "Poison {{name}}? This potion can only be used once."
+        },
+        "witchPass": {
+            "title": "Pass your turn?",
+            "message": "End your turn without using another potion tonight."
+        },
+        "cupidPair": {
+            "title": "Confirm these lovers?",
+            "message": "Pair {{first}} and {{second}} as lovers? If one dies, so does the other. This cannot be undone."
+        }
     },
     "gameState": {
         "aPlayer": "A player",

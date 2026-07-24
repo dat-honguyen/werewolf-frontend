@@ -58,7 +58,8 @@ work that way), but the poll-and-404 design keeps "is this caller a pack member"
 one auditable place with a leak-proof response shape; a push version would re-decide that on every
 vote change and leave a trail in logs/APM instead. See `../werewolf/GAME_FLOW.md`'s §7 note for the
 full writeup. Pack chat (`chat.pack`) also stays HTTP-only (`SendPackChatMessage`) — out of scope for
-the Town Square SignalR migration.
+the Town Square SignalR migration. Grave chat (`chat.grave`, dead-players-only) follows the same
+poll-and-404 posture as pack chat, for the same reason (leaking "who's dead" via a group push).
 
 ## HTTP API
 
@@ -93,6 +94,8 @@ All routes are `Wolverine.HTTP` endpoints under `/api/v1`.
 | GET    | `/api/v1/game/{roomCode}/chat/room`      | `GetRoomChatEndpoint` (history only — sending moved to SignalR, see above) |
 | GET    | `/api/v1/game/{roomCode}/chat/pack`      | `GetPackChatEndpoint`                                                      |
 | POST   | `/api/v1/game/chat/pack`                 | `SendPackChatMessageEndpoint`                                              |
+| GET    | `/api/v1/game/{roomCode}/chat/grave`     | `GetGraveChatEndpoint`                                                     |
+| POST   | `/api/v1/game/chat/grave`                | `SendGraveChatMessageEndpoint`                                             |
 | POST   | `/api/v1/game/cupid`                     | `SubmitCupidPairingEndpoint`                                               |
 | POST   | `/api/v1/game/werewolf/vote`             | `SubmitWerewolfVoteEndpoint`                                               |
 | POST   | `/api/v1/game/doctor/protect`            | `SubmitDoctorProtectionEndpoint`                                           |

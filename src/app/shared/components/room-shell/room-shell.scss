@@ -14,6 +14,7 @@
     --text-muted: #9aa0a6;
     --border: #2d323f;
     --header-h: 4.5rem;
+    --action-bar-h: 0px;
 
     &[data-phase='night'] {
         --primary: var(--accent-night);
@@ -57,6 +58,23 @@
         border-bottom: 1px solid var(--border);
         background: color-mix(in srgb, var(--bg-main) 80%, transparent);
         backdrop-filter: blur(16px);
+    }
+
+    // Pinned just under the header instead of living inline in the center column, so the action a
+    // player needs to take is the first thing in view rather than below the player grid. Empty
+    // when no show* input is set (room-action-panel's own &:empty rule collapses it to zero
+    // height), so this bar disappears entirely rather than reserving dead space between phases.
+    &__action-bar {
+        position: sticky;
+        top: var(--header-h);
+        z-index: 9;
+        max-width: 90rem;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+
+        app-room-action-panel {
+            display: block;
+        }
     }
 
     &__logo {
@@ -225,7 +243,7 @@
         // roster/stats stay in view for the whole page instead of leaving dead space where a
         // fixed-height column used to be forced to fill the viewport.
         position: sticky;
-        top: calc(var(--header-h) + 1.5rem);
+        top: calc(var(--header-h) + var(--action-bar-h) + 1.5rem);
 
         @media (max-width: 900px) {
             position: static;
@@ -317,8 +335,8 @@
         // keeps its own bounded height (so long histories scroll internally, Discord-style)
         // without dictating the height of the rest of the page.
         position: sticky;
-        top: calc(var(--header-h) + 1.5rem);
-        height: calc(100vh - var(--header-h) - 3rem);
+        top: calc(var(--header-h) + var(--action-bar-h) + 1.5rem);
+        height: calc(100vh - var(--header-h) - var(--action-bar-h) - 3rem);
 
         @media (max-width: 900px) {
             position: static;
@@ -328,7 +346,7 @@
         // Collapsed to a slim rail during gameplay (room-shell.ts's isChatCollapsed) -- the lobby
         // view never applies this class at all, so chat always stays full-size there.
         &--collapsed {
-            height: calc(100vh - var(--header-h) - 3rem);
+            height: calc(100vh - var(--header-h) - var(--action-bar-h) - 3rem);
 
             @media (max-width: 900px) {
                 height: 3rem;
@@ -443,14 +461,15 @@
         margin-right: 0.3rem;
     }
 
+    // Deliberately subdued rather than highlighted -- these are ambient status noise (joins,
+    // ready-state, phase announcements), not something that needs to compete with actual player
+    // chat for attention. No border/background card, muted color, smaller/italic.
     &__chat-system {
-        margin: 0 0 0.75rem;
-        padding: 0.65rem 0.85rem;
-        border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
-        border-radius: 0.6rem;
-        background: color-mix(in srgb, var(--primary) 10%, transparent);
-        font-size: 0.78rem;
-        color: var(--text-main);
+        margin: 0 0 0.6rem;
+        padding: 0;
+        font-size: 0.72rem;
+        font-style: italic;
+        color: var(--text-muted);
     }
 
     &__chat-disabled {

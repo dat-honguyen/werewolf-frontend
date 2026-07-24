@@ -107,6 +107,7 @@
         "votingEndsIn": "Bỏ phiếu kết thúc sau",
         "publicSquare": "Quảng Trường Làng",
         "privateGrimoires": "Sách Phép Riêng",
+        "graveChat": "Bên Kia Nấm Mồ",
         "chatPlaceholder": "Nói gì đó...",
         "chatDisabled": "Sách Phép Riêng chưa được kết nối. Hãy trao đổi qua giọng nói hoặc nhóm chat bên ngoài ứng dụng.",
         "collapseChat": "Thu gọn khung chat",
@@ -280,6 +281,54 @@
     "confirmDialog": {
         "defaultConfirm": "Xác nhận",
         "defaultCancel": "Hủy"
+    },
+    "confirmActions": {
+        "castVote": {
+            "title": "Gửi phiếu bầu này?",
+            "message": "Bầu treo cổ {{name}}? Bạn có thể đổi phiếu cho đến khi bỏ phiếu kết thúc.",
+            "confirmLabel": "Gửi Phiếu Bầu"
+        },
+        "hunterShoot": {
+            "title": "Thực hiện phát bắn trả thù?",
+            "message": "Bắn vào {{name}}? Hành động này không thể hoàn tác.",
+            "confirmLabel": "Bắn"
+        },
+        "hunterPass": {
+            "title": "Bỏ qua phát bắn trả thù?",
+            "message": "Bạn sẽ không bắn ai cả. Hành động này không thể hoàn tác."
+        },
+        "seerInspect": {
+            "title": "Dò xét người chơi này?",
+            "message": "Xem {{name}} có phải ma sói không? Điều này sẽ dùng lượt hành động đêm nay của bạn."
+        },
+        "werewolfAttack": {
+            "title": "Tấn công người chơi này?",
+            "message": "Bỏ phiếu cùng bầy đàn để giết {{name}} đêm nay?"
+        },
+        "werewolfPass": {
+            "title": "Bỏ qua việc giết đêm nay?",
+            "message": "Bầy sói sẽ không giết ai đêm nay."
+        },
+        "doctorProtect": {
+            "title": "Bảo vệ người chơi này?",
+            "message": "Bảo vệ {{name}} khỏi bầy sói đêm nay? Điều này sẽ dùng lượt hành động đêm nay của bạn."
+        },
+        "witchHeal": {
+            "title": "Dùng bình thuốc cứu?",
+            "message": "Cứu mục tiêu bị bầy sói nhắm đêm nay? Bình thuốc này chỉ dùng được một lần."
+        },
+        "witchPoison": {
+            "title": "Dùng bình thuốc độc?",
+            "message": "Đầu độc {{name}}? Bình thuốc này chỉ dùng được một lần."
+        },
+        "witchPass": {
+            "title": "Bỏ qua lượt của bạn?",
+            "message": "Kết thúc lượt mà không dùng thêm bình thuốc nào đêm nay."
+        },
+        "cupidPair": {
+            "title": "Xác nhận cặp tình nhân này?",
+            "message": "Ghép {{first}} và {{second}} thành tình nhân? Nếu một người chết, người kia cũng vậy. Hành động này không thể hoàn tác."
+        }
     },
     "gameState": {
         "aPlayer": "Một người chơi",
