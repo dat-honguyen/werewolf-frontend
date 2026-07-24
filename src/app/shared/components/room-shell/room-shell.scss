@@ -14,7 +14,6 @@
     --text-muted: #9aa0a6;
     --border: #2d323f;
     --header-h: 4.5rem;
-    --action-bar-h: 0px;
 
     &[data-phase='night'] {
         --primary: var(--accent-night);
@@ -60,18 +59,12 @@
         backdrop-filter: blur(16px);
     }
 
-    // Pinned just under the header instead of living inline in the center column, so the action a
-    // player needs to take is the first thing in view rather than below the player grid. Empty
-    // when no show* input is set (room-action-panel's own &:empty rule collapses it to zero
-    // height), so this bar disappears entirely rather than reserving dead space between phases.
+    // Sits right under the header instead of living inline in the center column, so the action a
+    // player needs to take is the first thing in view rather than below the player grid. Not
+    // sticky -- scrolls away with the rest of the page like normal content. Empty when no show*
+    // input is set (room-action-panel's own &:empty rule collapses it to zero height), so this
+    // bar disappears entirely rather than reserving dead space between phases.
     &__action-bar {
-        position: sticky;
-        top: var(--header-h);
-        z-index: 9;
-        max-width: 90rem;
-        margin: 0 auto;
-        padding: 0 1.5rem;
-
         app-room-action-panel {
             display: block;
         }
@@ -243,7 +236,7 @@
         // roster/stats stay in view for the whole page instead of leaving dead space where a
         // fixed-height column used to be forced to fill the viewport.
         position: sticky;
-        top: calc(var(--header-h) + var(--action-bar-h) + 1.5rem);
+        top: calc(var(--header-h) + 1.5rem);
 
         @media (max-width: 900px) {
             position: static;
@@ -335,8 +328,8 @@
         // keeps its own bounded height (so long histories scroll internally, Discord-style)
         // without dictating the height of the rest of the page.
         position: sticky;
-        top: calc(var(--header-h) + var(--action-bar-h) + 1.5rem);
-        height: calc(100vh - var(--header-h) - var(--action-bar-h) - 3rem);
+        top: calc(var(--header-h) + 1.5rem);
+        height: calc(100vh - var(--header-h) - 3rem);
 
         @media (max-width: 900px) {
             position: static;
@@ -346,7 +339,7 @@
         // Collapsed to a slim rail during gameplay (room-shell.ts's isChatCollapsed) -- the lobby
         // view never applies this class at all, so chat always stays full-size there.
         &--collapsed {
-            height: calc(100vh - var(--header-h) - var(--action-bar-h) - 3rem);
+            height: calc(100vh - var(--header-h) - 3rem);
 
             @media (max-width: 900px) {
                 height: 3rem;

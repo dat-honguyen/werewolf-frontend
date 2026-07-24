@@ -698,9 +698,6 @@ export class RoomShell {
      * hardcoded single-line-height guess that silently drifted out of sync whenever the header's
      * content changed. */
     private readonly headerRef = viewChild<ElementRef<HTMLElement>>('header');
-    /** Same --header-h publishing pattern, for the sticky action bar sitting just below the header
-     * (see &__left/&__chat's sticky `top` in room-shell.scss, which stack both offsets). */
-    private readonly actionBarRef = viewChild<ElementRef<HTMLElement>>('actionBar');
 
     /** Same #chatHistory template ref name is reused across the town/pack/grave @if branches in
      * room-shell.html -- only one is ever in the DOM at a time, so viewChild always resolves to
@@ -722,22 +719,6 @@ export class RoomShell {
             syncHeaderHeight();
             const observer = new ResizeObserver(syncHeaderHeight);
             observer.observe(header);
-            destroyRef.onDestroy(() => observer.disconnect());
-        });
-
-        afterNextRender(() => {
-            const actionBar = this.actionBarRef()?.nativeElement;
-            if (!actionBar) {
-                return;
-            }
-            const syncActionBarHeight = () =>
-                document.documentElement.style.setProperty(
-                    '--action-bar-h',
-                    `${actionBar.offsetHeight}px`
-                );
-            syncActionBarHeight();
-            const observer = new ResizeObserver(syncActionBarHeight);
-            observer.observe(actionBar);
             destroyRef.onDestroy(() => observer.disconnect());
         });
 

@@ -102,7 +102,12 @@ export class GameStateService {
         try {
             const state = await firstValueFrom(this.gameApi.getState(roomCode));
             const current = this.gameState();
-            if (!current || state.version >= current.version) {
+            // A leftover GameState from a previously-visited room (this service is a
+            // providedIn: 'root' singleton, not reset on every room entry) can carry a *higher*
+            // version than a genuinely different room's own fresh stream -- each room's version
+            // counter starts over from its own GameStarted event. Without the roomCode check, that
+            // stale state would win the comparison and silently swallow the new room's real data.
+            if (!current || current.roomCode !== roomCode || state.version >= current.version) {
                 this.gameState.set(state);
             }
             this.lastKnownVersion = Math.max(this.lastKnownVersion, state.version);
@@ -136,7 +141,10 @@ export class GameStateService {
         try {
             const next = await firstValueFrom(this.lobbyApi.getLobby(roomCode));
             const current = this.lobby();
-            if (!current || next.version >= current.version) {
+            // Same leftover-singleton hazard as refreshGameState above -- a stale lobby from a
+            // previously-visited room must not block adopting a genuinely different room's fresh
+            // state just because its own version counter happens to be lower.
+            if (!current || current.roomCode !== roomCode || next.version >= current.version) {
                 this.announceLobbyChanges(current, next);
                 this.lobby.set(next);
             }

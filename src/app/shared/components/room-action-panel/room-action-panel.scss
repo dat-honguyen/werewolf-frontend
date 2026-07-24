@@ -6,13 +6,13 @@
     align-items: center;
     gap: 0.6rem;
 
-    // Without this, a lone &__waiting/&__result line (the common case while waiting on other
-    // players) rendered as bare text floating over the room-shell background -- a bordered card
-    // matches the identity/stats panels next to it instead of looking unfinished.
-    padding: 1rem 1.1rem;
-    border: 1px solid var(--border);
-    border-radius: 1rem;
-    background: var(--bg-surface);
+    // Flush full-width strip directly under the header -- same background/blur treatment as
+    // .room-shell__header (see room-shell.scss) so it reads as a continuation of the header
+    // rather than a separate floating card. No border-radius/side borders, just a bottom rule.
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg-main) 80%, transparent);
+    backdrop-filter: blur(16px);
 
     &:empty {
         display: none;
