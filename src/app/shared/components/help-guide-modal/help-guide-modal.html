@@ -2,7 +2,14 @@
     <div class="help-guide-modal__card">
         <header class="help-guide-modal__header">
             <h2>{{ 'helpGuide.title' | translate }}</h2>
-            <button type="button" class="help-guide-modal__close" (click)="closed.emit()">✕</button>
+            <button
+                type="button"
+                class="help-guide-modal__close"
+                [attr.aria-label]="'common.close' | translate"
+                (click)="closed.emit()"
+            >
+                ✕
+            </button>
         </header>
 
         <div class="help-guide-modal__body">

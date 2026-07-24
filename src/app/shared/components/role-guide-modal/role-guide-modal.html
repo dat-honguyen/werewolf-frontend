@@ -2,7 +2,14 @@
     <div class="role-guide-modal__card">
         <header class="role-guide-modal__header">
             <h2>{{ 'roleGuide.title' | translate }}</h2>
-            <button type="button" class="role-guide-modal__close" (click)="closed.emit()">✕</button>
+            <button
+                type="button"
+                class="role-guide-modal__close"
+                [attr.aria-label]="'common.close' | translate"
+                (click)="closed.emit()"
+            >
+                ✕
+            </button>
         </header>
 
         <div class="role-guide-modal__body">

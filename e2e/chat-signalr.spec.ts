@@ -33,6 +33,20 @@ test('Town Square chat is sent and received over SignalR, not HTTP', async ({ br
         timeout: 10_000
     });
 
+    // Known backend race, not a test flake: the player-grid card count above only reflects
+    // Ally's HTTP-fetched lobby state -- it says nothing about whether Ally's `JoinGameRoom`
+    // SignalR command has actually been processed yet. The backend acks `JoinGameRoom` as soon as
+    // Wolverine durably enqueues it (`opts.Policies.UseDurableLocalQueues()` in
+    // CritterConfiguration.cs applies app-wide), *before* JoinGameRoomHandler's
+    // AddConnectionToGroup side effect necessarily runs on a background worker. Sending a chat
+    // message immediately after the grid updates can race that side effect and broadcast to the
+    // room group before Ally's connection is actually a member of it -- Ally then silently never
+    // receives it (chat.room has no retry/replay). See GAME_FLOW.md §7's "Known limitation" note
+    // for the full writeup and why it isn't fixed at the source yet. This wait is a pragmatic
+    // margin against that race, not a guarantee -- if this test starts flaking again, that's the
+    // race window growing, not a new bug.
+    await host.waitForTimeout(1_000);
+
     await host.locator('input[name="townMessage"]').fill('Anyone here?');
     await host.locator('input[name="townMessage"]').press('Enter');
     await expect(ally.getByText('Anyone here?')).toBeVisible({ timeout: 10_000 });

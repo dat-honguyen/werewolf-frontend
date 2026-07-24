@@ -1,3 +1,4 @@
+import { cpus } from 'node:os';
 import { defineConfig, devices } from '@playwright/test';
 
 // werewolf-frontend and werewolf (the backend) are checked out as sibling directories -- see
@@ -6,10 +7,20 @@ import { defineConfig, devices } from '@playwright/test';
 // and `podman machine start` both no-op if already running), so it's safe to invoke on every
 // `npm run e2e` regardless of whether the backend was already up.
 
+// Playwright's own worker-count default (half the logical cores) still runs several test files
+// concurrently against the same backend/Postgres instance -- fine on a beefy CI runner, but on a
+// machine with fewer than 8 logical threads (a slow laptop, a constrained dev container) that
+// contention makes tests flaky or just crawl. Below that threshold, force one worker and disable
+// fullyParallel so the whole suite runs one test at a time instead of Playwright's default
+// heuristic guessing wrong for the hardware. `nproc`/logical thread count, not physical cores --
+// matches what Playwright's own default worker-count math already uses.
+const isLowThreadMachine = cpus().length < 8;
+
 export default defineConfig({
     testDir: './e2e',
     globalSetup: './e2e/global-setup.ts',
-    fullyParallel: true,
+    fullyParallel: !isLowThreadMachine,
+    workers: isLowThreadMachine ? 1 : undefined,
     forbidOnly: !!process.env['CI'],
     retries: process.env['CI'] ? 2 : 0,
     reporter: 'html',

@@ -121,13 +121,13 @@ test("a player's full journey -- role card, night action, chat, vote, final role
         await expect(player.locator('.identity-grimoire__role-text h4')).toHaveText('Seer');
         await shootPlayer('role card flipped: Seer');
 
-        // 2. Night action: click a living player's card to inspect them. Clicking the
-        // `.player-grid__action` button submits the inspection immediately -- the real UI has no
-        // separate confirm step for a night action (see room-shell.ts's onNightGridAction). The
-        // server enforces a fixed turn order within the night (NightChecklist.cs: Cupid ->
-        // Werewolf -> Doctor -> Seer -> Witch), so the Werewolf's and Doctor's actions -- both
-        // resolved via the API here -- must land *before* the Seer's UI-driven inspect below, or
-        // the inspect is rejected as out-of-turn and the phase never advances.
+        // 2. Night action: click a living player's card to inspect them, then confirm -- every
+        // night-role grid action stages behind the shared confirm-dialog gate (see room-shell.ts's
+        // onNightGridAction/confirmAction) rather than submitting immediately. The server enforces
+        // a fixed turn order within the night (NightChecklist.cs: Cupid -> Werewolf -> Doctor ->
+        // Seer -> Witch), so the Werewolf's and Doctor's actions -- both resolved via the API here
+        // -- must land *before* the Seer's UI-driven inspect below, or the inspect is rejected as
+        // out-of-turn and the phase never advances.
         const villager = state.players.find((p) => p.isAlive && p.role === 'Villager')!;
         await post(request, '/game/werewolf/vote', {
             roomCode,
@@ -154,6 +154,9 @@ test("a player's full journey -- role card, night action, chat, vote, final role
             .filter({ hasText: inspectTargetName })
             .getByRole('button', { name: 'Inspect' })
             .click();
+        // Every night-role grid action now stages behind the shared confirm-dialog gate (see
+        // RoomShell.confirmAction) instead of submitting immediately.
+        await player.locator('.confirm-dialog__button--confirm').click();
         await expect(player.locator('.room-action-panel__result')).toBeVisible({
             timeout: 10_000
         });
@@ -193,6 +196,9 @@ test("a player's full journey -- role card, night action, chat, vote, final role
             res.url().endsWith('/api/v1/game/vote')
         );
         await player.getByRole('button', { name: 'Submit Vote' }).click();
+        // Vote submission also stages behind the shared confirm-dialog gate -- see the seer
+        // inspection step above.
+        await player.locator('.confirm-dialog__button--confirm').click();
         expect((await voteResponse).ok()).toBeTruthy();
 
         // Every other living player also votes for the Werewolf via the same API the UI's Submit
