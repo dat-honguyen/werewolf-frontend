@@ -59,17 +59,6 @@
         backdrop-filter: blur(16px);
     }
 
-    // Sits right under the header instead of living inline in the center column, so the action a
-    // player needs to take is the first thing in view rather than below the player grid. Not
-    // sticky -- scrolls away with the rest of the page like normal content. Empty when no show*
-    // input is set (room-action-panel's own &:empty rule collapses it to zero height), so this
-    // bar disappears entirely rather than reserving dead space between phases.
-    &__action-bar {
-        app-room-action-panel {
-            display: block;
-        }
-    }
-
     &__logo {
         display: flex;
         align-items: baseline;

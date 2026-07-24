@@ -33,7 +33,7 @@
         {{ 'actionPanel.leaveLobby' | translate }}
     </button>
     } @if (werewolfTally(); as tally) {
-    <div class="room-action-panel__info">
+    <div class="room-action-panel__status-item room-action-panel__info">
         @for (entry of tally; track entry.voterName) {
         <span>{{ entry.voterName }} → {{ entry.targetName }}</span>
         } @if (werewolfLockedLabel(); as locked) {
@@ -45,9 +45,9 @@
         {{ 'actionPanel.werewolfPass' | translate }}
     </button>
     } @if (seerResult(); as result) {
-    <p class="room-action-panel__result">{{ result }}</p>
+    <p class="room-action-panel__status-item room-action-panel__result">{{ result }}</p>
     } @if (witchTargetInfo(); as info) {
-    <p class="room-action-panel__result">{{ info }}</p>
+    <p class="room-action-panel__status-item room-action-panel__result">{{ info }}</p>
     } @if (showWitchHeal()) {
     <button
         type="button"
@@ -61,9 +61,12 @@
         {{ witchPassLabel() }}
     </button>
     } @if (cupidHint(); as hint) {
-    <p class="room-action-panel__result">{{ hint }}</p>
+    <p class="room-action-panel__status-item room-action-panel__result">{{ hint }}</p>
     } @if (waitingText(); as waiting) {
-    <p class="room-action-panel__waiting">{{ waiting }}</p>
+    <p class="room-action-panel__status-item room-action-panel__waiting">
+        <span class="room-action-panel__pulse" aria-hidden="true"></span>
+        {{ waiting }}
+    </p>
     } @if (showSubmitVote()) {
     <button
         type="button"
@@ -73,7 +76,7 @@
         {{ 'actionPanel.submitVote' | translate }}
     </button>
     } @if (voteTally(); as tally) {
-    <p class="room-action-panel__result">{{ tally }}</p>
+    <p class="room-action-panel__status-item room-action-panel__result">{{ tally }}</p>
     } @if (showHunterPass()) {
     <button type="button" class="room-action-panel__button" (click)="hunterPass.emit()">
         {{ 'actionPanel.hunterPass' | translate }}

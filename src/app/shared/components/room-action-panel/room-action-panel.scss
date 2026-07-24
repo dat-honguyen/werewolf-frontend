@@ -6,28 +6,58 @@
     align-items: center;
     gap: 0.6rem;
 
-    // Flush full-width strip directly under the header -- same background/blur treatment as
-    // .room-shell__header (see room-shell.scss) so it reads as a continuation of the header
-    // rather than a separate floating card. No border-radius/side borders, just a bottom rule.
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg-main) 80%, transparent);
-    backdrop-filter: blur(16px);
+    // Back to a bordered card, same treatment as the identity/stats panel next to it (see
+    // .room-shell__stats in room-shell.scss) -- this now lives inside the center column, above the
+    // player grid, rather than as a full-bleed strip under the header.
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    background: var(--bg-surface);
 
     &:empty {
         display: none;
     }
 
     &__button {
+        // Visually groups every actionable button at the end of the row, after the status pills
+        // below (order: 1) -- keeps "what's happening" reading left-to-right before "what to do
+        // about it", without needing separate wrapper markup that would break the &:empty collapse.
+        order: 2;
+        margin-inline-start: auto;
+
+        // Uniform touch target regardless of label length (min-height, not a fixed height, so
+        // wrapped long labels on a narrow phone screen can still grow the box instead of clipping)
+        // -- 2.75rem clears the 44px minimum recommended touch-target size on both phone and
+        // desktop, so this doesn't need to shrink at narrower breakpoints. min-width keeps a short
+        // label like "Pass" from looking like a cramped chip next to "Submit Vote".
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.75rem;
+        min-width: 6.5rem;
+        padding: 0 1.1rem;
         font-size: 0.75rem;
         font-weight: 700;
         letter-spacing: 0.02em;
-        padding: 0.55rem 1.1rem;
         border-radius: 0.75rem;
         border: 1px solid var(--border);
-        background: var(--bg-nested);
+        background: var(--bg-surface);
         color: var(--text-main);
         cursor: pointer;
+        transition:
+            transform 0.15s ease,
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
+
+        &:hover:not(:disabled) {
+            border-color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px color-mix(in srgb, black 25%, transparent);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(0);
+        }
 
         // Was gradienting into var(--danger), which made Ready Up / Submit Vote read faintly red
         // and diluted red as a "this is destructive" signal for Quit/Cancel Lobby/Leave Lobby/Kick
@@ -43,26 +73,49 @@
                 var(--accent-day, var(--primary)),
                 var(--color-gold, #d9a441)
             );
+            box-shadow: 0 2px 10px color-mix(in srgb, var(--primary) 30%, transparent);
+
+            &:hover:not(:disabled) {
+                border-color: transparent;
+                box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 45%, transparent);
+            }
+
+            .room-shell[data-phase='night'] & {
+                color: white;
+                background: linear-gradient(135deg, #7c3aed, #4f46e5);
+                box-shadow: 0 2px 10px color-mix(in srgb, var(--accent-night) 35%, transparent);
+            }
         }
 
         &--danger {
             border-color: var(--danger);
             color: var(--danger);
             background: color-mix(in srgb, var(--danger) 10%, transparent);
+
+            &:hover:not(:disabled) {
+                border-color: var(--danger);
+                box-shadow: 0 4px 10px color-mix(in srgb, var(--danger) 30%, transparent);
+            }
         }
 
         &--accent {
             border-color: var(--success);
             color: var(--success);
             background: color-mix(in srgb, var(--success) 10%, transparent);
+
+            &:hover:not(:disabled) {
+                border-color: var(--success);
+                box-shadow: 0 4px 10px color-mix(in srgb, var(--success) 30%, transparent);
+            }
         }
 
         // The lobby's single most consequential button -- sized up and given its own row so it
         // doesn't blend into the smaller utility buttons (Ready Up, Cancel Lobby) around it.
         &--start-game {
             flex-basis: 100%;
+            margin-inline-start: 0;
+            min-height: 3.25rem;
             font-size: 0.95rem;
-            padding: 0.85rem 1.1rem;
 
             &:disabled {
                 opacity: 0.5;
@@ -75,35 +128,63 @@
         // next to whatever else is in the panel, matching Start Game's treatment above.
         &--expand {
             flex-basis: 100%;
-            text-align: center;
+            margin-inline-start: 0;
         }
     }
 
-    &__info {
+    // Shared pill treatment for every status/info readout (werewolf tally, seer/witch results,
+    // Cupid's hint, vote tally, the "waiting on X" line) -- reads as ambient status, distinct from
+    // the buttons clustered at the row's end (order: 1, stays in source order, left of the
+    // right-aligned button group above).
+    &__status-item {
+        order: 1;
         display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0;
+        padding: 0.45rem 0.85rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--bg-nested);
+        font-size: 0.78rem;
+        color: var(--text-main);
+    }
+
+    &__info {
         flex-direction: column;
+        align-items: flex-start;
         gap: 0.15rem;
+        border-radius: 0.75rem;
         font-size: 0.75rem;
         color: var(--text-muted);
     }
 
     &__result {
         font-size: 0.8rem;
-        color: var(--text-main);
-        margin: 0;
     }
 
-    // Was 0.85rem muted italic -- easy to mistake for decorative flavor text rather than "here's
-    // what's happening and why you can't act right now", which is exactly the copy meant to stop
-    // players from wondering if it's their turn.
+    // The one status pill that means "it's your turn" -- bolder text plus a pulsing dot colored
+    // by --action-accent (piped down from RoomShell.nightActionAccent -- werewolf red, doctor
+    // green, seer violet, witch purple, cupid pink), so the accent already used to highlight the
+    // acting player's own grid card also marks the instruction telling them to use it.
     &__waiting {
-        font-size: 0.95rem;
+        border-color: color-mix(in srgb, var(--action-accent, var(--primary)) 45%, var(--border));
         font-weight: 600;
-        color: var(--text-main);
-        margin: 0;
+    }
+
+    &__pulse {
+        flex-shrink: 0;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background: var(--action-accent, var(--primary));
+        box-shadow: 0 0 0 0
+            color-mix(in srgb, var(--action-accent, var(--primary)) 60%, transparent);
+        animation: roomActionPanelPulse 1.6s ease-out infinite;
     }
 
     &__log {
+        order: 3;
         list-style: none;
         margin: 0;
         padding: 0.75rem;
@@ -121,5 +202,23 @@
         li {
             padding: 0.2rem 0;
         }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .room-action-panel__pulse {
+        animation: none;
+    }
+}
+
+@keyframes roomActionPanelPulse {
+    0% {
+        box-shadow: 0 0 0 0
+            color-mix(in srgb, var(--action-accent, var(--primary)) 55%, transparent);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0.5rem
+            color-mix(in srgb, var(--action-accent, var(--primary)) 0%, transparent);
     }
 }
