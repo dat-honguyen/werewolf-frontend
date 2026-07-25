@@ -20,6 +20,42 @@
         "Lovers": "Cặp Đôi Tình Nhân",
         "Tanner": "Kẻ Chán Đời"
     },
+    "gameLog": {
+        "gameStarted": "Ngôi làng bắt đầu tỉnh giấc.",
+        "roleAssigned": "{{name}} được giao vai trò {{role}}.",
+        "nightStarted": "Đêm {{n}} bắt đầu.",
+        "cupidPairedLovers": "{{cupid}} (Thần Tình Yêu) đã ghép {{first}} và {{second}} thành một cặp tình nhân.",
+        "seerInspectionPerformed": "{{seer}} (Tiên Tri) đã soi {{target}} và thấy họ {{result}} ma sói.",
+        "werewolfResult": {
+            "yes": "là",
+            "no": "không phải là"
+        },
+        "doctorProtectionChosen": "{{doctor}} (Bác Sĩ) đã bảo vệ {{target}}.",
+        "werewolfTargetLocked": "Bầy sói đã chốt mục tiêu: {{target}}.",
+        "werewolfNoKill": "Bầy sói quyết định không giết đêm nay.",
+        "witchHealUsed": "{{witch}} (Phù Thủy) đã dùng bình thuốc cứu.",
+        "witchPoisonUsed": "{{witch}} (Phù Thủy) đã đầu độc {{target}}.",
+        "witchPassed": "{{witch}} (Phù Thủy) đã bỏ qua lượt.",
+        "dayStarted": "Ngày {{n}} bắt đầu.",
+        "votingStarted": "Bỏ phiếu bắt đầu.",
+        "voteCast": "{{voter}} đã bỏ phiếu cho {{target}}.",
+        "voteAbstained": "{{voter}} đã bỏ phiếu trắng.",
+        "votingClosed": "Bỏ phiếu kết thúc.",
+        "playerDied": "{{name}} đã chết ({{cause}}).",
+        "playerLynched": "{{name}} đã bị treo cổ.",
+        "noLynchOccurred": "Không ai bị treo cổ.",
+        "hunterRevengePending": "{{hunter}} (Thợ Săn) đang cân nhắc phát súng trả thù.",
+        "hunterRevengeShotFired": "{{hunter}} (Thợ Săn) đã bắn {{target}} để trả thù.",
+        "hunterRevengeDeclined": "{{hunter}} (Thợ Săn) đã từ chối trả thù.",
+        "gameEnded": "Trò chơi kết thúc. {{faction}} thắng!",
+        "causes": {
+            "night": "bị giết trong đêm",
+            "lynch": "bị treo cổ",
+            "lover-link": "trái tim tan vỡ",
+            "hunter-revenge": "bị thợ săn trả thù",
+            "quit": "đã rời trò chơi"
+        }
+    },
     "roleDescriptions": {
         "Villager": "Không có phép thuật -- chỉ có lá phiếu và sự tinh ý của bạn. Thắng khi mọi ma sói đã bị loại.",
         "Werewolf": "Mỗi đêm, bỏ phiếu cùng bầy đàn để giết. Thắng khi số ma sói bằng hoặc vượt số người còn lại.",

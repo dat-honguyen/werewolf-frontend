@@ -20,6 +20,42 @@
         "Lovers": "Lovers",
         "Tanner": "Tanner"
     },
+    "gameLog": {
+        "gameStarted": "The village stirs to life.",
+        "roleAssigned": "{{name}} was assigned the role of {{role}}.",
+        "nightStarted": "Night {{n}} began.",
+        "cupidPairedLovers": "{{cupid}} (Cupid) paired {{first}} and {{second}} as lovers.",
+        "seerInspectionPerformed": "{{seer}} (Seer) inspected {{target}} and saw they {{result}} a werewolf.",
+        "werewolfResult": {
+            "yes": "are",
+            "no": "are not"
+        },
+        "doctorProtectionChosen": "{{doctor}} (Doctor) protected {{target}}.",
+        "werewolfTargetLocked": "The werewolves locked their target: {{target}}.",
+        "werewolfNoKill": "The werewolves locked in: no kill tonight.",
+        "witchHealUsed": "{{witch}} (Witch) used the heal potion.",
+        "witchPoisonUsed": "{{witch}} (Witch) poisoned {{target}}.",
+        "witchPassed": "{{witch}} (Witch) passed.",
+        "dayStarted": "Day {{n}} began.",
+        "votingStarted": "Voting began.",
+        "voteCast": "{{voter}} voted for {{target}}.",
+        "voteAbstained": "{{voter}} abstained.",
+        "votingClosed": "Voting closed.",
+        "playerDied": "{{name}} died ({{cause}}).",
+        "playerLynched": "{{name}} was lynched.",
+        "noLynchOccurred": "No one was lynched.",
+        "hunterRevengePending": "{{hunter}} (Hunter) is deciding on a revenge shot.",
+        "hunterRevengeShotFired": "{{hunter}} (Hunter) shot {{target}} in revenge.",
+        "hunterRevengeDeclined": "{{hunter}} (Hunter) declined to take revenge.",
+        "gameEnded": "The game ended. {{faction}} won!",
+        "causes": {
+            "night": "night kill",
+            "lynch": "lynch",
+            "lover-link": "broken heart",
+            "hunter-revenge": "hunter's revenge",
+            "quit": "left the game"
+        }
+    },
     "roleDescriptions": {
         "Villager": "No powers -- just your vote and your wits. Win when every werewolf is gone.",
         "Werewolf": "Each night, vote with the pack to kill. Win once wolves equal or outnumber the rest.",
