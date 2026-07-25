@@ -9,7 +9,10 @@
         (click)="toggleFlip()"
     >
         <div class="identity-grimoire__card-inner">
-            <div class="identity-grimoire__face identity-grimoire__face--front">
+            <div
+                class="identity-grimoire__face identity-grimoire__face--front"
+                [class.identity-grimoire__face--shimmer]="justRevealed()"
+            >
                 <span class="identity-grimoire__eyebrow">WereWolf</span>
                 <div class="identity-grimoire__glyph">✨</div>
                 <span class="identity-grimoire__hint">

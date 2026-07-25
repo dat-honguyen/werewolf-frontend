@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, model } from '@angular/core';
+import { Component, computed, effect, inject, input, model, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GameStateService } from '../../../core/services/game-state.service';
@@ -51,6 +51,30 @@ export class IdentityGrimoireCard {
     };
 
     readonly accent = computed(() => roleAccent(this.role()));
+
+    /** True for a brief window right when a role is first assigned and not yet flipped -- drives
+     * the front face's anticipation shimmer. Reuses GameStateService.hasSeenRoleReveal (the same
+     * flag toggleFlip() sets) rather than tracking its own "have I shimmered yet" state, so the
+     * shimmer only ever plays once per game, on the real first reveal -- not on every render where
+     * the card happens to be showing its front face. */
+    readonly justRevealed = signal(false);
+    private static readonly shimmerTimeoutMs = 1400;
+
+    constructor() {
+        effect((onCleanup) => {
+            const hasRole = this.role() !== null;
+            if (hasRole && !this.flipped() && !this.gameState.hasSeenRoleReveal()) {
+                this.justRevealed.set(true);
+                const timeout = setTimeout(
+                    () => this.justRevealed.set(false),
+                    IdentityGrimoireCard.shimmerTimeoutMs
+                );
+                onCleanup(() => clearTimeout(timeout));
+            } else {
+                this.justRevealed.set(false);
+            }
+        });
+    }
 
     toggleFlip(): void {
         if (!this.role()) {

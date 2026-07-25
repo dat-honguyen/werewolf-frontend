@@ -104,6 +104,25 @@
             border-color: color-mix(in srgb, var(--primary) 30%, transparent);
         }
 
+        // A one-shot anticipation sweep across the still-face-down card the moment a role is
+        // assigned, before the player's first tap -- see identity-grimoire-card.ts's justRevealed.
+        &--shimmer {
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(
+                    100deg,
+                    transparent 30%,
+                    color-mix(in srgb, var(--color-gold, #d9a441) 35%, transparent) 50%,
+                    transparent 70%
+                );
+                background-size: 200% 100%;
+                animation: identityGrimoireShimmer 1.4s ease-out 1;
+                pointer-events: none;
+            }
+        }
+
         &--back {
             transform: rotateY(180deg);
             background: linear-gradient(180deg, #120f24 0%, #181a24 55%, var(--bg-main) 100%);
@@ -211,8 +230,23 @@
     }
 }
 
+@keyframes identityGrimoireShimmer {
+    from {
+        background-position: 150% 0;
+    }
+
+    to {
+        background-position: -50% 0;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .identity-grimoire::before {
         animation: none;
+    }
+
+    .identity-grimoire__face--shimmer::after {
+        animation: none;
+        display: none;
     }
 }
