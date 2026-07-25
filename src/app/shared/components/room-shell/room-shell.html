@@ -93,11 +93,11 @@
                 <div class="room-shell__stats-grid">
                     <div class="room-shell__stat room-shell__stat--alive">
                         <span>{{ 'roomShell.livingSouls' | translate }}</span>
-                        <strong>{{ aliveCount() }}</strong>
+                        <strong [appAnimatedCount]="aliveCount()"></strong>
                     </div>
                     <div class="room-shell__stat room-shell__stat--dead">
                         <span>{{ 'roomShell.fallen' | translate }}</span>
-                        <strong>{{ deadCount() }}</strong>
+                        <strong [appAnimatedCount]="deadCount()"></strong>
                     </div>
                 </div>
                 @if (ownObjective() && !isRoleCardFlipped()) {

@@ -38,6 +38,7 @@ import { SettingsModal } from '../settings-modal/settings-modal';
 import { LanguageSwitch } from '../language-switch/language-switch';
 import { RoomBackdrop } from '../room-backdrop/room-backdrop';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
+import { AnimatedCount } from '../../directives/animated-count.directive';
 
 interface ChatMessage {
     senderId: string;
@@ -123,7 +124,8 @@ const ROLE_OBJECTIVE_KEY: Record<Role, string> = {
         SettingsModal,
         LanguageSwitch,
         RoomBackdrop,
-        ConfirmDialog
+        ConfirmDialog,
+        AnimatedCount
     ],
     templateUrl: './room-shell.html',
     styleUrl: './room-shell.scss'
