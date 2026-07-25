@@ -8,10 +8,15 @@
     // descendant) rather than a hardcoded guess -- room-shell__header's flex-wrap lets its logo/
     // room-code and action buttons drop onto their own lines below ~480px, and a static pixel
     // value silently drifts out of sync the moment that wrapped content changes.
+    // left+right both set with a max-width smaller than their span pins the box to the left edge
+    // (the browser honors `left` and drops `right` once width is constrained) -- that placed every
+    // toast directly on top of the Identity Grimoire card in room-shell's left column. margin-inline
+    // centers the constrained-width box between the two insets instead.
     position: fixed;
     top: calc(var(--header-h, 4.5rem) + 0.25rem);
     left: 0.75rem;
     right: 0.75rem;
+    margin-inline: auto;
     z-index: 100;
     display: flex;
     flex-direction: column;
