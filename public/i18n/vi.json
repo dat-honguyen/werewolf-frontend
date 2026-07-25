@@ -14,6 +14,12 @@
         "Cupid": "Thần Tình Yêu",
         "Tanner": "Kẻ chán đời"
     },
+    "factions": {
+        "Villagers": "Phe Dân Làng",
+        "Werewolves": "Phe Ma Sói",
+        "Lovers": "Cặp Đôi Tình Nhân",
+        "Tanner": "Kẻ Chán Đời"
+    },
     "roleDescriptions": {
         "Villager": "Không có phép thuật -- chỉ có lá phiếu và sự tinh ý của bạn. Thắng khi mọi ma sói đã bị loại.",
         "Werewolf": "Mỗi đêm, bỏ phiếu cùng bầy đàn để giết. Thắng khi số ma sói bằng hoặc vượt số người còn lại.",

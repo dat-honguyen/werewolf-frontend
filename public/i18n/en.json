@@ -14,6 +14,12 @@
         "Cupid": "Cupid",
         "Tanner": "Tanner"
     },
+    "factions": {
+        "Villagers": "Villagers",
+        "Werewolves": "Werewolves",
+        "Lovers": "Lovers",
+        "Tanner": "Tanner"
+    },
     "roleDescriptions": {
         "Villager": "No powers -- just your vote and your wits. Win when every werewolf is gone.",
         "Werewolf": "Each night, vote with the pack to kill. Win once wolves equal or outnumber the rest.",

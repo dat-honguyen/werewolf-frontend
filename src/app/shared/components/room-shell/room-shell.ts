@@ -496,7 +496,9 @@ export class RoomShell {
                 return this.translate.instant('roomShell.banner.hunterStatus');
             case 'game-over':
                 return this.translate.instant('roomShell.banner.gameOverStatus', {
-                    faction: this.state()?.result?.winningFaction ?? ''
+                    faction: this.translate.instant(
+                        'factions.' + (this.state()?.result?.winningFaction ?? 'Villagers')
+                    )
                 });
         }
     });
