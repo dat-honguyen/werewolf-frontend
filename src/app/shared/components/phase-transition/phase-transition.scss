@@ -18,6 +18,7 @@
         background: var(--primary, #d9a441);
         box-shadow: 0 0 60px 10px color-mix(in srgb, var(--primary, #d9a441) 55%, transparent);
         overflow: hidden;
+        animation: phaseTransitionDiscPulse 1.4s ease-in-out infinite;
 
         &::after {
             content: '';
@@ -53,5 +54,22 @@
         color: var(--primary, #d9a441);
         text-transform: uppercase;
         letter-spacing: 0.15em;
+    }
+}
+
+@keyframes phaseTransitionDiscPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 60px 10px color-mix(in srgb, var(--primary, #d9a441) 55%, transparent);
+    }
+
+    50% {
+        box-shadow: 0 0 78px 16px color-mix(in srgb, var(--primary, #d9a441) 70%, transparent);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .phase-transition__disc {
+        animation: none;
     }
 }
