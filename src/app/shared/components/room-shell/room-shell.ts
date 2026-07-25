@@ -22,6 +22,7 @@ import { PlayerIdentityService } from '../../../core/services/player-identity.se
 import { ToastService } from '../../../core/services/toast.service';
 import { WerewolfHubService } from '../../../core/services/werewolf-hub.service';
 import { AliveFlag, diffNewlyDead } from '../../../core/utils/death-diff.util';
+import { renderGameLogEntry } from '../../../core/utils/game-log.util';
 import { extractErrorMessage } from '../../../core/utils/http-error.util';
 import { shouldShowPhaseTransition } from '../../../core/utils/phase-family.util';
 import { roleAccent } from '../../../core/utils/role-accent.util';
@@ -878,7 +879,7 @@ export class RoomShell {
             if (notification.kind === 'player.died') {
                 const finalText = this.translate.instant('roomShell.playerDied', {
                     name: this.playerName(notification.playerId),
-                    cause: notification.cause
+                    cause: this.translate.instant('gameLog.causes.' + notification.cause)
                 });
                 if (notification.cause === 'lynch') {
                     this.lastDeathText.set(this.translate.instant('roomShell.tallyingVotes'));
@@ -1551,7 +1552,16 @@ export class RoomShell {
         if (!roomCode) {
             return;
         }
-        this.gameApi.getLog(roomCode).subscribe((log) => this.logEntries.set(log.entries));
+        this.gameApi.getLog(roomCode).subscribe((log) => {
+            this.logEntries.set(
+                log.entries.map((entry) =>
+                    renderGameLogEntry(entry, {
+                        translate: this.translate,
+                        playerName: (id) => this.playerName(id)
+                    })
+                )
+            );
+        });
     }
 
     leaveRoomAction(): void {
