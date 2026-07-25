@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Role } from '../../../core/models/role.model';
@@ -28,6 +28,30 @@ export class RoleCard {
     readonly role = input.required<Role>();
     readonly description = input<string>('');
     readonly revealed = input(false);
+
+    /** Stagger delay (ms) before this card's flip animation starts, used only by the Game Over
+     * grid (player-grid.html) to cascade several cards' reveals one after another instead of
+     * flipping them all in the same instant. 0 everywhere else -- the normal case. */
+    readonly revealDelayMs = input(0);
+
+    /** `revealed` flips true the same render this component is first created (player-grid.html's
+     * @if only mounts app-role-card once revealedRole is set), so binding animated-card's
+     * [flipped] straight to `revealed()` would never actually transition -- the card would just
+     * appear already face-up, with no animation to delay in the first place. This signal starts
+     * false and is set true `revealDelayMs()` after `revealed()` turns true, so there's a real
+     * false-to-true change for the CSS flip transition to animate. */
+    readonly revealedDelayed = signal(false);
+
+    constructor() {
+        effect((onCleanup) => {
+            if (!this.revealed()) {
+                this.revealedDelayed.set(false);
+                return;
+            }
+            const timeout = setTimeout(() => this.revealedDelayed.set(true), this.revealDelayMs());
+            onCleanup(() => clearTimeout(timeout));
+        });
+    }
 
     readonly glowColor = computed(() => FACTION_GLOW[this.role()]);
     readonly icon = computed(() => {

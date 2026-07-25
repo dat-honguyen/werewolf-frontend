@@ -1,5 +1,5 @@
 <div class="player-grid">
-    @for (entry of entries(); track entry.playerId) {
+    @for (entry of entries(); track entry.playerId; let i = $index) {
     <div
         class="player-grid__card"
         [class.player-grid__card--dead]="!entry.isAlive"
@@ -51,7 +51,11 @@
 
         @if (entry.revealedRole; as role) {
         <div class="player-grid__reveal">
-            <app-role-card [role]="role" [revealed]="true"></app-role-card>
+            <app-role-card
+                [role]="role"
+                [revealed]="true"
+                [revealDelayMs]="i * 120"
+            ></app-role-card>
         </div>
         } @else if (entry.actionLabel) {
         <button

@@ -1,8 +1,8 @@
 <app-animated-card
     class="role-card"
     [style.--faction-glow]="glowColor()"
-    [flipped]="revealed()"
-    [glowing]="revealed()"
+    [flipped]="revealedDelayed()"
+    [glowing]="revealedDelayed()"
     [glowColor]="glowColor()"
 >
     <div card-back class="role-card__back">
