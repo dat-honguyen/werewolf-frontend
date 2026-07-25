@@ -97,10 +97,15 @@ export interface GameStateResponse {
      * so the client always re-fetches this endpoint and adopts whatever version it returns. */
     version: number;
 }
+export interface GameLogEntry {
+    type: string;
+    data: Record<string, string | number | boolean | null>;
+}
+
 export interface GameLogResponse {
     roomCode: string;
     gameId: string;
-    entries: string[];
+    entries: GameLogEntry[];
 }
 
 export interface ChatMessageResponse {
