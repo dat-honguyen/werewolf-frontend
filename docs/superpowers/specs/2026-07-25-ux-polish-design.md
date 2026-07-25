@@ -17,24 +17,33 @@ font stack.
 
 ### 1. Bug fixes (land first — everything else builds on a clean base)
 
-- **Toast queue** (`src/app/shared/components/toast-list/`, `ToastService`): cap visible toasts to
-  one at a time, queuing the rest; fix whatever is preventing reliable auto-dismiss. Root cause:
-  observed a "Role distribution updated." toast (fired in the lobby) still on screen well into
-  Night 1, overlapping the Identity Grimoire card's header text.
-- **Mobile grid order** (`room-shell.scss`, the `≤900px` breakpoint at line ~210): reorder via CSS
-  `order` on the three grid columns so phase banner → action panel → player grid renders first,
-  Identity Grimoire/Coven stats second, chat third. No markup changes — grid items, not DOM order.
-- **Start Game disabled-state contrast** (`room-action-panel`): the `[disabled]` state currently
-  reads as nearly the same gold as enabled. Give it a distinctly muted (desaturated + lower
-  opacity) treatment.
+Two items from the initial playthrough turned out not to be bugs on closer reading of the code,
+and are dropped from scope: the Start Game disabled state already gets `opacity: 0.5` (a standard,
+adequate treatment), and the "Tallying the votes…" text that appeared to linger on the Game Over
+screen is a deliberate 3s suspense delay (`VOTE_RESULT_REVEAL_DELAY_MS` in `room-shell.ts`) before
+the lynch reveal — the screenshot just caught it mid-delay.
+
+- **Toast position overlaps the Identity Grimoire card** (`toast-list.scss`): `ToastService`
+  already auto-dismisses (4.5s) and caps visible toasts at 3 — those aren't broken. The actual bug
+  is pure positioning: `.toast-list` is pinned `left: 0.75rem`, which is exactly where
+  `.room-shell__left` (the Identity Grimoire card) renders, so any toast visually sits on top of
+  it. Fix: center the toast list over the main content column instead of anchoring it to the left
+  edge.
+- **Mobile grid order** (`room-shell.scss`, the `.room-shell__viewport` `≤900px` breakpoint at
+  line ~210): reorder via CSS `order` on `.room-shell__left` / `.room-shell__center` /
+  `.room-shell__chat` so phase banner → action panel → player grid (`__center`) renders first,
+  Identity Grimoire/Coven stats (`__left`) second, chat (`__chat`) third. No markup changes — grid
+  items, not DOM order.
 - **Settings modal role-count validation** (`settings-modal.ts`/`.html`): add a live "N / M
-  assigned" counter bound to the room's current player count, and disable "Apply Role
-  Distribution" when the sum doesn't match, instead of letting it round-trip to a silent 400.
-- **VI i18n fixes**: the Game Over banner interpolates the raw faction enum name untranslated and
-  with mangled diacritics (observed: "Villagers thả́ng!" instead of the correctly-translated,
-  correctly-accented string). Fix the translation key/interpolation. Also clear the stale
-  "Tallying the votes…" status line once the game reaches `GameOver` — it's leftover transitional
-  copy that no longer matches the screen.
+  assigned" counter bound to the room's current player count (`lobby.players.length`), and disable
+  "Apply Role Distribution" when the sum doesn't match, instead of letting it round-trip to a
+  silent 400.
+- **VI i18n fix**: `roomShell.banner.gameOverStatus` (`"{{faction}} thắng!"` /
+  `"{{faction}} win!"`) interpolates the raw backend enum value (`Villagers`, `Werewolves`,
+  `Lovers`, `Tanner` — see `game.model.ts`'s `winningFaction` type) straight into the string, so it
+  renders untranslated even in the Vietnamese UI (e.g. "Villagers thắng!"). Add a `factions.*`
+  translation key per value in both locale files and look the value up through it instead of
+  interpolating it raw.
 
 ### 2. Atmosphere & backdrop
 
@@ -60,8 +69,12 @@ font stack.
 
 ### 4. Typography & layout rhythm
 
-- Audit phase-banner and headers for consistent `--font-title` usage (some header contexts fall
-  back to body font where the title font would read better).
+`room-shell.scss` deliberately opts its own headings/buttons back into Inter (see its comment at
+the top of the file: the gothic `--font-title`/`--font-ui` pairing "clashes with the LUNARIS
+mockup's clean sans-serif look") — that's an intentional decision scoped to `.room-shell`'s own
+template, not an oversight, and this pass does not touch it. `--font-title` stays exactly where
+it's already used today (phase-transition overlay, identity grimoire card, home page).
+
 - Tighten spacing rhythm (a consistent gap/padding scale) across lobby cards and the room-shell's
   three columns. A refinement pass, not a redesign — no new components, no layout restructuring
   beyond the mobile `order` fix in §1.
@@ -91,5 +104,6 @@ font stack.
 - Existing Playwright e2e suite (`npm run e2e`) must continue to pass unmodified — it exercises
   the exact flows this pass touches (lobby, role distribution, ready-up, night actions, voting,
   chat, game over).
-- Manually re-verify the toast-stacking, mobile-ordering, and VI-i18n fixes via a live playthrough
-  (the same method used to find them), since none of the three has automated coverage today.
+- Manually re-verify the toast-positioning, mobile-ordering, and VI-i18n fixes via a live
+  playthrough (the same method used to find them), since none of the three has automated coverage
+  today.
