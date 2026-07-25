@@ -176,10 +176,10 @@
         }
     },
     "actionPanel": {
-        "readyUp": "✅ Sẵn Sàng",
-        "unready": "⏳ Hủy Sẵn Sàng",
-        "cancelLobby": "🛑 Hủy Phòng Chờ",
-        "leaveLobby": "🚪 Rời Phòng Chờ",
+        "readyUp": "Sẵn Sàng",
+        "unready": "Hủy Sẵn Sàng",
+        "cancelLobby": "Hủy Phòng Chờ",
+        "leaveLobby": "Rời Phòng Chờ",
         "locked": "Đã chốt: {{name}}",
         "werewolfPass": "🐺 Bỏ qua (không giết)",
         "healTarget": "💚 Cứu chữa mục tiêu",

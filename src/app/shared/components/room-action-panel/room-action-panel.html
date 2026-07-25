@@ -14,6 +14,11 @@
         class="room-action-panel__button room-action-panel__button--primary room-action-panel__button--expand"
         (click)="readyToggle.emit()"
     >
+        <svg
+            class="room-action-panel__action-icon"
+            viewBox="0 0 24 24"
+            [innerHTML]="actionIcon(isReady() ? 'unready' : 'readyUp')"
+        ></svg>
         {{ (isReady() ? 'actionPanel.unready' : 'actionPanel.readyUp') | translate }}
     </button>
     } @if (showCancelLobby()) {
@@ -22,6 +27,11 @@
         class="room-action-panel__button room-action-panel__button--danger"
         (click)="cancelLobby.emit()"
     >
+        <svg
+            class="room-action-panel__action-icon"
+            viewBox="0 0 24 24"
+            [innerHTML]="actionIcon('cancelLobby')"
+        ></svg>
         {{ 'actionPanel.cancelLobby' | translate }}
     </button>
     } @if (showLeaveLobby()) {
@@ -30,6 +40,11 @@
         class="room-action-panel__button room-action-panel__button--danger room-action-panel__button--expand"
         (click)="leaveLobby.emit()"
     >
+        <svg
+            class="room-action-panel__action-icon"
+            viewBox="0 0 24 24"
+            [innerHTML]="actionIcon('leaveLobby')"
+        ></svg>
         {{ 'actionPanel.leaveLobby' | translate }}
     </button>
     } @if (werewolfTally(); as tally) {

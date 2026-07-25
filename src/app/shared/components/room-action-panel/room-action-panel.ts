@@ -1,5 +1,7 @@
-import { Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import { Component, ElementRef, effect, inject, input, output, viewChild } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ACTION_ICON, ActionIconKey } from '../../../core/utils/action-icon.util';
 
 /**
  * Auxiliary phase controls that don't belong on a specific opponent's PlayerGrid card: self-only
@@ -14,6 +16,15 @@ import { TranslatePipe } from '@ngx-translate/core';
     styleUrl: './room-action-panel.scss'
 })
 export class RoomActionPanel {
+    private readonly sanitizer = inject(DomSanitizer);
+
+    actionIcon(key: ActionIconKey): SafeHtml {
+        // ACTION_ICON is a fixed, hardcoded lookup table of SVG markup (action-icon.util.ts),
+        // never user input.
+        // eslint-disable-next-line no-restricted-syntax
+        return this.sanitizer.bypassSecurityTrustHtml(ACTION_ICON[key]);
+    }
+
     // Lobby
     readonly startGameLabel = input<string | null>(null);
     readonly startGameDisabled = input(false);

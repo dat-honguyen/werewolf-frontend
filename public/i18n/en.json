@@ -176,10 +176,10 @@
         }
     },
     "actionPanel": {
-        "readyUp": "✅ Ready Up",
-        "unready": "⏳ UnReady",
-        "cancelLobby": "🛑 Cancel Lobby",
-        "leaveLobby": "🚪 Leave Lobby",
+        "readyUp": "Ready Up",
+        "unready": "UnReady",
+        "cancelLobby": "Cancel Lobby",
+        "leaveLobby": "Leave Lobby",
         "locked": "Locked: {{name}}",
         "werewolfPass": "🐺 Pass (no kill)",
         "healTarget": "💚 Heal target",
