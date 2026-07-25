@@ -47,25 +47,28 @@ the lynch reveal — the screenshot just caught it mid-delay.
 
 ### 2. Atmosphere & backdrop
 
-- Extend the existing `room-backdrop` component (haunted-house silhouette, howling-wolf silhouette
-  that fades in at night) with a subtle parallax drift and a slow ambient particle layer — drifting
-  fog wisps at night, faint floating motes by day. CSS-only (transform/opacity keyframes), no new
-  JS animation loop. Respects `prefers-reduced-motion` via the same pattern already used for the
-  dying/phase-transition/iris-wipe animations.
-- Give the phase-transition moon disc (`phase-transition` component) a soft pulsing glow keyed to
-  the current phase's accent (`--color-moonlight` at night, a warmer tone by day) instead of a
-  static glow.
+**Correction from the initial review, found while reading the code for this plan:** a prior pass
+(`docs/superpowers/specs/2026-07-19-game-feel-polish-design.md`) already wired up almost everything
+this section originally proposed — `room-backdrop` already has a flickering haunted-house glow, a
+night-only howling-wolf fade-in, two independently-drifting fog bands, and eight looping dust
+motes, all `prefers-reduced-motion`-aware. Re-adding a "particle layer" or fog would duplicate live
+code. The one genuinely open item:
+
+- Give the phase-transition moon disc (`phase-transition.scss:19`, currently a static
+  `box-shadow`) a soft pulsing glow keyed to the current phase's accent, instead of a fixed-size
+  shadow.
 
 ### 3. Micro-interactions & juice
 
-- Press/hover states for primary action buttons (Attack/Vote/Start Game/Ready Up): subtle
-  scale + glow on `:hover`/`:active`.
-- Player-card target-selection feedback: a brief ripple/pulse on the chosen target's existing
-  role-accent ring when Attack/Vote is pressed, reusing the accent-glow pattern already used for
-  night-action targeting.
-- Toast entrance/exit slide+fade, paired with the queue fix in §1.
-- Living/Fallen stat tiles (`Coven Live Overview`) animate the count up/down on change instead of
-  snapping instantly.
+**Also already done** by the same prior pass: button hover/press states (`room-action-panel.scss`
+already has `:hover:not(:disabled)`/`:active:not(:disabled)` transform+shadow treatments) and
+target-selection accent feedback (the `--action-accent` role-color system + `cardGlowPulse`
+keyframe). What's left:
+
+- Toast entrance/exit slide+fade — entrance (`toastSlideIn`) already exists; add a matching exit
+  animation so a dismissed/auto-expired toast fades out instead of disappearing instantly.
+- Living/Fallen stat tiles (`Coven Live Overview`, `room-shell.html` ~line 95) animate the count up
+  or down when it changes instead of snapping straight to the new number.
 
 ### 4. Typography & layout rhythm
 
@@ -81,14 +84,16 @@ it's already used today (phase-transition overlay, identity grimoire card, home 
 
 ### 5. Cinematic beats
 
+**Also already done:** the night-kill/lynch reveal already sequences — a death shows a ~900ms
+"dying" animation on the player card, and a lynch specifically holds a "Tallying the votes…"
+message for 3s (`VOTE_RESULT_REVEAL_DELAY_MS`) before the final text lands. No changes needed
+there. Two beats remain genuinely unbuilt:
+
 - **Role reveal** (first Identity Grimoire card flip): add a brief anticipation beat — a shimmer
   sweep across the card face — before the flip, instead of an instant flip.
-- **Night-kill / lynch reveal**: sequence the existing "dying" animation with a short delay before
-  the phase-banner status text updates, so the reveal reads as a beat (animation, then
-  confirmation) rather than both landing simultaneously.
 - **Game Over**: stagger the final role-card reveals — each surviving/fallen player's card flips in
   sequence with a short per-card delay — building up to the faction-win banner, instead of every
-  card appearing flipped at once.
+  card appearing flipped at once (confirmed: no such sequencing exists today).
 
 ## Out of scope
 
