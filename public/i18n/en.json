@@ -259,6 +259,7 @@
         "title": "Rules & Setup",
         "roleDistribution": "Role Distribution",
         "applyRoleDistribution": "Apply Role Distribution",
+        "roleDistributionTotal": "{{assigned}} / {{needed}} roles assigned",
         "advancedLogic": "Advanced Gameplay Logic",
         "revealRoleOnDeath": "Reveal role on death",
         "doctorCanSelfProtect": "Doctor can self-protect",

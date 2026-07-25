@@ -259,6 +259,7 @@
         "title": "Luật Chơi & Thiết Lập",
         "roleDistribution": "Phân Bổ Vai Trò",
         "applyRoleDistribution": "Áp Dụng Phân Bổ Vai Trò",
+        "roleDistributionTotal": "Đã gán {{assigned}} / {{needed}} vai trò",
         "advancedLogic": "Luật Chơi Nâng Cao",
         "revealRoleOnDeath": "Tiết lộ vai trò khi chết",
         "doctorCanSelfProtect": "Bác sĩ có thể tự bảo vệ",

@@ -35,9 +35,17 @@
                     />
                 </div>
                 } @if (!readOnly()) {
+                <p
+                    class="settings-modal__role-total"
+                    [class.settings-modal__role-total--mismatch]="roleDistributionMismatch()"
+                >
+                    {{ 'settings.roleDistributionTotal' | translate: { assigned:
+                    roleDistributionTotal(), needed: roleDistributionTarget() } }}
+                </p>
                 <button
                     type="button"
                     class="settings-modal__button settings-modal__button--primary settings-modal__button--block"
+                    [disabled]="roleDistributionMismatch()"
                     (click)="applyRoleDistribution()"
                 >
                     {{ 'settings.applyRoleDistribution' | translate }}

@@ -91,6 +91,17 @@ export class SettingsModal {
 
     readonly roomCode = computed(() => this.lobby()?.roomCode ?? '');
 
+    readonly roleDistributionTarget = computed(() => this.lobby()?.players.length ?? 0);
+
+    readonly roleDistributionTotal = computed(() => {
+        const draft = this.roleDistributionDraft();
+        return this.allRoles.reduce((sum, role) => sum + (draft[role] ?? 0), 0);
+    });
+
+    readonly roleDistributionMismatch = computed(
+        () => this.roleDistributionTotal() !== this.roleDistributionTarget()
+    );
+
     roleEmoji(role: Role): string {
         return ROLE_EMOJI[role];
     }
