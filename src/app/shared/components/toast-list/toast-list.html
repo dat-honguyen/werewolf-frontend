@@ -1,6 +1,9 @@
 <div class="toast-list">
     @for (toast of toasts(); track toast.id) {
-    <div class="toast-list__toast toast-list__toast--{{ toast.kind }}">
+    <div
+        class="toast-list__toast toast-list__toast--{{ toast.kind }}"
+        [class.toast-list__toast--leaving]="toast.leaving"
+    >
         <span class="toast-list__message">{{ toast.message }}</span>
         <button
             type="button"

@@ -6,6 +6,7 @@ export interface Toast {
     id: number;
     message: string;
     kind: ToastKind;
+    leaving?: boolean;
 }
 
 const AUTO_DISMISS_MS = 4500;
@@ -14,6 +15,10 @@ const AUTO_DISMISS_MS = 4500;
  * header and sidebar content behind it. Dropping the oldest once the cap is hit keeps the stack
  * from ever blocking the rest of the page. */
 const MAX_VISIBLE_TOASTS = 3;
+/** Matches toast-list.scss's toastSlideOut animation duration -- the toast stays in the array
+ * (marked `leaving`) for this long so the exit animation has time to play before the DOM node is
+ * actually removed. */
+const EXIT_ANIMATION_MS = 200;
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
@@ -29,6 +34,11 @@ export class ToastService {
     }
 
     dismiss(id: number): void {
-        this.toasts.update((toasts) => toasts.filter((toast) => toast.id !== id));
+        this.toasts.update((toasts) =>
+            toasts.map((toast) => (toast.id === id ? { ...toast, leaving: true } : toast))
+        );
+        setTimeout(() => {
+            this.toasts.update((toasts) => toasts.filter((toast) => toast.id !== id));
+        }, EXIT_ANIMATION_MS);
     }
 }
