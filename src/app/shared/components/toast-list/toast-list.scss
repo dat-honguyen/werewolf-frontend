@@ -1,6 +1,6 @@
 .toast-list {
-    // toast-list only ever mounts inside the room route (see room.component.html), alongside
-    // room-shell's own sticky header -- clearing it unconditionally (rather than just on mobile,
+    // toast-list only ever mounts inside the room route (see room.component.html), fixed at the
+    // top of the viewport -- clearing the header unconditionally (rather than just on mobile,
     // as before) stops a burst of toasts from covering the room code / header controls at any
     // width, on top of ToastService capping how many stack up at once.
     // --header-h is measured live off &__header's real rendered height (room-shell.ts's

@@ -1,0 +1,9 @@
+<div
+    class="death-reveal"
+    [class.death-reveal--tallying]="mode() === 'lynch' && stage() === 'tallying'"
+    [style.--duration]="durationMs() + 'ms'"
+    (animationend)="onAnimationEnd()"
+>
+    <div class="death-reveal__glyph">💀</div>
+    <h2 class="death-reveal__text">{{ translationKey() | translate: translationParams() }}</h2>
+</div>

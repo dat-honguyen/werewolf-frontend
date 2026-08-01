@@ -205,6 +205,13 @@
         "playerKicked": "{{name}} đã bị đuổi khỏi phòng chờ.",
         "playerDied": "{{name}} đã chết ({{cause}}).",
         "tallyingVotes": "🗳️ Đang kiểm phiếu...",
+        "deathReveal": {
+            "tallying": "🗳️ Đang kiểm phiếu...",
+            "lynched": "{{name}} đã bị treo cổ",
+            "died": "{{names}} đã được tìm thấy đã chết",
+            "diedPlural": "{{names}} đã được tìm thấy đã chết",
+            "and": "và"
+        },
         "gridActions": {
             "kick": "Đuổi",
             "vote": "Bầu",

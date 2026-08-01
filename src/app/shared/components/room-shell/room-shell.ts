@@ -1,8 +1,10 @@
 // src/app/shared/components/room-shell/room-shell.ts
 import {
+    AfterRenderRef,
     Component,
     DestroyRef,
     ElementRef,
+    Injector,
     afterNextRender,
     computed,
     effect,
@@ -39,6 +41,7 @@ import { SettingsModal } from '../settings-modal/settings-modal';
 import { LanguageSwitch } from '../language-switch/language-switch';
 import { RoomBackdrop } from '../room-backdrop/room-backdrop';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
+import { DeathReveal } from '../death-reveal/death-reveal';
 import { AnimatedCount } from '../../directives/animated-count.directive';
 
 interface ChatMessage {
@@ -69,6 +72,14 @@ const PHASE_ANNOUNCEMENT_KEY: Partial<Record<GameView, string>> = {
 type ChatTab = 'town' | 'pack' | 'grave';
 type NightAction = 'cupid' | 'seer' | 'werewolf' | 'doctor' | 'witch';
 
+/** A queued/displayed death-reveal entry -- 'lynch' is always a single name with a reason attached
+ * ("X was lynched"); every other cause is batched into 'deaths' (see DEATH_BATCH_WINDOW_MS), which
+ * can hold more than one name with no reason shown. */
+type DeathRevealEntry = { kind: 'lynch'; name: string } | { kind: 'deaths'; names: string[] };
+type DeathRevealDisplay =
+    | { kind: 'lynch'; name: string; stage: 'tallying' | 'revealed' }
+    | { kind: 'deaths'; names: string[] };
+
 const WOLF_VOTE_POLL_MS = 2000;
 /** Grave Chat has no SignalR push (see GameApiService.getGraveChat) -- poll while the tab is open,
  * same posture as the werewolf vote tally poll below. */
@@ -78,6 +89,18 @@ const GRAVE_CHAT_POLL_MS = 3000;
  * abrupt and gave players no beat to register the vote had actually closed. Only applies to lynch
  * deaths (a vote outcome); night/hunter-revenge/quit deaths still reveal immediately. */
 const VOTE_RESULT_REVEAL_DELAY_MS = 3000;
+
+/** How long the full-screen death-reveal overlay (see deathReveal signal) holds its "revealed"
+ * stage before dismissing itself -- players reported the previous instant cut to the next phase
+ * as too fast to actually read who died. */
+const DEATH_REVEAL_HOLD_MS = 4000;
+
+/** Non-lynch deaths that land within this window of each other (a lover-link cascade, a wolf kill
+ * landing the same night as a witch poison, ...) are batched into a single "X and Y were found
+ * dead" reveal instead of a separate full-screen takeover per name -- see enqueueDeathReveal. Long
+ * enough to catch every death from one resolution (they arrive as a burst of near-simultaneous
+ * SignalR notifications), short enough not to noticeably delay the reveal appearing. */
+const DEATH_BATCH_WINDOW_MS = 400;
 
 /** Shared mm:ss formatter for both the Day Discussion and Day Voting countdowns. */
 function formatCountdown(seconds: number | null): string | null {
@@ -126,7 +149,8 @@ const ROLE_OBJECTIVE_KEY: Record<Role, string> = {
         LanguageSwitch,
         RoomBackdrop,
         ConfirmDialog,
-        AnimatedCount
+        AnimatedCount,
+        DeathReveal
     ],
     templateUrl: './room-shell.html',
     styleUrl: './room-shell.scss'
@@ -140,6 +164,7 @@ export class RoomShell {
     private readonly translate = inject(TranslateService);
     private readonly hub = inject(WerewolfHubService);
     private readonly router = inject(Router);
+    private readonly injector = inject(Injector);
 
     readonly roomCode = this.gameState.roomCode;
     readonly view = this.gameState.currentView;
@@ -182,6 +207,22 @@ export class RoomShell {
     );
 
     readonly lastDeathText = signal<string | null>(null);
+    /** Full-screen "someone died" takeover (see room-shell.html), Among-Us-style -- a queue rather
+     * than a single signal because more than one entry can land in quick succession (e.g. a lynch
+     * right before its own lover-link cascade), and each one deserves its own beat on screen
+     * instead of a later one silently clobbering an earlier one still being displayed. */
+    readonly deathReveal = signal<DeathRevealDisplay | null>(null);
+    private readonly deathRevealQueue: DeathRevealEntry[] = [];
+    private deathRevealSwap: AfterRenderRef | null = null;
+    /** Non-lynch deaths accumulate here for DEATH_BATCH_WINDOW_MS before being flushed into a
+     * single deathRevealQueue entry -- see enqueueDeathReveal. */
+    private pendingDeathBatchNames: string[] = [];
+    private pendingDeathBatchTimeout: ReturnType<typeof setTimeout> | null = null;
+    /** Bound to app-death-reveal's own duration inputs in the template -- kept as class fields
+     * (rather than inlined literals in the template) so both reveal-timing constants live next to
+     * each other and next to the sidebar's own VOTE_RESULT_REVEAL_DELAY_MS-driven delay. */
+    readonly voteTallyingDurationMs = VOTE_RESULT_REVEAL_DELAY_MS;
+    readonly deathRevealHoldMs = DEATH_REVEAL_HOLD_MS;
     readonly nowMs = signal(Date.now());
     readonly logEntries = signal<string[] | null>(null);
 
@@ -192,6 +233,12 @@ export class RoomShell {
     readonly wolfVotes = signal<Map<string, string | null>>(new Map());
     readonly wolfLockedTarget = signal<string | null | undefined>(undefined);
     readonly seerResult = signal<{ targetPlayerId: string; isWerewolf: boolean } | null>(null);
+    /** Whether GET /seer/status has been checked this night yet -- undefined (not checked) is
+     * distinct from `seerResult() === null` (checked, she hasn't inspected), the same
+     * fetched-vs-empty distinction witchTarget uses `undefined` for below. */
+    readonly seerActedThisNight = signal<boolean | undefined>(undefined);
+    /** Same purpose as seerActedThisNight, for GET /doctor/status. */
+    readonly doctorActedThisNight = signal<boolean | undefined>(undefined);
     readonly witchTarget = signal<string | null | undefined>(undefined);
     readonly witchHealUsed = signal(false);
     readonly witchPoisonUsed = signal(false);
@@ -799,9 +846,14 @@ export class RoomShell {
             this.wolfVotes.set(new Map());
             this.wolfLockedTarget.set(undefined);
             this.seerResult.set(null);
+            this.seerActedThisNight.set(undefined);
+            this.doctorActedThisNight.set(undefined);
             this.witchTarget.set(undefined);
             this.witchHealUsed.set(false);
             this.witchPoisonUsed.set(false);
+            // Deliberately just the in-memory signal, not setCupidFirstPick -- this effect also
+            // fires once on component init (mount/reload), and clearing sessionStorage there would
+            // wipe out the very pick the restore effect below is about to read back.
             this.cupidFirstPick.set(null);
         });
 
@@ -833,6 +885,12 @@ export class RoomShell {
         inject(DestroyRef).onDestroy(() => dyingTimeouts.forEach(clearTimeout));
         inject(DestroyRef).onDestroy(() => this.justActedTimeouts.forEach(clearTimeout));
         inject(DestroyRef).onDestroy(() => this.voteResultTimeouts.forEach(clearTimeout));
+        inject(DestroyRef).onDestroy(() => this.deathRevealSwap?.destroy());
+        inject(DestroyRef).onDestroy(() => {
+            if (this.pendingDeathBatchTimeout) {
+                clearTimeout(this.pendingDeathBatchTimeout);
+            }
+        });
         inject(DestroyRef).onDestroy(() => {
             if (this.copiedInviteLinkTimeout) {
                 clearTimeout(this.copiedInviteLinkTimeout);
@@ -877,6 +935,7 @@ export class RoomShell {
                 });
             }
             if (notification.kind === 'player.died') {
+                this.enqueueDeathReveal(this.playerName(notification.playerId), notification.cause);
                 const finalText = this.translate.instant('roomShell.playerDied', {
                     name: this.playerName(notification.playerId),
                     cause: this.translate.instant('gameLog.causes.' + notification.cause)
@@ -961,6 +1020,15 @@ export class RoomShell {
             .subscribe((result) => {
                 this.wolfVotes.set(new Map(Object.entries(result.votes)));
                 this.wolfLockedTarget.set(result.lockedTarget);
+                // Restores "already acted this night" after a reload -- this poll already carries
+                // the server-authoritative lock status, it just never used to feed actionsTaken, so
+                // showWerewolf() kept showing the attack panel to a wolf whose pack had already
+                // locked a target before the reload.
+                if (result.locked && !this.actionsTaken().has('werewolf')) {
+                    const next = new Set(this.actionsTaken());
+                    next.add('werewolf');
+                    this.actionsTaken.set(next);
+                }
             });
 
         interval(GRAVE_CHAT_POLL_MS)
@@ -990,9 +1058,74 @@ export class RoomShell {
             if (!this.showWitch() || !code || this.witchTarget() !== undefined) {
                 return;
             }
-            this.gameApi
-                .getWitchTarget(code, this.myPlayerId())
-                .subscribe((result) => this.witchTarget.set(result.targetPlayerId));
+            this.gameApi.getWitchTarget(code, this.myPlayerId()).subscribe((result) => {
+                this.witchTarget.set(result.targetPlayerId);
+                this.witchHealUsed.set(!result.healPotionAvailable);
+                this.witchPoisonUsed.set(!result.poisonPotionAvailable);
+                // Restores "already acted this night" after a reload -- actionsTaken otherwise
+                // only ever learns about the witch's turn from local button clicks in the current
+                // session, which a fresh page load has none of.
+                if (result.hasActedThisNight) {
+                    const next = new Set(this.actionsTaken());
+                    next.add('witch');
+                    this.actionsTaken.set(next);
+                }
+            });
+        });
+
+        effect(() => {
+            const code = this.roomCode();
+            if (!this.showSeer() || !code || this.seerActedThisNight() !== undefined) {
+                return;
+            }
+            this.gameApi.getSeerStatus(code, this.myPlayerId()).subscribe((result) => {
+                this.seerActedThisNight.set(result.hasActedThisNight);
+                if (result.lastInspection) {
+                    this.seerResult.set(result.lastInspection);
+                }
+                // Restores "already acted this night" after a reload -- see the witch/target
+                // effect above for the same reasoning.
+                if (result.hasActedThisNight) {
+                    const next = new Set(this.actionsTaken());
+                    next.add('seer');
+                    this.actionsTaken.set(next);
+                }
+            });
+        });
+
+        effect(() => {
+            const code = this.roomCode();
+            if (!this.showDoctor() || !code || this.doctorActedThisNight() !== undefined) {
+                return;
+            }
+            this.gameApi.getDoctorStatus(code, this.myPlayerId()).subscribe((result) => {
+                this.doctorActedThisNight.set(result.hasActedThisNight);
+                if (result.protectedTargetPlayerId) {
+                    this.lastDoctorTarget.set(result.protectedTargetPlayerId);
+                }
+                // Restores "already acted this night" after a reload -- see the witch/target
+                // effect above for the same reasoning.
+                if (result.hasActedThisNight) {
+                    const next = new Set(this.actionsTaken());
+                    next.add('doctor');
+                    this.actionsTaken.set(next);
+                }
+            });
+        });
+
+        // Restores Cupid's in-progress first pick from sessionStorage after a reload -- see
+        // setCupidFirstPick for why this can't come from the backend.
+        effect(() => {
+            const code = this.roomCode();
+            if (!this.showCupid() || !code || this.cupidFirstPick() !== null) {
+                return;
+            }
+            const stored = sessionStorage.getItem(
+                this.cupidFirstPickStorageKey(code, this.myPlayerId())
+            );
+            if (stored) {
+                this.cupidFirstPick.set(stored);
+            }
         });
     }
 
@@ -1102,6 +1235,84 @@ export class RoomShell {
                 isSystem: true
             }
         ]);
+    }
+
+    /** Queues a death for the full-screen reveal overlay (app-death-reveal). A lynch always gets
+     * its own dedicated reveal (with a reason) and plays immediately; every other cause is batched
+     * with whatever else lands within DEATH_BATCH_WINDOW_MS (a lover-link cascade, several night
+     * roles' victims, ...) into a single combined reveal instead of one full-screen takeover per
+     * name -- see pushDeathRevealEntry. */
+    private enqueueDeathReveal(name: string, cause: string): void {
+        if (cause === 'lynch') {
+            this.pushDeathRevealEntry({ kind: 'lynch', name });
+            return;
+        }
+        this.pendingDeathBatchNames.push(name);
+        if (this.pendingDeathBatchTimeout) {
+            clearTimeout(this.pendingDeathBatchTimeout);
+        }
+        this.pendingDeathBatchTimeout = setTimeout(() => {
+            this.pendingDeathBatchTimeout = null;
+            const names = this.pendingDeathBatchNames;
+            this.pendingDeathBatchNames = [];
+            this.pushDeathRevealEntry({ kind: 'deaths', names });
+        }, DEATH_BATCH_WINDOW_MS);
+    }
+
+    private pushDeathRevealEntry(entry: DeathRevealEntry): void {
+        this.deathRevealQueue.push(entry);
+        if (this.deathRevealQueue.length === 1) {
+            this.showNextQueuedDeathReveal();
+        }
+    }
+
+    /** A lynch pauses on a "tallying the votes" stage first (the vote outcome deserves its own
+     * beat before the name lands); a batched 'deaths' entry skips straight to the reveal. app-
+     * death-reveal drives each stage's on-screen hold via CSS animation and reports back through
+     * (dismissed) -- see onDeathRevealStageDone. */
+    private showNextQueuedDeathReveal(): void {
+        const next = this.deathRevealQueue[0];
+        this.setDeathReveal(
+            next ? (next.kind === 'lynch' ? { ...next, stage: 'tallying' } : next) : null
+        );
+    }
+
+    /** Fired by app-death-reveal's (dismissed) output once the current stage's on-screen hold has
+     * finished playing. */
+    onDeathRevealStageDone(): void {
+        const current = this.deathReveal();
+        if (current?.kind === 'lynch' && current.stage === 'tallying') {
+            this.setDeathReveal({ ...current, stage: 'revealed' });
+            return;
+        }
+        this.deathRevealQueue.shift();
+        this.showNextQueuedDeathReveal();
+    }
+
+    /** Every stage/item swap has to tear down and recreate app-death-reveal, not just patch its
+     * inputs on the same instance -- room-shell.html's `@if (deathReveal(); as reveal)` stays
+     * truthy across a lynch's tallying->revealed swap and across back-to-back queue entries, so
+     * without this, Angular reuses the same DOM node and the CSS fade animation
+     * (`animation: ... forwards`) never restarts once it's already finished. Nulling it out first,
+     * then setting the real value via afterNextRender, forces two separate render passes so the
+     * node is genuinely removed and re-inserted (afterNextRender rather than a bare setTimeout(0)
+     * because it's tied to Angular's actual render commit instead of racing its own scheduler with
+     * an arbitrary macrotask). */
+    private setDeathReveal(value: DeathRevealDisplay | null): void {
+        this.deathRevealSwap?.destroy();
+        this.deathRevealSwap = null;
+        this.deathReveal.set(null);
+        if (value) {
+            this.deathRevealSwap = afterNextRender(
+                {
+                    read: () => {
+                        this.deathRevealSwap = null;
+                        this.deathReveal.set(value);
+                    }
+                },
+                { injector: this.injector }
+            );
+        }
     }
 
     /** Matches SendRoomChatMessageHandler.MaxMessageLength on the backend -- oversized sends are
@@ -1258,7 +1469,7 @@ export class RoomShell {
         } else if (this.showCupid()) {
             const first = this.cupidFirstPick();
             if (!first) {
-                this.cupidFirstPick.set(playerId);
+                this.setCupidFirstPick(playerId);
             } else if (first !== playerId) {
                 this.confirmAction({
                     title: this.translate.instant('confirmActions.cupidPair.title'),
@@ -1274,7 +1485,10 @@ export class RoomShell {
                                 firstPlayerId: first,
                                 secondPlayerId: playerId
                             })
-                            .subscribe(() => this.markDone('cupid'));
+                            .subscribe(() => {
+                                this.setCupidFirstPick(null);
+                                this.markDone('cupid');
+                            });
                     }
                 });
             }
@@ -1313,6 +1527,29 @@ export class RoomShell {
         const next = new Set(this.actionsTaken());
         next.add(action);
         this.actionsTaken.set(next);
+    }
+
+    /** Cupid's pairing is submitted as one combined request (both picks at once) -- the backend
+     * never learns about the first pick until then, so unlike every other night role there's no
+     * server-side status to restore it from after a reload. Persisting it in sessionStorage (keyed
+     * per room+player, cleared once she submits or a new night starts) is the only way a reload
+     * mid-pick doesn't force her to start over. */
+    private cupidFirstPickStorageKey(roomCode: string, playerId: string): string {
+        return `werewolf:cupidFirstPick:${roomCode}:${playerId}`;
+    }
+
+    private setCupidFirstPick(playerId: string | null): void {
+        this.cupidFirstPick.set(playerId);
+        const code = this.roomCode();
+        if (!code) {
+            return;
+        }
+        const key = this.cupidFirstPickStorageKey(code, this.myPlayerId());
+        if (playerId) {
+            sessionStorage.setItem(key, playerId);
+        } else {
+            sessionStorage.removeItem(key);
+        }
     }
 
     witchHealAction(): void {

@@ -53,7 +53,7 @@ npm start          # ng serve, proxies to the backend per src/environments/envir
 ## Test
 
 ```bash
-npm test           # Jasmine/Karma unit tests
+npm test           # Vitest unit tests
 npm run e2e        # Playwright end-to-end suite (starts the backend + a dedicated FE dev server automatically)
 npm run e2e:ui      # same, with Playwright's UI runner
 ```

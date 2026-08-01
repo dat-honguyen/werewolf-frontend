@@ -205,6 +205,13 @@
         "playerKicked": "{{name}} was kicked from the lobby.",
         "playerDied": "{{name}} died ({{cause}}).",
         "tallyingVotes": "🗳️ Tallying the votes...",
+        "deathReveal": {
+            "tallying": "🗳️ Tallying the votes...",
+            "lynched": "{{name}} was lynched",
+            "died": "{{names}} was found dead",
+            "diedPlural": "{{names}} were found dead",
+            "and": "and"
+        },
         "gridActions": {
             "kick": "Kick",
             "vote": "Vote",

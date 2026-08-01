@@ -37,3 +37,19 @@ messages should read like any other commit here — no AI-attribution footer.
   outbound pushes arrive on `notifications$`, keyed by `kind`.
 - `e2e/start-backend.cjs` assumes `werewolf-frontend` and `werewolf` are checked out as sibling
   directories — this is also why doc paths above use `../werewolf/...`.
+- Building the backend to sanity-check a `../werewolf` change: `cd ../werewolf && dotnet build
+src/Application/Application.csproj`. There's only one test project there,
+  `src/IntegrationTests` — search it before assuming an endpoint has coverage to update.
+
+## Night-role "already acted" state doesn't survive a page reload
+
+`RoomShell`'s per-night local signals (`actionsTaken`, `witchHealUsed`/`witchPoisonUsed`, `seerResult`,
+`wolfLockedTarget`, `cupidFirstPick`, ...) are reset by an effect keyed on the current night number
+(`room-shell.ts`, search `currentNightNumber()`) that also fires once on component init — so a full
+page reload always forgets "have I already acted this night" for any role tracked purely client-side,
+even though the backend (`NightActionsState.*Done` fields in `GameState.cs`) knows the true answer.
+The Witch got fixed by adding `healPotionAvailable`/`poisonPotionAvailable`/`hasActedThisNight` to
+`GET /witch/target`'s response and restoring local state from it on load (see `GetWitchTargetEndpoint`
+and the `getWitchTarget` subscription in `room-shell.ts`) — the same gap likely still exists for Seer,
+Cupid, and Werewolf and would need the same treatment (extend their existing `GET` endpoints, or add
+one, with an "already acted" field) if reported.

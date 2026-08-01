@@ -1,0 +1,83 @@
+.death-reveal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    background-color: var(--bg-main, #0a0d16);
+    animation: deathRevealFadeHold var(--duration, 4000ms) ease-in-out forwards;
+
+    &__glyph {
+        font-size: 4.5rem;
+        filter: drop-shadow(0 0 24px color-mix(in srgb, var(--danger, #ff3b30) 60%, transparent));
+        animation: deathRevealGlyphPulse 1.6s ease-in-out infinite;
+    }
+
+    &__text {
+        margin: 0;
+        color: var(--text-main, #f1f3f4);
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 1.6rem;
+        padding: 0 1.5rem;
+    }
+
+    &--tallying &__glyph {
+        filter: drop-shadow(0 0 24px color-mix(in srgb, var(--primary, #d9a441) 60%, transparent));
+    }
+
+    &--tallying &__text {
+        color: var(--primary, #d9a441);
+    }
+}
+
+@keyframes deathRevealFadeHold {
+    0% {
+        opacity: 0;
+    }
+
+    8%,
+    88% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes deathRevealGlyphPulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .death-reveal {
+        animation-name: deathRevealFadeHoldReduced;
+    }
+
+    .death-reveal__glyph {
+        animation: none;
+    }
+}
+
+@keyframes deathRevealFadeHoldReduced {
+    0%,
+    95% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

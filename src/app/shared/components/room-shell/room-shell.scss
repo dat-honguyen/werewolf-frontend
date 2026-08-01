@@ -45,9 +45,6 @@
     }
 
     &__header {
-        position: sticky;
-        top: 0;
-        z-index: 10;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
@@ -221,11 +218,12 @@
         flex-direction: column;
         gap: 1rem;
 
-        // Sticks under the header instead of scrolling away with a short center column, so the
+        // Sticks to the viewport instead of scrolling away with a short center column, so the
         // roster/stats stay in view for the whole page instead of leaving dead space where a
-        // fixed-height column used to be forced to fill the viewport.
+        // fixed-height column used to be forced to fill the viewport. The header itself is no
+        // longer sticky, so this offset is just breathing room, not header clearance.
         position: sticky;
-        top: calc(var(--header-h) + 1.5rem);
+        top: 1.5rem;
 
         @media (max-width: 900px) {
             position: static;
@@ -325,10 +323,11 @@
 
         // Sticks alongside &__left rather than stretching to fill a forced 100vh column -- it
         // keeps its own bounded height (so long histories scroll internally, Discord-style)
-        // without dictating the height of the rest of the page.
+        // without dictating the height of the rest of the page. The header is no longer sticky,
+        // so height is measured against the full viewport rather than the space below it.
         position: sticky;
-        top: calc(var(--header-h) + 1.5rem);
-        height: calc(100vh - var(--header-h) - 3rem);
+        top: 1.5rem;
+        height: calc(100vh - 3rem);
 
         @media (max-width: 900px) {
             position: static;

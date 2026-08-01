@@ -91,6 +91,8 @@ All routes are `Wolverine.HTTP` endpoints under `/api/v1`.
 | GET    | `/api/v1/game/{roomCode}/lovers`         | `GetLoversEndpoint`                                                        |
 | GET    | `/api/v1/game/{roomCode}/werewolf/votes` | `GetWerewolfVotesEndpoint`                                                 |
 | GET    | `/api/v1/game/{roomCode}/witch/target`   | `GetWitchTargetEndpoint`                                                   |
+| GET    | `/api/v1/game/{roomCode}/seer/status`    | `GetSeerStatusEndpoint`                                                    |
+| GET    | `/api/v1/game/{roomCode}/doctor/status`  | `GetDoctorStatusEndpoint`                                                  |
 | GET    | `/api/v1/game/{roomCode}/chat/room`      | `GetRoomChatEndpoint` (history only — sending moved to SignalR, see above) |
 | GET    | `/api/v1/game/{roomCode}/chat/pack`      | `GetPackChatEndpoint`                                                      |
 | POST   | `/api/v1/game/chat/pack`                 | `SendPackChatMessageEndpoint`                                              |

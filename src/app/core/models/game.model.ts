@@ -134,4 +134,21 @@ export interface LoversResponse {
 // GET /api/v1/game/{roomCode}/witch/target?playerId={id} -- 404 unless a living Witch
 export interface WitchTargetResponse {
     targetPlayerId: string | null;
+    // Lifetime potion availability plus this-night action status, so a reload can restore the
+    // Witch panel's state instead of relying on local component state that resets on load.
+    healPotionAvailable: boolean;
+    poisonPotionAvailable: boolean;
+    hasActedThisNight: boolean;
+}
+
+// GET /api/v1/game/{roomCode}/seer/status?playerId={id} -- 404 unless a living Seer
+export interface SeerStatusResponse {
+    hasActedThisNight: boolean;
+    lastInspection: { targetPlayerId: string; isWerewolf: boolean } | null;
+}
+
+// GET /api/v1/game/{roomCode}/doctor/status?playerId={id} -- 404 unless a living Doctor
+export interface DoctorStatusResponse {
+    hasActedThisNight: boolean;
+    protectedTargetPlayerId: string | null;
 }

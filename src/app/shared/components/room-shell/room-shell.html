@@ -10,6 +10,16 @@
         [nightNumber]="state()?.nightNumber ?? null"
         (dismissed)="showPhaseTransition.set(false)"
     ></app-phase-transition>
+    } @if (deathReveal(); as reveal) {
+    <app-death-reveal
+        [mode]="reveal.kind"
+        [name]="reveal.kind === 'lynch' ? reveal.name : ''"
+        [names]="reveal.kind === 'deaths' ? reveal.names : []"
+        [stage]="reveal.kind === 'lynch' ? reveal.stage : 'revealed'"
+        [tallyingDurationMs]="voteTallyingDurationMs"
+        [revealedDurationMs]="deathRevealHoldMs"
+        (dismissed)="onDeathRevealStageDone()"
+    ></app-death-reveal>
     }
     <app-room-backdrop [isNight]="isNight()"></app-room-backdrop>
     <header class="room-shell__header" #header>

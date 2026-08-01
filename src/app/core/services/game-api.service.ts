@@ -7,12 +7,14 @@ import {
     CastVoteRequest,
     ChatMessagesResponse,
     CloseVotingRequest,
+    DoctorStatusResponse,
     GameLogResponse,
     GameStateResponse,
     LoversResponse,
     PassHunterRevengeRequest,
     PassWitchRequest,
     QuitGameRequest,
+    SeerStatusResponse,
     SendGraveChatMessageRequest,
     SubmitCupidPairingRequest,
     SubmitDoctorProtectionRequest,
@@ -110,6 +112,20 @@ export class GameApiService {
     getWitchTarget(roomCode: string, playerId: string): Observable<WitchTargetResponse> {
         return this.http.get<WitchTargetResponse>(
             `${this.baseUrl}/${roomCode}/witch/target?playerId=${encodeURIComponent(playerId)}`
+        );
+    }
+
+    /** 404s unless `playerId` is a living Seer. */
+    getSeerStatus(roomCode: string, playerId: string): Observable<SeerStatusResponse> {
+        return this.http.get<SeerStatusResponse>(
+            `${this.baseUrl}/${roomCode}/seer/status?playerId=${encodeURIComponent(playerId)}`
+        );
+    }
+
+    /** 404s unless `playerId` is a living Doctor. */
+    getDoctorStatus(roomCode: string, playerId: string): Observable<DoctorStatusResponse> {
+        return this.http.get<DoctorStatusResponse>(
+            `${this.baseUrl}/${roomCode}/doctor/status?playerId=${encodeURIComponent(playerId)}`
         );
     }
 
